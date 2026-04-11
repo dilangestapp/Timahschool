@@ -1,0 +1,84 @@
+
+.hero-visual--safe {
+    display: flex;
+    justify-content: flex-end;
+    align-items: center;
+}
+.hero-visual__panel {
+    width: min(100%, 520px);
+    background: #ffffff;
+    border: 1px solid #dbe3f0;
+    border-radius: 28px;
+    box-shadow: var(--shadow-lg);
+    padding: 22px;
+}
+.hero-visual__panel-top {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px;
+    margin-bottom: 18px;
+}
+.pill {
+    display: inline-flex;
+    align-items: center;
+    min-height: 34px;
+    padding: 0 14px;
+    border-radius: 999px;
+    font-weight: 700;
+    font-size: 0.86rem;
+}
+.pill--blue { background: #dbeafe; color: #1d4ed8; }
+.pill--green { background: #ccfbf1; color: #0f766e; }
+.pill--violet { background: #ede9fe; color: #6d28d9; }
+.hero-visual__panel-body {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 14px;
+}
+.hero-mini-card {
+    border-radius: 22px;
+    padding: 18px 16px;
+    color: #fff;
+    min-height: 130px;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+}
+.hero-mini-card strong {
+    font-size: 1.05rem;
+}
+.hero-mini-card span {
+    font-size: 0.92rem;
+    color: rgba(255,255,255,.92);
+}
+.hero-mini-card--blue { background: linear-gradient(135deg, #34a9f2, #1d7fde); }
+.hero-mini-card--green { background: linear-gradient(135deg, #0fbf9c, #0c9d8d); }
+.hero-mini-card--violet { background: linear-gradient(135deg, #5c54db, #4b39c8); }
+.hero-visual__stats {
+    margin-top: 16px;
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 12px;
+}
+.hero-visual__stats > div {
+    background: #f8fbff;
+    border: 1px solid #e5edf7;
+    border-radius: 18px;
+    padding: 14px;
+    text-align: center;
+}
+.hero-visual__stats strong {
+    display: block;
+    font-size: 1.2rem;
+    color: var(--primary);
+}
+.hero-visual__stats span {
+    display: block;
+    margin-top: 4px;
+    color: var(--muted);
+    font-size: 0.9rem;
+}
+@media (max-width: 680px) {
+    .hero-visual__panel-body,
+    .hero-visual__stats { grid-template-columns: 1fr; }
+}

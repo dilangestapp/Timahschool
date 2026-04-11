@@ -1,0 +1,4 @@
+1. Remplacer les fichiers du pack aux mêmes emplacements dans le projet.
+2. Lancer : php artisan optimize:clear && php artisan view:clear && php artisan cache:clear && php artisan config:clear && php artisan route:clear
+3. Ouvrir ensuite : http://localhost/timahschool/public/backoffice-access/dashboard
+4. Modules gérés dans ce pack : utilisateurs, classes, matières, cours, plans, abonnements, paiements.
