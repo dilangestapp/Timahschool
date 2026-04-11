@@ -1,42 +1,70 @@
-FROM composer:2 AS vendor
+FROM node:20-bullseye AS frontend
 
 WORKDIR /app
-COPY composer.json composer.lock* ./
-RUN composer install --no-dev --prefer-dist --no-interaction --no-progress --optimize-autoloader
 
-FROM php:8.2-apache
+COPY package*.json ./
+RUN if [ -f package-lock.json ]; then npm ci; else npm install; fi
+
+COPY . .
+RUN npm run build
+
+
+FROM composer:2 AS composer_bin
+
+
+FROM php:8.1-cli-bullseye
+
+WORKDIR /app
 
 RUN apt-get update && apt-get install -y \
     git \
+    curl \
     unzip \
-    libzip-dev \
+    zip \
     libpng-dev \
     libjpeg62-turbo-dev \
     libfreetype6-dev \
     libonig-dev \
     libxml2-dev \
+    libzip-dev \
     libicu-dev \
-    libpq-dev \
-    libsqlite3-dev \
     && docker-php-ext-configure gd --with-freetype --with-jpeg \
-    && docker-php-ext-install pdo pdo_mysql mbstring zip exif pcntl bcmath intl gd \
-    && a2enmod rewrite \
+    && docker-php-ext-install \
+        pdo_mysql \
+        mbstring \
+        exif \
+        pcntl \
+        bcmath \
+        gd \
+        zip \
+        intl \
+    && apt-get clean \
     && rm -rf /var/lib/apt/lists/*
 
-WORKDIR /var/www/html
+COPY --from=composer_bin /usr/bin/composer /usr/bin/composer
 
-COPY . /var/www/html
-COPY --from=vendor /app/vendor /var/www/html/vendor
+COPY composer.json composer.lock* ./
+RUN composer install --no-dev --prefer-dist --no-interaction --optimize-autoloader --no-scripts
 
-RUN mkdir -p storage/framework/cache/data storage/framework/sessions storage/framework/views storage/logs bootstrap/cache \
-    && chown -R www-data:www-data /var/www/html \
+COPY . .
+
+COPY --from=frontend /app/public/build ./public/build
+
+RUN composer dump-autoload --optimize --no-dev \
+    && mkdir -p storage/framework/cache \
+    && mkdir -p storage/framework/sessions \
+    && mkdir -p storage/framework/views \
+    && mkdir -p storage/logs \
+    && mkdir -p bootstrap/cache \
+    && mkdir -p /data/public \
     && chmod -R 775 storage bootstrap/cache
 
-ENV APACHE_DOCUMENT_ROOT=/var/www/html/public
+EXPOSE 8080
 
-RUN sed -ri -e 's!/var/www/html!${APACHE_DOCUMENT_ROOT}!g' /etc/apache2/sites-available/000-default.conf \
-    && sed -ri -e 's!/var/www/!${APACHE_DOCUMENT_ROOT}!g' /etc/apache2/apache2.conf /etc/apache2/conf-available/*.conf
-
-EXPOSE 80
-
-CMD ["apache2-foreground"]
+CMD sh -lc '\
+    mkdir -p /data/public && \
+    rm -rf public/storage && \
+    php artisan storage:link || true && \
+    php artisan package:discover --ansi || true && \
+    php artisan serve --host=0.0.0.0 --port=${PORT:-8080} \
+'
