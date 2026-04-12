@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="fr">
+<html lang="fr" data-theme="auto">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -21,7 +21,6 @@
                 <a href="{{ route('home') }}#classes">Cours</a>
                 <a href="{{ route('home') }}#classes">Quiz</a>
                 <a href="{{ route('home') }}#pricing">Tarifs</a>
-                <a href="{{ route('login') }}">Connexion</a>
             </nav>
 
             <div class="header-actions">
@@ -50,15 +49,15 @@
                     <p class="footer-text">Apprendre aujourd'hui, réussir demain. Une plateforme pensée pour les élèves qui veulent progresser sérieusement.</p>
                 </div>
                 <div>
-                    <h3 class="footer-title">Liens rapides</h3>
+                    <h3 class="footer-title">Plateforme</h3>
                     <ul class="footer-list">
                         <li><a href="{{ route('home') }}">Accueil</a></li>
-                        <li><a href="{{ route('home') }}#classes">Cours</a></li>
+                        <li><a href="{{ route('home') }}#classes">Classes</a></li>
                         <li><a href="{{ route('home') }}#pricing">Tarifs</a></li>
                     </ul>
                 </div>
                 <div>
-                    <h3 class="footer-title">Ressources</h3>
+                    <h3 class="footer-title">Accès</h3>
                     <ul class="footer-list">
                         <li><a href="{{ route('login') }}">Connexion</a></li>
                         <li><a href="{{ route('register') }}">Inscription</a></li>
@@ -66,16 +65,15 @@
                     </ul>
                 </div>
                 <div>
-                    <h3 class="footer-title">Suivez-nous</h3>
+                    <h3 class="footer-title">TIMAH SCHOOL</h3>
                     <ul class="footer-list">
-                        <li>Facebook</li>
-                        <li>Twitter</li>
-                        <li>Instagram</li>
-                        <li>YouTube</li>
+                        <li>Support pédagogique</li>
+                        <li>Accompagnement élève</li>
+                        <li>Suivi de progression</li>
                     </ul>
                 </div>
             </div>
-            <div class="footer-bottom">© {{ date('Y') }} Timah School. Tous droits réservés.</div>
+            <div class="footer-bottom">© {{ date('Y') }} TIMAH SCHOOL. Tous droits réservés.</div>
         </div>
     </footer>
 </div>

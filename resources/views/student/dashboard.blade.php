@@ -7,8 +7,8 @@
     <div class="status-card__inner">
         <div class="status-card__head">
             <div>
-                <h1>Bonjour, {{ auth()->user()->full_name }} ! 👋</h1>
-                <p>Vous êtes en <strong style="color:#fff;">{{ $studentProfile->schoolClass->name }}</strong></p>
+                <h1>Bonjour, {{ auth()->user()->full_name }} 👋</h1>
+                <p>Classe : <strong style="color:#fff;">{{ $studentProfile->schoolClass->name }}</strong></p>
             </div>
             <div class="status-chip">
                 <strong>{{ $subscription && $subscription->isActive() ? '✓' : '!' }}</strong>
@@ -49,7 +49,7 @@
 
 <div class="shortcut-grid">
     <a href="{{ route('student.td.index') }}" class="shortcut-card shortcut-card--primary">
-        <div class="shortcut-card__head"><div><h3>Mes TD</h3><p>Accédez à tous les TD de votre classe, avec corrigés et questions.</p></div><div class="shortcut-icon">📝</div></div>
+        <div class="shortcut-card__head"><div><h3>Mes TD</h3><p>Accédez aux TD, corrigés et questions.</p></div><div class="shortcut-icon">📝</div></div>
     </a>
     <a href="{{ route('student.messages.create') }}" class="shortcut-card">
         <div class="shortcut-card__head"><div><h3>Messagerie enseignant</h3><p>Posez vos questions liées à la matière ou au TD concerné.</p></div><div class="shortcut-icon">✉️</div></div>
