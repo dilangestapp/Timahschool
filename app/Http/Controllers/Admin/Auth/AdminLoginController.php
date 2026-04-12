@@ -3,16 +3,24 @@
 namespace App\Http\Controllers\Admin\Auth;
 
 use App\Http\Controllers\Controller;
+use App\Models\User;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Schema;
 
 class AdminLoginController extends Controller
 {
-    public function showLoginForm()
+    public function showLoginForm(Request $request)
     {
-        if (Auth::check() && method_exists(Auth::user(), 'isAdmin') && Auth::user()->isAdmin()) {
-            return redirect()->route('admin.dashboard');
+        if (Auth::check()) {
+            $currentUser = Auth::user();
+
+            if ($currentUser && method_exists($currentUser, 'isAdmin') && $currentUser->isAdmin()) {
+                return redirect()->route('admin.dashboard');
+            }
+
+            $this->clearCurrentSession($request);
         }
 
         return view('admin.auth.login', [
@@ -32,62 +40,121 @@ class AdminLoginController extends Controller
             'access_code.required' => 'Le code d\'accès admin est obligatoire.',
         ]);
 
-        $expectedCode = (string) config('timahschool.admin_access_code', '');
+        $expectedCode = $this->expectedAccessCode();
 
-        if ($expectedCode === '' || !hash_equals($expectedCode, (string) $request->access_code)) {
+        if ($expectedCode === '' || !hash_equals($expectedCode, (string) $request->input('access_code'))) {
             return back()
                 ->withErrors(['access_code' => 'Code d\'accès admin invalide.'])
                 ->onlyInput('username');
         }
 
-        $credentials = $request->only('username', 'password');
+        if (Auth::check()) {
+            $this->clearCurrentSession($request);
+        }
 
-        if (!Auth::attempt($credentials, $request->boolean('remember'))) {
+        $user = $this->findAdminUser((string) $request->input('username'));
+
+        if (!$user) {
+            return back()
+                ->withErrors(['username' => 'Compte administrateur introuvable.'])
+                ->onlyInput('username');
+        }
+
+        if (!Hash::check((string) $request->input('password'), (string) $user->password)) {
             return back()
                 ->withErrors(['username' => 'Identifiants administrateur invalides.'])
                 ->onlyInput('username');
         }
 
+        Auth::login($user, $request->boolean('remember'));
         $request->session()->regenerate();
 
-        $user = Auth::user();
-
-        if (!$user || !method_exists($user, 'isAdmin') || !$user->isAdmin()) {
-            Auth::logout();
-            $request->session()->invalidate();
-            $request->session()->regenerateToken();
-
-            return back()
-                ->withErrors(['username' => 'Ce compte n\'est pas autorisé sur le portail admin.'])
-                ->onlyInput('username');
-        }
-
         try {
-            if (Schema::hasColumn($user->getTable(), 'last_login_at')) {
+            $table = $user->getTable();
+
+            if (Schema::hasColumn($table, 'last_login_at')) {
                 $updates = [
                     'last_login_at' => now(),
                 ];
 
-                if (Schema::hasColumn($user->getTable(), 'last_login_ip')) {
+                if (Schema::hasColumn($table, 'last_login_ip')) {
                     $updates['last_login_ip'] = $request->ip();
                 }
 
                 $user->forceFill($updates)->save();
             }
         } catch (\Throwable $e) {
-            // Ne pas bloquer la connexion
+            // Ne pas bloquer la connexion admin si ces colonnes n'existent pas ou si la mise à jour échoue.
         }
 
-        return redirect()->route('admin.dashboard');
+        return redirect()->intended(route('admin.dashboard'));
     }
 
     public function logout(Request $request)
+    {
+        $this->clearCurrentSession($request);
+
+        return redirect()->route('admin.login');
+    }
+
+    protected function expectedAccessCode(): string
+    {
+        return trim((string) config('timahschool.admin_access_code', ''));
+    }
+
+    protected function findAdminUser(string $identifier): ?User
+    {
+        $identifier = trim($identifier);
+
+        if ($identifier === '') {
+            return null;
+        }
+
+        $userModel = new User();
+        $table = $userModel->getTable();
+
+        $loginColumns = [];
+
+        foreach (['username', 'email', 'name'] as $column) {
+            if (Schema::hasColumn($table, $column)) {
+                $loginColumns[] = $column;
+            }
+        }
+
+        if (empty($loginColumns)) {
+            return null;
+        }
+
+        $query = User::query()->with(['role', 'roles']);
+
+        $query->where(function ($subQuery) use ($loginColumns, $identifier) {
+            foreach ($loginColumns as $index => $column) {
+                if ($index === 0) {
+                    $subQuery->where($column, $identifier);
+                } else {
+                    $subQuery->orWhere($column, $identifier);
+                }
+            }
+        });
+
+        $user = $query->first();
+
+        if (!$user) {
+            return null;
+        }
+
+        if (!method_exists($user, 'isAdmin') || !$user->isAdmin()) {
+            return null;
+        }
+
+        return $user;
+    }
+
+    protected function clearCurrentSession(Request $request): void
     {
         Auth::logout();
 
         $request->session()->invalidate();
         $request->session()->regenerateToken();
-
-        return redirect()->route('admin.login');
     }
 }

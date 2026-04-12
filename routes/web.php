@@ -44,10 +44,8 @@ Route::post('/logout', [LoginController::class, 'logout'])->name('logout')->midd
 $adminPath = trim((string) config('timahschool.admin_path', 'backoffice-access'), '/');
 
 Route::prefix($adminPath)->name('admin.')->group(function () {
-    Route::middleware('guest')->group(function () {
-        Route::get('/login', [AdminLoginController::class, 'showLoginForm'])->name('login');
-        Route::post('/login', [AdminLoginController::class, 'login'])->name('login.submit');
-    });
+    Route::get('/login', [AdminLoginController::class, 'showLoginForm'])->name('login');
+    Route::post('/login', [AdminLoginController::class, 'login'])->name('login.submit');
 
     Route::middleware(['auth', EnsureAdmin::class])->group(function () {
         Route::get('/dashboard', [AdminDashboardController::class, 'index'])->name('dashboard');
