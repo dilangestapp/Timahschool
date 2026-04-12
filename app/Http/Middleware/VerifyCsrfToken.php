@@ -13,6 +13,5 @@ class VerifyCsrfToken extends Middleware
      */
     protected $except = [
         'webhook/notchpay',
-        'backoffice-access/login',
     ];
 }
