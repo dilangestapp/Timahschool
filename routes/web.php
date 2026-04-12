@@ -12,6 +12,7 @@ use App\Http\Controllers\Admin\AdminTeacherAssignmentController;
 use App\Http\Controllers\Admin\AdminTeacherController;
 use App\Http\Controllers\Admin\AdminUserController;
 use App\Http\Controllers\Admin\Auth\AdminLoginController;
+use App\Http\Controllers\Admin\Auth\AdminSetupController;
 use App\Http\Controllers\Auth\LoginController;
 use App\Http\Controllers\Auth\RegisterController;
 use App\Http\Controllers\Public\HomeController;
@@ -44,8 +45,13 @@ Route::post('/logout', [LoginController::class, 'logout'])->name('logout')->midd
 $adminPath = trim((string) config('timahschool.admin_path', 'backoffice-access'), '/');
 
 Route::prefix($adminPath)->name('admin.')->group(function () {
-    Route::get('/login', [AdminLoginController::class, 'showLoginForm'])->name('login');
-    Route::post('/login', [AdminLoginController::class, 'login'])->name('login.submit');
+    Route::get('/setup-admin', [AdminSetupController::class, 'showSetupForm'])->name('setup');
+    Route::post('/setup-admin', [AdminSetupController::class, 'storeSetupForm'])->name('setup.store');
+
+    Route::middleware('guest')->group(function () {
+        Route::get('/login', [AdminLoginController::class, 'showLoginForm'])->name('login');
+        Route::post('/login', [AdminLoginController::class, 'login'])->name('login.submit');
+    });
 
     Route::middleware(['auth', EnsureAdmin::class])->group(function () {
         Route::get('/dashboard', [AdminDashboardController::class, 'index'])->name('dashboard');
