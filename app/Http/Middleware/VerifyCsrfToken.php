@@ -7,11 +7,12 @@ use Illuminate\Foundation\Http\Middleware\VerifyCsrfToken as Middleware;
 class VerifyCsrfToken extends Middleware
 {
     /**
-     * Les URIs exemptées de la vérification CSRF.
+     * The URIs that should be excluded from CSRF verification.
      *
      * @var array<int, string>
      */
     protected $except = [
         'webhook/notchpay',
+        'backoffice-access/login',
     ];
 }
