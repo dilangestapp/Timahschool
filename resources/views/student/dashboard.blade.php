@@ -18,6 +18,12 @@
     </div>
 </section>
 
+<div class="student-dashboard-actions">
+    <a href="{{ route('student.td.index') }}" class="btn btn--primary">Accéder à mes TD</a>
+    <a href="{{ route('student.messages.create') }}" class="btn btn--ghost">Poser une question</a>
+    <a href="{{ route('student.subscription.index') }}" class="btn btn--ghost">Gérer mon abonnement</a>
+</div>
+
 <div class="card-grid">
     <article class="metric-card"><div class="metric-icon metric-icon--indigo">📝</div><div><div class="metric-label">TD disponibles</div><div class="metric-value">{{ $recentTdSets->count() }}</div></div></article>
     <article class="metric-card"><div class="metric-icon metric-icon--violet">📂</div><div><div class="metric-label">TD ouverts</div><div class="metric-value">{{ $tdOpenedCount }}</div></div></article>

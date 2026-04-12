@@ -24,6 +24,7 @@
             </nav>
 
             <div class="header-actions">
+                <button type="button" class="theme-toggle" data-theme-toggle aria-label="Basculer le thème">🌗 Thème</button>
                 @auth
                     <a href="{{ route('student.dashboard') }}" class="btn btn--ghost">Mon espace</a>
                 @else
@@ -77,5 +78,46 @@
         </div>
     </footer>
 </div>
+<script>
+(() => {
+    const root = document.documentElement;
+    const storageKey = 'timah-theme';
+    const media = window.matchMedia('(prefers-color-scheme: dark)');
+    const prefersDark = () => media.matches;
+    const getStoredTheme = () => localStorage.getItem(storageKey);
+    const applyTheme = (theme) => root.setAttribute('data-theme', theme || 'auto');
+    const currentEffectiveTheme = () => {
+        const active = root.getAttribute('data-theme') || 'auto';
+        return active === 'auto' ? (prefersDark() ? 'dark' : 'light') : active;
+    };
+    const nextTheme = () => {
+        const active = root.getAttribute('data-theme') || 'auto';
+        if (active === 'auto') return prefersDark() ? 'light' : 'dark';
+        return active === 'dark' ? 'light' : 'dark';
+    };
+    const updateToggleLabels = () => {
+        const effective = currentEffectiveTheme();
+        document.querySelectorAll('[data-theme-toggle]').forEach((button) => {
+            button.textContent = effective === 'dark' ? '☀️ Clair' : '🌙 Sombre';
+        });
+    };
+
+    applyTheme(getStoredTheme() || 'auto');
+    updateToggleLabels();
+    media.addEventListener('change', () => {
+        if ((root.getAttribute('data-theme') || 'auto') === 'auto') {
+            updateToggleLabels();
+        }
+    });
+    document.querySelectorAll('[data-theme-toggle]').forEach((button) => {
+        button.addEventListener('click', () => {
+            const value = nextTheme();
+            localStorage.setItem(storageKey, value);
+            applyTheme(value);
+            updateToggleLabels();
+        });
+    });
+})();
+</script>
 </body>
 </html>
