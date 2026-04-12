@@ -33,20 +33,10 @@ class AdminLoginController extends Controller
         $request->validate([
             'username' => 'required|string',
             'password' => 'required|string',
-            'access_code' => 'required|string',
         ], [
-            'username.required' => 'Le nom d\'utilisateur est obligatoire.',
+            'username.required' => 'Le nom d\'utilisateur admin est obligatoire.',
             'password.required' => 'Le mot de passe est obligatoire.',
-            'access_code.required' => 'Le code d\'accès admin est obligatoire.',
         ]);
-
-        $expectedCode = $this->expectedAccessCode();
-
-        if ($expectedCode === '' || !hash_equals($expectedCode, (string) $request->input('access_code'))) {
-            return back()
-                ->withErrors(['access_code' => 'Code d\'accès admin invalide.'])
-                ->onlyInput('username');
-        }
 
         if (Auth::check()) {
             $this->clearCurrentSession($request);
@@ -84,7 +74,7 @@ class AdminLoginController extends Controller
                 $user->forceFill($updates)->save();
             }
         } catch (\Throwable $e) {
-            // Ne pas bloquer la connexion admin si ces colonnes n'existent pas ou si la mise à jour échoue.
+            // Ne pas bloquer la connexion admin si ces colonnes n'existent pas.
         }
 
         return redirect()->intended(route('admin.dashboard'));
@@ -95,11 +85,6 @@ class AdminLoginController extends Controller
         $this->clearCurrentSession($request);
 
         return redirect()->route('admin.login');
-    }
-
-    protected function expectedAccessCode(): string
-    {
-        return trim((string) config('timahschool.admin_access_code', ''));
     }
 
     protected function findAdminUser(string $identifier): ?User

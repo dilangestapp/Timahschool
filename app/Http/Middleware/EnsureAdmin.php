@@ -18,7 +18,13 @@ class EnsureAdmin
         $user = Auth::user();
 
         if (!$user || !method_exists($user, 'isAdmin') || !$user->isAdmin()) {
-            abort(404);
+            Auth::logout();
+            $request->session()->invalidate();
+            $request->session()->regenerateToken();
+
+            return redirect()
+                ->route('admin.login')
+                ->withErrors(['username' => 'Ce compte n\'est pas autorisé sur le portail admin.']);
         }
 
         return $next($request);

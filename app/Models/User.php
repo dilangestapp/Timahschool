@@ -99,12 +99,20 @@ class User extends Authenticatable
     {
         $roleName = mb_strtolower(trim($roleName));
 
-        if ($this->relationLoaded('role') && $this->role && mb_strtolower((string) $this->role->name) === $roleName) {
-            return true;
+        if ($roleName === '') {
+            return false;
         }
 
         if ($this->role && mb_strtolower((string) $this->role->name) === $roleName) {
             return true;
+        }
+
+        if ($this->relationLoaded('roles')) {
+            foreach ($this->roles as $role) {
+                if ($role && mb_strtolower((string) $role->name) === $roleName) {
+                    return true;
+                }
+            }
         }
 
         return $this->roles()->whereRaw('LOWER(name) = ?', [$roleName])->exists();
@@ -112,6 +120,10 @@ class User extends Authenticatable
 
     public function isAdmin(): bool
     {
+        if ((int) ($this->role_id ?? 0) === 1) {
+            return true;
+        }
+
         return $this->hasRole('admin');
     }
 
