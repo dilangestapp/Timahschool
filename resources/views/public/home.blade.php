@@ -24,6 +24,7 @@
                 <div class="hero-pills">
                     <span class="hero-pill">Sans engagement</span>
                     <span class="hero-pill">Cours + quiz + TD</span>
+                    <span class="hero-pill">Interface claire / sombre</span>
                 </div>
             </div>
 
