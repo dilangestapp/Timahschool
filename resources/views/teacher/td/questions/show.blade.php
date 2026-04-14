@@ -26,7 +26,7 @@
                     <div class="teacher-bubble__body">{!! $message->message_html !!}</div>
                 @endif
                 @if($message->attachment_path)
-                    <div class="teacher-doc-card"><a href="{{ route('teacher.td.messages.attachment', $message) }}">{{ $message->attachment_name }}</a></div>
+                    <div class="teacher-doc-card"><a href="{{ route('teacher.td.questions.attachment', $message) }}">{{ $message->attachment_name }}</a></div>
                 @endif
             </article>
         @empty

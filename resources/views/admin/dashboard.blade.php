@@ -14,6 +14,14 @@
 
 <div class="admin-grid-2 admin-grid-2--wide-left">
     <section class="admin-section">
+    <article class="admin-stat-card"><span class="admin-stat-card__label">Utilisateurs</span><strong>{{ $stats['users'] }}</strong><small>Base active TIMAH SCHOOL</small></article>
+    <article class="admin-stat-card"><span class="admin-stat-card__label">Enseignants</span><strong>{{ $stats['teachers'] }}</strong><small>Comptes affectables</small></article>
+    <article class="admin-stat-card"><span class="admin-stat-card__label">TD publiés</span><strong>{{ $stats['td_published'] }}</strong><small>Contenus immédiatement disponibles</small></article>
+    <article class="admin-stat-card"><span class="admin-stat-card__label">Questions TD ouvertes</span><strong>{{ $stats['td_questions_open'] }}</strong><small>Demandes élève en attente</small></article>
+</div>
+
+<div class="admin-grid-2 admin-grid-2--wide-left">
+    <section class="admin-section admin-section--hero">
         <div class="admin-section__head"><div><h2>Modules de pilotage</h2><p class="admin-muted">Contrôle rapide de l’administration pédagogique et opérationnelle.</p></div></div>
         <div class="admin-module-grid">
             <a class="admin-module-card" href="{{ route('admin.teachers.index') }}"><strong>Enseignants</strong><span>Gérer les comptes, statuts et disponibilités.</span></a>
@@ -24,6 +32,13 @@
     </section>
 
     <section class="admin-section">
+    <section class="admin-section admin-section--side">
+        <div class="admin-section__head"><div><h2>Colonne décisionnelle</h2><p class="admin-muted">Actions à fort impact pour gagner du temps au quotidien.</p></div></div>
+        <div class="admin-quick-actions">
+            <a href="{{ route('admin.users.index') }}" class="admin-quick-action"><strong>Utilisateurs</strong><span>Gérer accès et rôles.</span></a>
+            <a href="{{ route('admin.plans.index') }}" class="admin-quick-action"><strong>Plans</strong><span>Mettre à jour les formules.</span></a>
+            <a href="{{ route('admin.payments.index') }}" class="admin-quick-action"><strong>Paiements</strong><span>Suivre les transactions.</span></a>
+        </div>
         <div class="admin-section__head"><div><h2>Indicateurs TD</h2><p class="admin-muted">État du module TD en temps réel.</p></div></div>
         <div class="admin-info-list">
             <div class="admin-info-item"><strong>{{ $stats['td_total'] }}</strong><span>Total TD</span></div>

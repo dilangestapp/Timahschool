@@ -10,6 +10,10 @@
     <article class="teacher-stat-card"><span>Matières affectées</span><strong>{{ $stats['subjects'] ?? 0 }}</strong></article>
     <article class="teacher-stat-card"><span>Mes TD</span><strong>{{ $stats['td_total'] ?? 0 }}</strong></article>
     <article class="teacher-stat-card"><span>Questions TD ouvertes</span><strong>{{ $stats['td_questions_open'] ?? 0 }}</strong></article>
+    <article class="teacher-stat-card"><span>Classes affectées</span><strong>{{ $stats['classes'] ?? 0 }}</strong><small>Suivi global des niveaux</small></article>
+    <article class="teacher-stat-card"><span>Matières affectées</span><strong>{{ $stats['subjects'] ?? 0 }}</strong><small>Programmes actifs</small></article>
+    <article class="teacher-stat-card"><span>Mes TD</span><strong>{{ $stats['td_total'] ?? 0 }}</strong><small>Bibliothèque publiée + brouillons</small></article>
+    <article class="teacher-stat-card"><span>Questions TD ouvertes</span><strong>{{ $stats['td_questions_open'] ?? 0 }}</strong><small>Réponses attendues</small></article>
 </div>
 
 <section class="teacher-section">

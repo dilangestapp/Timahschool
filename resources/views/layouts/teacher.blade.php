@@ -29,6 +29,7 @@
         </nav>
 
         <div class="teacher-sidebar__bottom">
+            <a href="{{ route('home') }}" class="teacher-link teacher-link--bottom">← Retour au site</a>
             <form method="POST" action="{{ route('logout') }}">
                 @csrf
                 <button type="submit" class="teacher-logout">Déconnexion</button>
@@ -46,6 +47,7 @@
                 <strong>{{ auth()->user()->full_name ?? auth()->user()->name ?? auth()->user()->username }}</strong>
                 <small>Compte enseignant</small>
             </div>
+            <button type="button" class="teacher-btn teacher-btn--ghost theme-toggle" data-theme-toggle>🌗 Thème</button>
         </header>
 
         <main class="teacher-content">
@@ -56,5 +58,43 @@
         </main>
     </div>
 </div>
+<script>
+(() => {
+    const root = document.documentElement;
+    const storageKey = 'timah-theme';
+    const media = window.matchMedia('(prefers-color-scheme: dark)');
+    const prefersDark = () => media.matches;
+    const getStoredTheme = () => localStorage.getItem(storageKey);
+    const applyTheme = (theme) => root.setAttribute('data-theme', theme || 'auto');
+    const currentEffectiveTheme = () => {
+        const active = root.getAttribute('data-theme') || 'auto';
+        return active === 'auto' ? (prefersDark() ? 'dark' : 'light') : active;
+    };
+    const nextTheme = () => {
+        const active = root.getAttribute('data-theme') || 'auto';
+        if (active === 'auto') return prefersDark() ? 'light' : 'dark';
+        return active === 'dark' ? 'light' : 'dark';
+    };
+    const updateToggleLabels = () => {
+        const effective = currentEffectiveTheme();
+        document.querySelectorAll('[data-theme-toggle]').forEach((button) => {
+            button.textContent = effective === 'dark' ? '☀️ Clair' : '🌙 Sombre';
+        });
+    };
+    applyTheme(getStoredTheme() || 'auto');
+    updateToggleLabels();
+    media.addEventListener('change', () => {
+        if ((root.getAttribute('data-theme') || 'auto') === 'auto') updateToggleLabels();
+    });
+    document.querySelectorAll('[data-theme-toggle]').forEach((button) => {
+        button.addEventListener('click', () => {
+            const value = nextTheme();
+            localStorage.setItem(storageKey, value);
+            applyTheme(value);
+            updateToggleLabels();
+        });
+    });
+})();
+</script>
 </body>
 </html>

@@ -614,3 +614,76 @@ button, input, select, textarea { font: inherit; }
     .teacher-topbar { gap: 12px; }
     .teacher-userbox { width: 100%; }
 }
+
+/* ===== 2026 pass 2: Teacher premium refinement ===== */
+.teacher-sidebar {
+    width: 272px;
+    overflow-y: auto;
+    scrollbar-width: thin;
+}
+.teacher-sidebar__bottom {
+    margin-top: auto;
+    border-top: 1px solid rgba(255,255,255,.08);
+    padding-top: 12px;
+    display: grid;
+    gap: 10px;
+}
+.teacher-link,
+.teacher-logout { min-height: 46px; border-radius: 14px; font-weight: 600; }
+.teacher-link--bottom { background: rgba(255,255,255,.08); }
+.teacher-topbar { align-items: center; }
+.teacher-topbar .theme-toggle { min-height: 44px; }
+.teacher-main {
+    background:
+        radial-gradient(circle at 90% 0, rgba(52,88,255,.10), transparent 30%),
+        var(--teacher-bg);
+}
+.teacher-content { padding-top: 20px; }
+.teacher-stat-card { position: relative; box-shadow: 0 16px 35px rgba(15,23,42,.08); }
+.teacher-stat-card small { display: block; margin-top: 6px; color: var(--teacher-muted); font-weight: 600; }
+.teacher-stat-card::after {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 68px;
+    height: 3px;
+    border-radius: 99px;
+    background: linear-gradient(90deg, var(--teacher-primary), var(--teacher-secondary));
+}
+.teacher-section,
+.teacher-panel,
+.teacher-card { box-shadow: 0 18px 42px rgba(15,23,42,.07); }
+
+html[data-theme='dark'] {
+    --teacher-bg: #0a0d14;
+    --teacher-panel: rgba(18,22,32,.84);
+    --teacher-border: #273043;
+    --teacher-ink: #f3f4f6;
+    --teacher-muted: #9ca3af;
+}
+html[data-theme='dark'] .teacher-main { background: var(--teacher-bg); }
+html[data-theme='dark'] .teacher-stat-card,
+html[data-theme='dark'] .teacher-panel,
+html[data-theme='dark'] .teacher-section,
+html[data-theme='dark'] .teacher-card,
+html[data-theme='dark'] .teacher-userbox,
+html[data-theme='dark'] .teacher-chat-sidebar,
+html[data-theme='dark'] .teacher-chat-window,
+html[data-theme='dark'] .teacher-chat-placeholder__box,
+html[data-theme='dark'] .teacher-form-card,
+html[data-theme='dark'] .teacher-btn--ghost,
+html[data-theme='dark'] .theme-toggle {
+    background: rgba(18,22,32,.86);
+    border-color: #273043;
+    color: #f3f4f6;
+}
+
+@media (max-width: 760px) {
+    .teacher-sidebar { position: relative; height: auto; width: 100%; }
+    .teacher-topbar { align-items: flex-start; }
+    .teacher-topbar .theme-toggle,
+    .teacher-topbar .teacher-userbox { width: 100%; }
+    .teacher-content { padding: 16px; }
+    .teacher-stat-card { padding: 18px; }
+}
