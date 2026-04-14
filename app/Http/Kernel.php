@@ -21,7 +21,7 @@ class Kernel extends HttpKernel
             \Illuminate\Cookie\Middleware\AddQueuedCookiesToResponse::class,
             \Illuminate\Session\Middleware\StartSession::class,
             \Illuminate\View\Middleware\ShareErrorsFromSession::class,
-            \App\Http\Middleware\VerifyCsrfToken::class,   // <- version modifiée qui exclut le webhook
+            \App\Http\Middleware\VerifyCsrfToken::class,
             \Illuminate\Routing\Middleware\SubstituteBindings::class,
         ],
 
@@ -48,5 +48,6 @@ class Kernel extends HttpKernel
 
         // Nouveau middleware abonnement
         'subscribed'       => \App\Http\Middleware\HasActiveSubscription::class,
+        'student'          => \App\Http\Middleware\EnsureStudent::class,
     ];
 }
