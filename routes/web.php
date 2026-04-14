@@ -70,6 +70,16 @@ Route::prefix($adminPath)->name('admin.')->group(function () {
     Route::get('/setup-admin', [AdminSetupController::class, 'showSetupForm'])->middleware('no.cache')->name('setup');
     Route::post('/setup-admin', [AdminSetupController::class, 'storeSetupForm'])->middleware('no.cache')->name('setup.store');
 
+    Route::get('/logout', function (Request $request) {
+        $user = $request->user();
+
+        if ($user && method_exists($user, 'isAdmin') && $user->isAdmin()) {
+            return redirect()->route('admin.dashboard');
+        }
+
+        return redirect()->route('admin.login');
+    })->middleware('no.cache')->name('logout.history');
+
     Route::middleware(['guest', 'no.cache'])->group(function () {
         Route::get('/login', [AdminLoginController::class, 'showLoginForm'])->name('login');
         Route::post('/login', [AdminLoginController::class, 'login'])->name('login.submit');

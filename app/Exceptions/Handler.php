@@ -47,6 +47,12 @@ class Handler extends ExceptionHandler
         });
 
         $this->renderable(function (TokenMismatchException $e, $request) {
+            if ($request->is('logout') || $request->is('*/logout')) {
+                if ($request->is('*/logout') && !$request->is('logout')) {
+                    return redirect()->route('admin.login')
+                        ->with('info', 'Session expirée. Reconnectez-vous pour continuer.');
+                }
+
             if ($request->is('logout')) {
                 return redirect()->route('login')
                     ->with('info', 'Session expirée. Utilisez le bouton de déconnexion depuis une page active.');
