@@ -7,8 +7,8 @@
     <div class="status-card__inner">
         <div class="status-card__head">
             <div>
-                <h1>Bonjour, {{ auth()->user()->full_name }} ! 👋</h1>
-                <p>Vous êtes en <strong style="color:#fff;">{{ $studentProfile->schoolClass->name }}</strong></p>
+                <h1>Bonjour, {{ auth()->user()->full_name }} 👋</h1>
+                <p>Classe : <strong style="color:#fff;">{{ $studentProfile->schoolClass->name }}</strong></p>
             </div>
             <div class="status-chip">
                 <strong>{{ $subscription && $subscription->isActive() ? '✓' : '!' }}</strong>
@@ -18,7 +18,15 @@
     </div>
 </section>
 
+<div class="student-dashboard-actions">
+    <a href="{{ route('student.courses.index') }}" class="btn btn--ghost">Voir mes cours</a>
+    <a href="{{ route('student.td.index') }}" class="btn btn--primary">Accéder à mes TD</a>
+    <a href="{{ route('student.messages.create') }}" class="btn btn--ghost">Poser une question</a>
+    <a href="{{ route('student.subscription.index') }}" class="btn btn--ghost">Gérer mon abonnement</a>
+</div>
+
 <div class="card-grid">
+    <article class="metric-card"><div class="metric-icon metric-icon--blue">📚</div><div><div class="metric-label">Cours disponibles</div><div class="metric-value">{{ $recentCourses->count() }}</div></div></article>
     <article class="metric-card"><div class="metric-icon metric-icon--indigo">📝</div><div><div class="metric-label">TD disponibles</div><div class="metric-value">{{ $recentTdSets->count() }}</div></div></article>
     <article class="metric-card"><div class="metric-icon metric-icon--violet">📂</div><div><div class="metric-label">TD ouverts</div><div class="metric-value">{{ $tdOpenedCount }}</div></div></article>
     <article class="metric-card"><div class="metric-icon metric-icon--green">📈</div><div><div class="metric-label">Progression</div><div class="metric-value">0%</div></div></article>
@@ -49,7 +57,7 @@
 
 <div class="shortcut-grid">
     <a href="{{ route('student.td.index') }}" class="shortcut-card shortcut-card--primary">
-        <div class="shortcut-card__head"><div><h3>Mes TD</h3><p>Accédez à tous les TD de votre classe, avec corrigés et questions.</p></div><div class="shortcut-icon">📝</div></div>
+        <div class="shortcut-card__head"><div><h3>Mes TD</h3><p>Accédez aux TD, corrigés et questions.</p></div><div class="shortcut-icon">📝</div></div>
     </a>
     <a href="{{ route('student.messages.create') }}" class="shortcut-card">
         <div class="shortcut-card__head"><div><h3>Messagerie enseignant</h3><p>Posez vos questions liées à la matière ou au TD concerné.</p></div><div class="shortcut-icon">✉️</div></div>
