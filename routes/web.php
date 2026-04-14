@@ -36,7 +36,7 @@ use Illuminate\Support\Facades\Route;
 
 Route::get('/', [HomeController::class, 'index'])->name('home');
 
-Route::middleware('guest')->group(function () {
+Route::middleware(['guest', 'no.cache'])->group(function () {
     Route::get('/login', [LoginController::class, 'showLoginForm'])->name('login');
     Route::post('/login', [LoginController::class, 'login']);
     Route::get('/register', [RegisterController::class, 'showRegistrationForm'])->name('register');
@@ -48,10 +48,10 @@ Route::post('/logout', [LoginController::class, 'logout'])->name('logout')->midd
 $adminPath = trim((string) config('timahschool.admin_path', 'backoffice-access'), '/');
 
 Route::prefix($adminPath)->name('admin.')->group(function () {
-    Route::get('/setup-admin', [AdminSetupController::class, 'showSetupForm'])->name('setup');
-    Route::post('/setup-admin', [AdminSetupController::class, 'storeSetupForm'])->name('setup.store');
+    Route::get('/setup-admin', [AdminSetupController::class, 'showSetupForm'])->middleware('no.cache')->name('setup');
+    Route::post('/setup-admin', [AdminSetupController::class, 'storeSetupForm'])->middleware('no.cache')->name('setup.store');
 
-    Route::middleware('guest')->group(function () {
+    Route::middleware(['guest', 'no.cache'])->group(function () {
         Route::get('/login', [AdminLoginController::class, 'showLoginForm'])->name('login');
         Route::post('/login', [AdminLoginController::class, 'login'])->name('login.submit');
     });
