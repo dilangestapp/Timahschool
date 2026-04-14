@@ -48,8 +48,15 @@ class Subscription extends Model
 
     public function isActive(): bool
     {
-        return in_array($this->status, [self::STATUS_ACTIVE, self::STATUS_TRIAL])
-            && $this->ends_at->isFuture();
+        if (!in_array($this->status, [self::STATUS_ACTIVE, self::STATUS_TRIAL], true)) {
+            return false;
+        }
+
+        if ($this->ends_at === null) {
+            return $this->status === self::STATUS_ACTIVE;
+        }
+
+        return $this->ends_at->isFuture();
     }
 
     public function markAsExpired(): void

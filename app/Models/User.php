@@ -86,7 +86,10 @@ class User extends Authenticatable
     {
         return $this->subscriptions()
             ->whereIn('status', [Subscription::STATUS_ACTIVE, Subscription::STATUS_TRIAL])
-            ->where('ends_at', '>', now())
+            ->where(function ($query) {
+                $query->whereNull('ends_at')
+                    ->orWhere('ends_at', '>', now());
+            })
             ->first();
     }
 
@@ -134,6 +137,9 @@ class User extends Authenticatable
 
     public function isStudent(): bool
     {
-        return $this->hasRole('student') || $this->hasRole('eleve') || $this->hasRole('élève');
+        return $this->hasRole('student')
+            || $this->hasRole('eleve')
+            || $this->hasRole('élève')
+            || (bool) $this->studentProfile;
     }
 }
