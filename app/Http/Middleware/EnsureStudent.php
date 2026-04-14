@@ -16,13 +16,15 @@ class EnsureStudent
         }
 
         $user = Auth::user();
+        $isAdmin = $user && method_exists($user, 'isAdmin') && $user->isAdmin();
+        $isTeacher = $user && method_exists($user, 'isTeacher') && $user->isTeacher();
+        $hasStudentRole = $user && method_exists($user, 'isStudent') && $user->isStudent();
+        $hasStudentProfile = (bool) optional($user)->studentProfile;
+
         $isStudent = $user
-            && (
-                (method_exists($user, 'isStudent') && $user->isStudent())
-                || (!method_exists($user, 'isAdmin') || !$user->isAdmin())
-                    && (!method_exists($user, 'isTeacher') || !$user->isTeacher())
-                    && $user->studentProfile
-            );
+            && !$isAdmin
+            && !$isTeacher
+            && ($hasStudentRole || $hasStudentProfile);
 
         if (!$isStudent) {
             abort(403, 'Accès élève refusé.');
