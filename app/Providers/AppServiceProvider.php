@@ -20,6 +20,9 @@ class AppServiceProvider extends ServiceProvider
      */
     public function boot(): void
     {
+        $forceHttps = filter_var(env('FORCE_HTTPS', false), FILTER_VALIDATE_BOOL) || $this->app->environment('production');
+
+        if ($forceHttps) {
         $forceHttps = (bool) env('FORCE_HTTPS', false) || $this->app->environment('production');
 
         if ($forceHttps) {
