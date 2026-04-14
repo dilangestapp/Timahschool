@@ -2,34 +2,34 @@
 
 @section('title', 'Tableau de bord admin')
 @section('page_title', 'Tableau de bord administrateur')
-@section('page_subtitle', 'Contrôle central du logiciel, des enseignants, des affectations et des TD.')
+@section('page_subtitle', 'Vue globale des activités TIMAH SCHOOL : utilisateurs, pédagogique et monétisation.')
 
 @section('content')
 <div class="admin-grid admin-grid--stats">
-    <div class="admin-stat-card"><span class="admin-stat-card__label">Utilisateurs</span><strong>{{ $stats['users'] }}</strong></div>
-    <div class="admin-stat-card"><span class="admin-stat-card__label">Enseignants</span><strong>{{ $stats['teachers'] }}</strong></div>
-    <div class="admin-stat-card"><span class="admin-stat-card__label">TD publiés</span><strong>{{ $stats['td_published'] }}</strong></div>
-    <div class="admin-stat-card"><span class="admin-stat-card__label">Questions TD ouvertes</span><strong>{{ $stats['td_questions_open'] }}</strong></div>
+    <article class="admin-stat-card"><span class="admin-stat-card__label">Utilisateurs</span><strong>{{ $stats['users'] }}</strong></article>
+    <article class="admin-stat-card"><span class="admin-stat-card__label">Enseignants</span><strong>{{ $stats['teachers'] }}</strong></article>
+    <article class="admin-stat-card"><span class="admin-stat-card__label">TD publiés</span><strong>{{ $stats['td_published'] }}</strong></article>
+    <article class="admin-stat-card"><span class="admin-stat-card__label">Questions TD ouvertes</span><strong>{{ $stats['td_questions_open'] }}</strong></article>
 </div>
 
 <div class="admin-grid-2 admin-grid-2--wide-left">
     <section class="admin-section">
-        <div class="admin-section__head"><div><h2>Modules de pilotage</h2><p class="admin-muted">L’admin pilote les enseignants, les affectations, les cours et les TD.</p></div></div>
+        <div class="admin-section__head"><div><h2>Modules de pilotage</h2><p class="admin-muted">Contrôle rapide de l’administration pédagogique et opérationnelle.</p></div></div>
         <div class="admin-module-grid">
-            <a class="admin-module-card" href="{{ route('admin.teachers.index') }}"><strong>Enseignants</strong><span>Créer, activer, suivre les comptes enseignants.</span></a>
-            <a class="admin-module-card" href="{{ route('admin.assignments.index') }}"><strong>Affectations</strong><span>Relier un enseignant à une classe et une matière.</span></a>
-            <a class="admin-module-card" href="{{ route('admin.courses.index') }}"><strong>Cours</strong><span>Superviser les cours déjà importés ou publiés.</span></a>
-            <a class="admin-module-card" href="{{ route('admin.td.index') }}"><strong>TD</strong><span>Superviser les TD, leur accès et leur publication.</span></a>
+            <a class="admin-module-card" href="{{ route('admin.teachers.index') }}"><strong>Enseignants</strong><span>Gérer les comptes, statuts et disponibilités.</span></a>
+            <a class="admin-module-card" href="{{ route('admin.assignments.index') }}"><strong>Affectations</strong><span>Lier enseignant, classe et matière.</span></a>
+            <a class="admin-module-card" href="{{ route('admin.courses.index') }}"><strong>Cours</strong><span>Superviser le contenu importé/publié.</span></a>
+            <a class="admin-module-card" href="{{ route('admin.td.index') }}"><strong>TD</strong><span>Vérifier publication, qualité et accès.</span></a>
         </div>
     </section>
 
     <section class="admin-section">
-        <div class="admin-section__head"><div><h2>Indicateurs TD</h2><p class="admin-muted">Vue rapide du nouveau module TD.</p></div></div>
+        <div class="admin-section__head"><div><h2>Indicateurs TD</h2><p class="admin-muted">État du module TD en temps réel.</p></div></div>
         <div class="admin-info-list">
             <div class="admin-info-item"><strong>{{ $stats['td_total'] }}</strong><span>Total TD</span></div>
-            <div class="admin-info-item"><strong>{{ $stats['td_draft'] }}</strong><span>TD en brouillon</span></div>
-            <div class="admin-info-item"><strong>{{ $stats['td_published'] }}</strong><span>TD publiés</span></div>
-            <div class="admin-info-item"><strong>{{ $stats['td_questions_open'] }}</strong><span>Questions TD ouvertes</span></div>
+            <div class="admin-info-item"><strong>{{ $stats['td_draft'] }}</strong><span>Brouillons</span></div>
+            <div class="admin-info-item"><strong>{{ $stats['td_published'] }}</strong><span>Publiés</span></div>
+            <div class="admin-info-item"><strong>{{ $stats['td_questions_open'] }}</strong><span>Questions ouvertes</span></div>
         </div>
     </section>
 </div>
