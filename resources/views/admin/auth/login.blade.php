@@ -1,4 +1,4 @@
-@extends('layouts.public')
+@extends('layouts.admin-guest')
 
 @section('title', 'Connexion Admin - Timah School')
 
