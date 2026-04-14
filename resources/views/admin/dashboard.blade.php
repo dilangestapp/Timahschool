@@ -6,6 +6,14 @@
 
 @section('content')
 <div class="admin-grid admin-grid--stats">
+    <article class="admin-stat-card"><span class="admin-stat-card__label">Utilisateurs</span><strong>{{ $stats['users'] }}</strong></article>
+    <article class="admin-stat-card"><span class="admin-stat-card__label">Enseignants</span><strong>{{ $stats['teachers'] }}</strong></article>
+    <article class="admin-stat-card"><span class="admin-stat-card__label">TD publiés</span><strong>{{ $stats['td_published'] }}</strong></article>
+    <article class="admin-stat-card"><span class="admin-stat-card__label">Questions TD ouvertes</span><strong>{{ $stats['td_questions_open'] }}</strong></article>
+</div>
+
+<div class="admin-grid-2 admin-grid-2--wide-left">
+    <section class="admin-section">
     <article class="admin-stat-card"><span class="admin-stat-card__label">Utilisateurs</span><strong>{{ $stats['users'] }}</strong><small>Base active TIMAH SCHOOL</small></article>
     <article class="admin-stat-card"><span class="admin-stat-card__label">Enseignants</span><strong>{{ $stats['teachers'] }}</strong><small>Comptes affectables</small></article>
     <article class="admin-stat-card"><span class="admin-stat-card__label">TD publiés</span><strong>{{ $stats['td_published'] }}</strong><small>Contenus immédiatement disponibles</small></article>
@@ -23,6 +31,7 @@
         </div>
     </section>
 
+    <section class="admin-section">
     <section class="admin-section admin-section--side">
         <div class="admin-section__head"><div><h2>Colonne décisionnelle</h2><p class="admin-muted">Actions à fort impact pour gagner du temps au quotidien.</p></div></div>
         <div class="admin-quick-actions">

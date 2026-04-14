@@ -56,7 +56,7 @@ Route::prefix($adminPath)->name('admin.')->group(function () {
         Route::post('/login', [AdminLoginController::class, 'login'])->name('login.submit');
     });
 
-    Route::middleware(['auth', EnsureAdmin::class])->group(function () {
+    Route::middleware(['auth', 'no.cache', EnsureAdmin::class])->group(function () {
         Route::get('/dashboard', [AdminDashboardController::class, 'index'])->name('dashboard');
         Route::get('/users', [AdminUserController::class, 'index'])->name('users.index');
         Route::post('/users', [AdminUserController::class, 'store'])->name('users.store');
@@ -104,7 +104,7 @@ Route::prefix($adminPath)->name('admin.')->group(function () {
     });
 });
 
-Route::middleware(['auth', EnsureTeacher::class])->prefix('teacher')->name('teacher.')->group(function () {
+Route::middleware(['auth', 'no.cache', EnsureTeacher::class])->prefix('teacher')->name('teacher.')->group(function () {
     Route::get('/dashboard', [TeacherDashboardController::class, 'index'])->name('dashboard');
     Route::get('/classes', [TeacherClassController::class, 'index'])->name('classes.index');
     Route::get('/courses', [TeacherCourseController::class, 'index'])->name('courses.index');
@@ -144,6 +144,7 @@ Route::middleware(['auth', EnsureTeacher::class])->prefix('teacher')->name('teac
     Route::get('/messages/{message}/attachment', [TeacherMessageController::class, 'attachment'])->name('messages.attachment');
 });
 
+Route::middleware(['auth', 'no.cache'])->prefix('student')->name('student.')->group(function () {
 Route::middleware(['auth', EnsureStudent::class])->prefix('student')->name('student.')->group(function () {
     Route::get('/dashboard', [DashboardController::class, 'index'])->name('dashboard');
     Route::prefix('subscription')->name('subscription.')->group(function () {

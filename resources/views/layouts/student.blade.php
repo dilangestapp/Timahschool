@@ -18,6 +18,9 @@
 
         <nav class="student-nav">
             <a href="{{ route('student.dashboard') }}" class="student-link {{ request()->routeIs('student.dashboard') ? 'is-active' : '' }}"><span>Tableau de bord</span></a>
+            <a href="{{ route('student.td.index') }}" class="student-link {{ request()->routeIs('student.td.*') ? 'is-active' : '' }}"><span>Mes TD</span></a>
+            <a href="{{ route('student.messages.index') }}" class="student-link {{ request()->routeIs('student.messages.*') ? 'is-active' : '' }}"><span>Messagerie</span></a>
+            <a href="{{ route('student.subscription.index') }}" class="student-link {{ request()->routeIs('student.subscription.*') ? 'is-active' : '' }}"><span>Abonnement</span></a>
             <a href="{{ route('student.courses.index') }}" class="student-link {{ request()->routeIs('student.courses.*') ? 'is-active' : '' }}"><span>Mes cours</span></a>
             <a href="{{ route('student.td.index') }}" class="student-link {{ request()->routeIs('student.td.*') ? 'is-active' : '' }}"><span>Mes TD</span></a>
             <a href="{{ route('student.messages.index') }}" class="student-link {{ request()->routeIs('student.messages.*') ? 'is-active' : '' }}"><span>Messagerie</span></a>
