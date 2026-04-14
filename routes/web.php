@@ -32,6 +32,7 @@ use App\Http\Controllers\Webhook\NotchPayWebhookController;
 use App\Http\Middleware\EnsureAdmin;
 use App\Http\Middleware\EnsureStudent;
 use App\Http\Middleware\EnsureTeacher;
+use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
 
 Route::get('/', [HomeController::class, 'index'])->name('home');
@@ -43,7 +44,25 @@ Route::middleware(['guest', 'no.cache'])->group(function () {
     Route::post('/register', [RegisterController::class, 'register']);
 });
 
-Route::post('/logout', [LoginController::class, 'logout'])->name('logout')->middleware('auth');
+Route::get('/logout', function (Request $request) {
+    if (!auth()->check()) {
+        return redirect()->route('login');
+    }
+
+    $user = $request->user();
+
+    if ($user && method_exists($user, 'isAdmin') && $user->isAdmin()) {
+        return redirect()->route('admin.dashboard');
+    }
+
+    if ($user && method_exists($user, 'isTeacher') && $user->isTeacher()) {
+        return redirect()->route('teacher.dashboard');
+    }
+
+    return redirect()->route('student.dashboard');
+})->middleware(['no.cache'])->name('logout.history');
+
+Route::post('/logout', [LoginController::class, 'logout'])->name('logout')->middleware(['auth', 'no.cache']);
 
 $adminPath = trim((string) config('timahschool.admin_path', 'backoffice-access'), '/');
 
@@ -169,11 +188,12 @@ Route::middleware(['auth', 'no.cache', EnsureStudent::class])->prefix('student')
         Route::get('/td/{td}/correction-document', [StudentTdController::class, 'correctionDocument'])->name('td.correction_document');
         Route::get('/td/messages/{message}/attachment', [StudentTdController::class, 'attachment'])->name('td.attachment');
 
-        Route::get('/messages', [StudentMessageController::class, 'index'])->name('messages.index');
-        Route::get('/messages/create', [StudentMessageController::class, 'create'])->name('messages.create');
-        Route::post('/messages', [StudentMessageController::class, 'store'])->name('messages.store');
-        Route::get('/messages/{message}/attachment', [StudentMessageController::class, 'attachment'])->name('messages.attachment');
     });
+
+    Route::get('/messages', [StudentMessageController::class, 'index'])->name('messages.index');
+    Route::get('/messages/create', [StudentMessageController::class, 'create'])->name('messages.create');
+    Route::post('/messages', [StudentMessageController::class, 'store'])->name('messages.store');
+    Route::get('/messages/{message}/attachment', [StudentMessageController::class, 'attachment'])->name('messages.attachment');
 });
 
 Route::get('/payment/callback', [SubscriptionController::class, 'callback'])->name('payment.callback')->middleware('auth');
