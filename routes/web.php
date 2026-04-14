@@ -144,8 +144,7 @@ Route::middleware(['auth', 'no.cache', EnsureTeacher::class])->prefix('teacher')
     Route::get('/messages/{message}/attachment', [TeacherMessageController::class, 'attachment'])->name('messages.attachment');
 });
 
-Route::middleware(['auth', 'no.cache'])->prefix('student')->name('student.')->group(function () {
-Route::middleware(['auth', EnsureStudent::class])->prefix('student')->name('student.')->group(function () {
+Route::middleware(['auth', 'no.cache', EnsureStudent::class])->prefix('student')->name('student.')->group(function () {
     Route::get('/dashboard', [DashboardController::class, 'index'])->name('dashboard');
     Route::prefix('subscription')->name('subscription.')->group(function () {
         Route::get('/', [SubscriptionController::class, 'index'])->name('index');
