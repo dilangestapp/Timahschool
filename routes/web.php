@@ -197,7 +197,6 @@ Route::middleware(['auth', 'no.cache', EnsureStudent::class])->prefix('student')
         Route::get('/td/{td}/document', [StudentTdController::class, 'document'])->name('td.document');
         Route::get('/td/{td}/correction-document', [StudentTdController::class, 'correctionDocument'])->name('td.correction_document');
         Route::get('/td/messages/{message}/attachment', [StudentTdController::class, 'attachment'])->name('td.attachment');
-
     });
 
     Route::get('/messages', [StudentMessageController::class, 'index'])->name('messages.index');
