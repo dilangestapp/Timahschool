@@ -2,6 +2,7 @@
 
 namespace App\Http\Middleware;
 
+use App\Models\Subscription;
 use Closure;
 use Illuminate\Http\Request;
 use Symfony\Component\HttpFoundation\Response;
@@ -19,12 +20,20 @@ class HasActiveSubscription
             return redirect()->route('login');
         }
 
-        $subscription = $user->activeSubscription;
-
-        if (!$subscription || !$subscription->isActive()) {
-            return redirect()->route('student.subscription.expired');
+        if ($user->hasActiveSubscription()) {
+            return $next($request);
         }
 
-        return $next($request);
+        $latestSubscription = $user->subscriptions()->latest('id')->first();
+
+        if (!$latestSubscription) {
+            return redirect()->route('student.subscription.required');
+        }
+
+        if ($latestSubscription->status === Subscription::STATUS_PENDING) {
+            return redirect()->route('student.subscription.pending');
+        }
+
+        return redirect()->route('student.subscription.expired');
     }
 }
