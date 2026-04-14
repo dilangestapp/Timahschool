@@ -32,6 +32,7 @@ use App\Http\Controllers\Webhook\NotchPayWebhookController;
 use App\Http\Middleware\EnsureAdmin;
 use App\Http\Middleware\EnsureStudent;
 use App\Http\Middleware\EnsureTeacher;
+use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
 
 Route::get('/', [HomeController::class, 'index'])->name('home');
@@ -43,7 +44,25 @@ Route::middleware(['guest', 'no.cache'])->group(function () {
     Route::post('/register', [RegisterController::class, 'register']);
 });
 
-Route::post('/logout', [LoginController::class, 'logout'])->name('logout')->middleware('auth');
+Route::get('/logout', function (Request $request) {
+    if (!auth()->check()) {
+        return redirect()->route('login');
+    }
+
+    $user = $request->user();
+
+    if ($user && method_exists($user, 'isAdmin') && $user->isAdmin()) {
+        return redirect()->route('admin.dashboard');
+    }
+
+    if ($user && method_exists($user, 'isTeacher') && $user->isTeacher()) {
+        return redirect()->route('teacher.dashboard');
+    }
+
+    return redirect()->route('student.dashboard');
+})->middleware(['no.cache'])->name('logout.history');
+
+Route::post('/logout', [LoginController::class, 'logout'])->name('logout')->middleware(['auth', 'no.cache']);
 
 $adminPath = trim((string) config('timahschool.admin_path', 'backoffice-access'), '/');
 
@@ -51,7 +70,17 @@ Route::prefix($adminPath)->name('admin.')->group(function () {
     Route::get('/setup-admin', [AdminSetupController::class, 'showSetupForm'])->middleware('no.cache')->name('setup');
     Route::post('/setup-admin', [AdminSetupController::class, 'storeSetupForm'])->middleware('no.cache')->name('setup.store');
 
-    Route::middleware(['guest', 'no.cache'])->group(function () {
+    Route::get('/logout', function (Request $request) {
+        $user = $request->user();
+
+        if ($user && method_exists($user, 'isAdmin') && $user->isAdmin()) {
+            return redirect()->route('admin.dashboard');
+        }
+
+        return redirect()->route('admin.login');
+    })->middleware('no.cache')->name('logout.history');
+
+    Route::middleware(['no.cache'])->group(function () {
         Route::get('/login', [AdminLoginController::class, 'showLoginForm'])->name('login');
         Route::post('/login', [AdminLoginController::class, 'login'])->name('login.submit');
     });
@@ -144,8 +173,7 @@ Route::middleware(['auth', 'no.cache', EnsureTeacher::class])->prefix('teacher')
     Route::get('/messages/{message}/attachment', [TeacherMessageController::class, 'attachment'])->name('messages.attachment');
 });
 
-Route::middleware(['auth', 'no.cache'])->prefix('student')->name('student.')->group(function () {
-Route::middleware(['auth', EnsureStudent::class])->prefix('student')->name('student.')->group(function () {
+Route::middleware(['auth', 'no.cache', EnsureStudent::class])->prefix('student')->name('student.')->group(function () {
     Route::get('/dashboard', [DashboardController::class, 'index'])->name('dashboard');
     Route::prefix('subscription')->name('subscription.')->group(function () {
         Route::get('/', [SubscriptionController::class, 'index'])->name('index');
@@ -170,12 +198,13 @@ Route::middleware(['auth', EnsureStudent::class])->prefix('student')->name('stud
         Route::get('/td/{td}/correction-document', [StudentTdController::class, 'correctionDocument'])->name('td.correction_document');
         Route::get('/td/messages/{message}/attachment', [StudentTdController::class, 'attachment'])->name('td.attachment');
 
-        Route::get('/messages', [StudentMessageController::class, 'index'])->name('messages.index');
-        Route::get('/messages/create', [StudentMessageController::class, 'create'])->name('messages.create');
-        Route::post('/messages', [StudentMessageController::class, 'store'])->name('messages.store');
-        Route::get('/messages/{message}/attachment', [StudentMessageController::class, 'attachment'])->name('messages.attachment');
     });
+
+    Route::get('/messages', [StudentMessageController::class, 'index'])->name('messages.index');
+    Route::get('/messages/create', [StudentMessageController::class, 'create'])->name('messages.create');
+    Route::post('/messages', [StudentMessageController::class, 'store'])->name('messages.store');
+    Route::get('/messages/{message}/attachment', [StudentMessageController::class, 'attachment'])->name('messages.attachment');
 });
 
-Route::get('/payment/callback', [SubscriptionController::class, 'callback'])->name('payment.callback')->middleware('auth');
+Route::get('/payment/callback', [SubscriptionController::class, 'callback'])->name('payment.callback');
 Route::post('/webhook/notchpay', [NotchPayWebhookController::class, 'handle'])->name('webhook.notchpay');

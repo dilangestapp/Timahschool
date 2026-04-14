@@ -86,7 +86,10 @@ class User extends Authenticatable
     {
         return $this->subscriptions()
             ->whereIn('status', [Subscription::STATUS_ACTIVE, Subscription::STATUS_TRIAL])
-            ->where('ends_at', '>', now())
+            ->where(function ($query) {
+                $query->whereNull('ends_at')
+                    ->orWhere('ends_at', '>', now());
+            })
             ->first();
     }
 
@@ -103,19 +106,23 @@ class User extends Authenticatable
             return false;
         }
 
-        if ($this->role && mb_strtolower((string) $this->role->name) === $roleName) {
-            return true;
-        }
+        try {
+            if ($this->role && mb_strtolower((string) $this->role->name) === $roleName) {
+                return true;
+            }
 
-        if ($this->relationLoaded('roles')) {
-            foreach ($this->roles as $role) {
-                if ($role && mb_strtolower((string) $role->name) === $roleName) {
-                    return true;
+            if ($this->relationLoaded('roles')) {
+                foreach ($this->roles as $role) {
+                    if ($role && mb_strtolower((string) $role->name) === $roleName) {
+                        return true;
+                    }
                 }
             }
-        }
 
-        return $this->roles()->whereRaw('LOWER(name) = ?', [$roleName])->exists();
+            return $this->roles()->whereRaw('LOWER(name) = ?', [$roleName])->exists();
+        } catch (\Throwable $e) {
+            return false;
+        }
     }
 
     public function isAdmin(): bool
@@ -134,6 +141,9 @@ class User extends Authenticatable
 
     public function isStudent(): bool
     {
-        return $this->hasRole('student') || $this->hasRole('eleve') || $this->hasRole('élève');
+        return $this->hasRole('student')
+            || $this->hasRole('eleve')
+            || $this->hasRole('élève')
+            || (bool) $this->studentProfile;
     }
 }

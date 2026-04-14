@@ -168,7 +168,10 @@ return [
     |
     */
 
-    'secure' => env('SESSION_SECURE_COOKIE', env('APP_ENV') === 'production'),
+    'secure' => env(
+        'SESSION_SECURE_COOKIE',
+        filter_var(env('FORCE_HTTPS', env('APP_ENV') === 'production'), FILTER_VALIDATE_BOOL)
+    ),
 
     /*
     |--------------------------------------------------------------------------

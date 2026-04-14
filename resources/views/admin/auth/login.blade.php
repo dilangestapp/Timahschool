@@ -1,4 +1,4 @@
-@extends('layouts.public')
+@extends('layouts.admin-guest')
 
 @section('title', 'Connexion Admin - Timah School')
 
@@ -15,6 +15,10 @@
             <div class="alert alert--info" style="margin-bottom:18px;">
                 Cette page est réservée à l'administration. N'utilisez pas la connexion publique pour ce compte.
             </div>
+
+            @if(session('warning'))
+                <div class="alert alert--info">{{ session('warning') }}</div>
+            @endif
 
             @if($errors->any())
                 <div class="alert alert--error">{{ $errors->first() }}</div>

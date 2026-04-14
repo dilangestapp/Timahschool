@@ -20,7 +20,13 @@ class AdminLoginController extends Controller
                 return redirect()->route('admin.dashboard');
             }
 
-            $this->clearCurrentSession($request);
+            if ($currentUser && method_exists($currentUser, 'isTeacher') && $currentUser->isTeacher()) {
+                return redirect()->route('teacher.dashboard')
+                    ->with('warning', 'Vous êtes déjà connecté en tant qu’enseignant.');
+            }
+
+            return redirect()->route('student.dashboard')
+                ->with('warning', 'Vous êtes déjà connecté avec un compte non administrateur.');
         }
 
         return view('admin.auth.login', [
@@ -39,7 +45,19 @@ class AdminLoginController extends Controller
         ]);
 
         if (Auth::check()) {
-            $this->clearCurrentSession($request);
+            $currentUser = Auth::user();
+
+            if ($currentUser && method_exists($currentUser, 'isAdmin') && $currentUser->isAdmin()) {
+                return redirect()->route('admin.dashboard');
+            }
+
+            if ($currentUser && method_exists($currentUser, 'isTeacher') && $currentUser->isTeacher()) {
+                return redirect()->route('teacher.dashboard')
+                    ->with('warning', 'Déconnectez-vous de votre session enseignant avant une connexion admin.');
+            }
+
+            return redirect()->route('student.dashboard')
+                ->with('warning', 'Déconnectez-vous de votre session actuelle avant une connexion admin.');
         }
 
         $user = $this->findAdminUser((string) $request->input('username'));

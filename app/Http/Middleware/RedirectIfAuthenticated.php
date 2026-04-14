@@ -35,7 +35,7 @@ class RedirectIfAuthenticated
                 return redirect()->route('teacher.dashboard');
             }
 
-            if (Route::has('student.dashboard')) {
+            if ($user && method_exists($user, 'isStudent') && $user->isStudent() && Route::has('student.dashboard')) {
                 return redirect()->route('student.dashboard');
             }
 

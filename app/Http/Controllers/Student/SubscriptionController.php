@@ -169,7 +169,7 @@ class SubscriptionController extends Controller
         $merchantReference = $request->get('trxref') ?? $request->get('notchpay_trxref');
 
         if (!$providerReference && !$merchantReference) {
-            return redirect()->route('student.dashboard')
+            return redirect()->to($this->subscriptionRedirectUrl())
                 ->with('warning', 'Référence de paiement introuvable.');
         }
 
@@ -178,7 +178,7 @@ class SubscriptionController extends Controller
                 'query' => $request->query(),
             ]);
 
-            return redirect()->route('student.subscription.index')
+            return redirect()->to($this->subscriptionRedirectUrl())
                 ->with('error', 'Référence NotchPay introuvable dans le callback.');
         }
 
@@ -187,7 +187,7 @@ class SubscriptionController extends Controller
         if (!($verification['success'] ?? false)) {
             $message = $verification['message'] ?? 'Impossible de vérifier votre paiement.';
 
-            return redirect()->route('student.subscription.index')
+            return redirect()->to($this->subscriptionRedirectUrl())
                 ->with('error', $message);
         }
 
@@ -207,7 +207,7 @@ class SubscriptionController extends Controller
                 'merchant_reference' => $merchantReference,
             ]);
 
-            return redirect()->route('student.subscription.index')
+            return redirect()->to($this->subscriptionRedirectUrl())
                 ->with('error', 'Paiement introuvable dans notre système.');
         }
 
@@ -218,7 +218,7 @@ class SubscriptionController extends Controller
         if ($status === 'complete') {
             $this->activateSubscription($payment, $verificationData);
 
-            return redirect()->route('student.dashboard')
+            return redirect()->to($this->postPaymentRedirectUrl((int) $payment->user_id, true))
                 ->with('success', 'Paiement réussi. Votre abonnement est maintenant actif.');
         }
 
@@ -236,7 +236,7 @@ class SubscriptionController extends Controller
                 ]);
             }
 
-            return redirect()->route('student.subscription.index')
+            return redirect()->to($this->postPaymentRedirectUrl((int) $payment->user_id))
                 ->with('error', 'Le paiement a échoué. Veuillez réessayer.');
         }
 
@@ -244,7 +244,7 @@ class SubscriptionController extends Controller
             'notchpay_response' => $verificationData,
         ]);
 
-        return redirect()->route('student.subscription.pending')
+        return redirect()->to($this->postPaymentRedirectUrl((int) $payment->user_id))
             ->with('info', 'Votre paiement est en cours de traitement. Vous recevrez une confirmation sous peu.');
     }
 
@@ -293,5 +293,23 @@ class SubscriptionController extends Controller
                 'is_trial'  => false,
             ]);
         });
+    }
+
+    protected function subscriptionRedirectUrl(): string
+    {
+        if (auth()->check()) {
+            return route('student.subscription.index');
+        }
+
+        return route('login');
+    }
+
+    protected function postPaymentRedirectUrl(int $paymentUserId, bool $success = false): string
+    {
+        if (auth()->check() && (int) auth()->id() === $paymentUserId) {
+            return $success ? route('student.dashboard') : route('student.subscription.index');
+        }
+
+        return route('login');
     }
 }
