@@ -33,7 +33,7 @@ use Illuminate\Support\Facades\Route;
 
 Route::get('/', [HomeController::class, 'index'])->name('home');
 
-Route::middleware('guest')->group(function () {
+Route::middleware(['guest', 'no.cache'])->group(function () {
     Route::get('/login', [LoginController::class, 'showLoginForm'])->name('login');
     Route::post('/login', [LoginController::class, 'login']);
     Route::get('/register', [RegisterController::class, 'showRegistrationForm'])->name('register');
@@ -45,15 +45,15 @@ Route::post('/logout', [LoginController::class, 'logout'])->name('logout')->midd
 $adminPath = trim((string) config('timahschool.admin_path', 'backoffice-access'), '/');
 
 Route::prefix($adminPath)->name('admin.')->group(function () {
-    Route::get('/setup-admin', [AdminSetupController::class, 'showSetupForm'])->name('setup');
-    Route::post('/setup-admin', [AdminSetupController::class, 'storeSetupForm'])->name('setup.store');
+    Route::get('/setup-admin', [AdminSetupController::class, 'showSetupForm'])->middleware('no.cache')->name('setup');
+    Route::post('/setup-admin', [AdminSetupController::class, 'storeSetupForm'])->middleware('no.cache')->name('setup.store');
 
-    Route::middleware('guest')->group(function () {
+    Route::middleware(['guest', 'no.cache'])->group(function () {
         Route::get('/login', [AdminLoginController::class, 'showLoginForm'])->name('login');
         Route::post('/login', [AdminLoginController::class, 'login'])->name('login.submit');
     });
 
-    Route::middleware(['auth', EnsureAdmin::class])->group(function () {
+    Route::middleware(['auth', 'no.cache', EnsureAdmin::class])->group(function () {
         Route::get('/dashboard', [AdminDashboardController::class, 'index'])->name('dashboard');
         Route::get('/users', [AdminUserController::class, 'index'])->name('users.index');
         Route::post('/users', [AdminUserController::class, 'store'])->name('users.store');
@@ -99,7 +99,7 @@ Route::prefix($adminPath)->name('admin.')->group(function () {
     });
 });
 
-Route::middleware(['auth', EnsureTeacher::class])->prefix('teacher')->name('teacher.')->group(function () {
+Route::middleware(['auth', 'no.cache', EnsureTeacher::class])->prefix('teacher')->name('teacher.')->group(function () {
     Route::get('/dashboard', [TeacherDashboardController::class, 'index'])->name('dashboard');
     Route::get('/classes', [TeacherClassController::class, 'index'])->name('classes.index');
     Route::get('/courses', [TeacherCourseController::class, 'index'])->name('courses.index');
@@ -132,7 +132,7 @@ Route::middleware(['auth', EnsureTeacher::class])->prefix('teacher')->name('teac
     Route::get('/messages/{message}/attachment', [TeacherMessageController::class, 'attachment'])->name('messages.attachment');
 });
 
-Route::middleware(['auth'])->prefix('student')->name('student.')->group(function () {
+Route::middleware(['auth', 'no.cache'])->prefix('student')->name('student.')->group(function () {
     Route::get('/dashboard', [DashboardController::class, 'index'])->name('dashboard');
     Route::get('/td', [StudentTdController::class, 'index'])->name('td.index');
     Route::get('/td/{td}', [StudentTdController::class, 'show'])->name('td.show');

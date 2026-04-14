@@ -79,9 +79,9 @@
             <tbody>
                 @forelse($assignments as $assignment)
                     <tr>
-                        <td>{{ $assignment->teacher->full_name ?? $assignment->teacher->name ?? $assignment->teacher->username }}</td>
-                        <td>{{ $assignment->schoolClass->name ?? '-' }}</td>
-                        <td>{{ $assignment->subject->name ?? '-' }}</td>
+                        <td>{{ $assignment->teacher_full_name ?? $assignment->teacher_name ?? $assignment->teacher_username ?? '-' }}</td>
+                        <td>{{ $assignment->class_name ?? '-' }}</td>
+                        <td>{{ $assignment->subject_name ?? '-' }}</td>
                         <td>{{ $assignment->notes ?: '—' }}</td>
                         <td><span class="admin-badge">{{ $assignment->is_active ? 'active' : 'inactive' }}</span></td>
                         <td>

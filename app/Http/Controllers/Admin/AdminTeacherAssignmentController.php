@@ -90,13 +90,14 @@ class AdminTeacherAssignmentController extends Controller
         return back()->with('success', 'Statut de l’affectation mis à jour.');
     }
 
-    public function delete(int $id)
+    public function destroy(int $id)
     {
         if (!$this->hasTableSafe('teacher_assignments')) {
             return back()->with('error', 'La table teacher_assignments est introuvable.');
         }
 
         DB::table('teacher_assignments')->where('id', $id)->delete();
+
         return back()->with('success', 'Affectation supprimée.');
     }
 
@@ -113,10 +114,22 @@ class AdminTeacherAssignmentController extends Controller
                 $query->addSelect('u.' . $column);
             }
         }
+
         if ($this->hasTableSafe('role_user') && !empty($teacherRoleIds)) {
             $query->join('role_user as ru', 'ru.user_id', '=', 'u.id')->whereIn('ru.role_id', $teacherRoleIds)->distinct();
         }
-        return $query->orderBy('u.full_name')->orderBy('u.name')->get()->collect();
+
+        if ($this->hasColumnSafe('users', 'full_name')) {
+            $query->orderBy('u.full_name');
+        }
+        if ($this->hasColumnSafe('users', 'name')) {
+            $query->orderBy('u.name');
+        }
+        if ($this->hasColumnSafe('users', 'username')) {
+            $query->orderBy('u.username');
+        }
+
+        return $query->get()->collect();
     }
 
     protected function classOptions()
@@ -124,7 +137,13 @@ class AdminTeacherAssignmentController extends Controller
         if (!$this->hasTableSafe('school_classes')) {
             return collect();
         }
-        return DB::table('school_classes')->select('id', 'name')->orderBy('order')->orderBy('name')->get()->collect();
+
+        $query = DB::table('school_classes')->select('id', 'name');
+        if ($this->hasColumnSafe('school_classes', 'order')) {
+            $query->orderBy('order');
+        }
+
+        return $query->orderBy('name')->get()->collect();
     }
 
     protected function subjectOptions()
@@ -132,7 +151,13 @@ class AdminTeacherAssignmentController extends Controller
         if (!$this->hasTableSafe('subjects')) {
             return collect();
         }
-        return DB::table('subjects')->select('id', 'name')->orderBy('order')->orderBy('name')->get()->collect();
+
+        $query = DB::table('subjects')->select('id', 'name');
+        if ($this->hasColumnSafe('subjects', 'order')) {
+            $query->orderBy('order');
+        }
+
+        return $query->orderBy('name')->get()->collect();
     }
 
     protected function assignmentRows()
@@ -143,20 +168,34 @@ class AdminTeacherAssignmentController extends Controller
                 $query->addSelect('ta.' . $column);
             }
         }
+
         if ($this->hasTableSafe('users')) {
             $query->leftJoin('users as u', 'u.id', '=', 'ta.teacher_id');
-            if ($this->hasColumnSafe('users', 'full_name')) $query->addSelect('u.full_name as teacher_full_name');
-            if ($this->hasColumnSafe('users', 'name')) $query->addSelect('u.name as teacher_name');
-            if ($this->hasColumnSafe('users', 'username')) $query->addSelect('u.username as teacher_username');
+            if ($this->hasColumnSafe('users', 'full_name')) {
+                $query->addSelect('u.full_name as teacher_full_name');
+            }
+            if ($this->hasColumnSafe('users', 'name')) {
+                $query->addSelect('u.name as teacher_name');
+            }
+            if ($this->hasColumnSafe('users', 'username')) {
+                $query->addSelect('u.username as teacher_username');
+            }
         }
+
         if ($this->hasTableSafe('school_classes')) {
             $query->leftJoin('school_classes as sc', 'sc.id', '=', 'ta.school_class_id');
-            if ($this->hasColumnSafe('school_classes', 'name')) $query->addSelect('sc.name as class_name');
+            if ($this->hasColumnSafe('school_classes', 'name')) {
+                $query->addSelect('sc.name as class_name');
+            }
         }
+
         if ($this->hasTableSafe('subjects')) {
             $query->leftJoin('subjects as s', 's.id', '=', 'ta.subject_id');
-            if ($this->hasColumnSafe('subjects', 'name')) $query->addSelect('s.name as subject_name');
+            if ($this->hasColumnSafe('subjects', 'name')) {
+                $query->addSelect('s.name as subject_name');
+            }
         }
+
         return $query->orderByDesc('ta.id')->get()->collect();
     }
 
@@ -165,8 +204,13 @@ class AdminTeacherAssignmentController extends Controller
         if (!$this->hasTableSafe('school_classes') || !$this->hasTableSafe('teacher_assignments')) {
             return 0;
         }
+
         $classes = DB::table('school_classes')->pluck('id');
-        $assigned = DB::table('teacher_assignments')->when($this->hasColumnSafe('teacher_assignments', 'is_active'), fn ($q) => $q->where('is_active', 1))->pluck('school_class_id')->unique();
+        $assigned = DB::table('teacher_assignments')
+            ->when($this->hasColumnSafe('teacher_assignments', 'is_active'), fn ($q) => $q->where('is_active', 1))
+            ->pluck('school_class_id')
+            ->unique();
+
         return $classes->diff($assigned)->count();
     }
 }
