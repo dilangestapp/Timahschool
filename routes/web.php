@@ -70,6 +70,8 @@ Route::prefix($adminPath)->name('admin.')->group(function () {
     Route::get('/setup-admin', [AdminSetupController::class, 'showSetupForm'])->middleware('no.cache')->name('setup');
     Route::post('/setup-admin', [AdminSetupController::class, 'storeSetupForm'])->middleware('no.cache')->name('setup.store');
 
+    Route::middleware('no.cache')->group(function () {
+
     Route::get('/logout', function (Request $request) {
         $user = $request->user();
 
@@ -173,6 +175,7 @@ Route::middleware(['auth', 'no.cache', EnsureTeacher::class])->prefix('teacher')
     Route::get('/messages/{message}/attachment', [TeacherMessageController::class, 'attachment'])->name('messages.attachment');
 });
 
+Route::middleware(['auth', 'no.cache'])->prefix('student')->name('student.')->group(function () {
 Route::middleware(['auth', 'no.cache', EnsureStudent::class])->prefix('student')->name('student.')->group(function () {
     Route::get('/dashboard', [DashboardController::class, 'index'])->name('dashboard');
     Route::prefix('subscription')->name('subscription.')->group(function () {
