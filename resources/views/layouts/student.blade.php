@@ -3,7 +3,8 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>@yield('title', 'Espace Élève') - TIMAH SCHOOL</title>
+    <title>@yield('title', 'Espace Élève') - TIMAH ACADEMY</title>
+    <link rel="icon" type="image/svg+xml" href="{{ asset('assets/brand/timah-academy-favicon.svg') }}">
     <style>{!! file_get_contents(public_path('assets/css/app.css')) !!}</style>
 </head>
 <body>
@@ -11,8 +12,7 @@
     <aside class="student-sidebar">
         <div class="student-sidebar__top">
             <a href="{{ route('home') }}" class="brand">
-                <span class="brand__mark">T</span>
-                <span class="brand__text">TIMAH SCHOOL</span>
+                <img src="{{ asset('assets/brand/timah-academy-logo-horizontal-light.svg') }}" alt="TIMAH ACADEMY" style="height:34px; width:auto;">
             </a>
         </div>
 
@@ -39,8 +39,7 @@
     <div class="student-main">
         <div class="student-topbar">
             <a href="{{ route('home') }}" class="brand">
-                <span class="brand__mark">T</span>
-                <span class="brand__text">TIMAH SCHOOL</span>
+                <img src="{{ asset('assets/brand/timah-academy-logo-horizontal-light.svg') }}" alt="TIMAH ACADEMY" style="height:34px; width:auto;">
             </a>
             <div class="student-topbar__actions">
                 <button type="button" class="btn btn--ghost theme-toggle" data-theme-toggle>🌗 Thème</button>
