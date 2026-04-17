@@ -11,6 +11,7 @@ use App\Models\TeacherAssignment;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Schema;
 use Illuminate\Support\Facades\Storage;
+use Symfony\Component\HttpFoundation\Response;
 
 class TdController extends Controller
 {
@@ -54,10 +55,9 @@ class TdController extends Controller
     public function show(TdSet $td)
     {
         $user = auth()->user();
-        $profile = $user->studentProfile;
-        abort_unless($profile && (int) $td->school_class_id === (int) $profile->school_class_id, 403);
-        abort_unless($td->status === TdSet::STATUS_PUBLISHED, 404);
-        abort_unless($td->canStudentAccess($user), 403, 'Ce TD est réservé aux abonnés.');
+        if ($response = $this->ensureStudentCanAccessTd($td, $user, true)) {
+            return $response;
+        }
 
         $attempt = TdAttempt::query()->firstOrCreate(
             ['td_set_id' => $td->id, 'student_id' => $user->id],
@@ -85,16 +85,16 @@ class TdController extends Controller
             'attempt' => $attempt,
             'thread' => $thread,
             'subscription' => $user->activeSubscription,
-            'canSeeCorrection' => $td->canStudentAccess($user),
+            'canSeeCorrection' => $td->correctionIsAvailableFor($user, $attempt),
         ]);
     }
 
     public function complete(TdSet $td)
     {
         $user = auth()->user();
-        $profile = $user->studentProfile;
-        abort_unless($profile && (int) $td->school_class_id === (int) $profile->school_class_id, 403);
-        abort_unless($td->canStudentAccess($user), 403);
+        if ($response = $this->ensureStudentCanAccessTd($td, $user)) {
+            return $response;
+        }
 
         TdAttempt::query()->updateOrCreate(
             ['td_set_id' => $td->id, 'student_id' => $user->id],
@@ -113,9 +113,9 @@ class TdController extends Controller
     public function ask(Request $request, TdSet $td)
     {
         $user = auth()->user();
-        $profile = $user->studentProfile;
-        abort_unless($profile && (int) $td->school_class_id === (int) $profile->school_class_id, 403);
-        abort_unless($td->canStudentAccess($user), 403);
+        if ($response = $this->ensureStudentCanAccessTd($td, $user)) {
+            return $response;
+        }
 
         $data = $request->validate([
             'message_html' => ['required', 'string'],
@@ -171,9 +171,9 @@ class TdController extends Controller
     public function document(TdSet $td)
     {
         $user = auth()->user();
-        $profile = $user->studentProfile;
-        abort_unless($profile && (int) $td->school_class_id === (int) $profile->school_class_id, 403);
-        abort_unless($td->canStudentAccess($user), 403);
+        if ($response = $this->ensureStudentCanAccessTd($td, $user)) {
+            return $response;
+        }
         abort_unless($td->document_path, 404);
 
         return Storage::disk('public')->response($td->document_path, $td->document_name ?: basename($td->document_path));
@@ -182,9 +182,20 @@ class TdController extends Controller
     public function correctionDocument(TdSet $td)
     {
         $user = auth()->user();
-        $profile = $user->studentProfile;
-        abort_unless($profile && (int) $td->school_class_id === (int) $profile->school_class_id, 403);
-        abort_unless($td->canStudentAccess($user), 403);
+        if ($response = $this->ensureStudentCanAccessTd($td, $user)) {
+            return $response;
+        }
+
+        $attempt = TdAttempt::query()
+            ->where('td_set_id', $td->id)
+            ->where('student_id', $user->id)
+            ->latest('id')
+            ->first();
+
+        if (!$td->correctionIsAvailableFor($user, $attempt)) {
+            return back()->with('info', 'Le corrigé de ce TD sera disponible dès que les conditions d’accès seront remplies.');
+        }
+
         abort_unless($td->correction_document_path, 404);
 
         return Storage::disk('public')->response($td->correction_document_path, $td->correction_document_name ?: basename($td->correction_document_path));
@@ -212,5 +223,36 @@ class TdController extends Controller
         return collect($attributes)
             ->filter(fn ($value, $key) => array_key_exists($key, $columns))
             ->all();
+    }
+
+    protected function ensureStudentCanAccessTd(TdSet $td, $user, bool $strictPublished = false): ?Response
+    {
+        $profile = optional($user)->studentProfile;
+
+        if (!$profile) {
+            if ($user && method_exists($user, 'isTeacher') && $user->isTeacher()) {
+                return redirect()->route('teacher.dashboard')
+                    ->with('warning', 'Vous êtes connecté en profil enseignant. Redirection vers votre espace enseignant.');
+            }
+
+            return redirect()->route('student.dashboard')
+                ->with('error', 'Profil élève introuvable pour accéder à ce TD.');
+        }
+
+        if ((int) $td->school_class_id !== (int) $profile->school_class_id) {
+            return redirect()->route('student.td.index')
+                ->with('warning', 'Ce TD n’appartient pas à votre classe.');
+        }
+
+        if ($strictPublished && $td->status !== TdSet::STATUS_PUBLISHED) {
+            abort(404);
+        }
+
+        if (!$td->canStudentAccess($user)) {
+            return redirect()->route('student.subscription.required')
+                ->with('info', 'Ce TD est réservé aux abonnés actifs.');
+        }
+
+        return null;
     }
 }
