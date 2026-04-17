@@ -60,11 +60,12 @@ class TdSourceController extends Controller
             'source_label' => ['nullable', 'string', 'max:255'],
             'prompt_text' => ['nullable', 'string'],
             'raw_text' => ['nullable', 'string'],
-            'source_file' => ['nullable', 'file', 'max:25600', 'mimes:pdf,doc,docx,png,jpg,jpeg,txt,rtf,odt'],
+            'source_file' => ['nullable', 'file', 'max:25600', 'mimes:pdf,doc,docx,png,jpg,jpeg,webp,txt,rtf,odt,html,htm'],
+            'ocr_extracted_text' => ['nullable', 'string'],
             'rights_confirmed' => ['nullable', 'accepted'],
         ], [
             'rights_confirmed.accepted' => 'Vous devez confirmer que la source peut être utilisée pour produire un nouveau TD.',
-            'source_file.mimes' => 'Fichiers autorisés : PDF, DOC, DOCX, PNG, JPG, TXT, RTF, ODT.',
+            'source_file.mimes' => 'Fichiers autorisés : PDF, DOC, DOCX, PNG, JPG, JPEG, WEBP, TXT, RTF, ODT, HTML.',
         ]);
 
         $assignment = $this->resolveAssignment((int) $data['teacher_assignment_id']);
@@ -75,7 +76,7 @@ class TdSourceController extends Controller
             ]);
         }
 
-        [$filePath, $fileName, $fileMime, $fileSize, $seedText] = $this->storeSourceFile($request);
+        [$filePath, $fileName, $fileMime, $fileSize, $seedText] = $this->storeSourceFile($request, $data['ocr_extracted_text'] ?? null);
 
         $source = TdSource::query()->create([
             'teacher_assignment_id' => $assignment->id,
@@ -192,7 +193,7 @@ class TdSourceController extends Controller
         return $assignment;
     }
 
-    protected function storeSourceFile(Request $request): array
+    protected function storeSourceFile(Request $request, ?string $ocrText = null): array
     {
         if (!$request->hasFile('source_file')) {
             return [null, null, null, null, null];
@@ -204,7 +205,13 @@ class TdSourceController extends Controller
         $path = $file->storeAs('td-sources/files', $storedName);
 
         $seedText = null;
-        if (in_array($file->getMimeType(), ['text/plain', 'application/rtf'], true)) {
+        $isImage = str_starts_with((string) $file->getMimeType(), 'image/');
+
+        if ($isImage && !empty(trim((string) $ocrText))) {
+            $seedText = trim((string) $ocrText);
+        }
+
+        if (in_array($file->getMimeType(), ['text/plain', 'application/rtf', 'text/html'], true)) {
             try {
                 $seedText = trim((string) Storage::get($path));
             } catch (\Throwable $e) {

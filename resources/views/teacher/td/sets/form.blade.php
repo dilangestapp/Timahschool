@@ -58,8 +58,8 @@
             <div class="teacher-form-grid">
                 <div class="teacher-form-group teacher-form-group--full">
                     <label>Document source</label>
-                    <input type="file" name="document" id="teacher-td-source-file" accept=".pdf,.doc,.docx,.txt,.odt,.rtf,.html,.htm">
-                    <small>Formats autorisés : PDF, DOC, DOCX, TXT, ODT, RTF, HTML.</small>
+                    <input type="file" name="document" id="teacher-td-source-file" accept=".pdf,.doc,.docx,.txt,.odt,.rtf,.html,.htm,.png,.jpg,.jpeg,.webp,image/png,image/jpeg,image/webp">
+                    <small>Formats autorisés : PDF, DOC, DOCX, TXT, ODT, RTF, HTML, PNG, JPG, JPEG, WEBP.</small>
                 </div>
                 @if($isEdit && $td->document_path)
                     <div class="teacher-doc-box teacher-form-group--full">
@@ -95,7 +95,7 @@
                 </div>
                 <div class="teacher-form-group teacher-form-group--full">
                     <label>Document corrigé</label>
-                    <input type="file" name="correction_document" accept=".pdf,.doc,.docx,.txt,.odt,.rtf,.html,.htm">
+                    <input type="file" name="correction_document" accept=".pdf,.doc,.docx,.txt,.odt,.rtf,.html,.htm,.png,.jpg,.jpeg,.webp,image/png,image/jpeg,image/webp">
                 </div>
                 @if($isEdit && $td->correction_document_path)
                     <div class="teacher-doc-box teacher-form-group--full">
@@ -118,6 +118,7 @@
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/tinymce@6/skins/ui/oxide/skin.min.css">
 <script src="https://cdn.jsdelivr.net/npm/tinymce@6/tinymce.min.js"></script>
 <script src="https://unpkg.com/mammoth@1.7.2/mammoth.browser.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/tesseract.js@5/dist/tesseract.min.js"></script>
 <script>
 document.addEventListener('DOMContentLoaded', function() {
     const prefix = 'teacher';
@@ -184,11 +185,9 @@ document.addEventListener('DOMContentLoaded', function() {
 
     function convertTextToHtml(text) {
         return (text || '')
-            .split(/
-{2,}/)
+            .split(/\n{2,}/)
             .map(function(p) {
-                return '<p>' + escapeHtml(p).replace(/
-/g, '<br>') + '</p>';
+                return '<p>' + escapeHtml(p).replace(/\n/g, '<br>') + '</p>';
             })
             .join('');
     }
@@ -202,11 +201,28 @@ document.addEventListener('DOMContentLoaded', function() {
             const page = await pdf.getPage(i);
             const content = await page.getTextContent();
             const pageText = content.items.map(function(item) { return item.str; }).join(' ');
-            text += pageText + '
-
-';
+            text += pageText + '\n\n';
         }
         return text;
+    }
+
+    async function extractTextFromImage(file) {
+        if (!window.Tesseract || typeof window.Tesseract.recognize !== 'function') {
+            throw new Error('Tesseract.js indisponible');
+        }
+
+        const result = await window.Tesseract.recognize(file, 'fra+eng', {
+            logger: function(message) {
+                if (message && message.status === 'recognizing text' && typeof message.progress === 'number') {
+                    status.textContent = 'OCR image en cours... ' + Math.round(message.progress * 100) + '%';
+                }
+            }
+        });
+
+        return {
+            text: (result && result.data && result.data.text ? result.data.text : '').trim(),
+            confidence: (result && result.data && typeof result.data.confidence === 'number') ? result.data.confidence : null,
+        };
     }
 
     async function handleFile(file, sourceLabel) {
@@ -240,6 +256,20 @@ document.addEventListener('DOMContentLoaded', function() {
                 }
                 setEditorContent(convertTextToHtml(text), text);
                 status.textContent = sourceLabel + ' converti en texte éditable. Vérifie la structure, car les PDF demandent souvent un nettoyage manuel.';
+                return;
+            }
+            if (name.endsWith('.png') || name.endsWith('.jpg') || name.endsWith('.jpeg') || name.endsWith('.webp')) {
+                const ocr = await extractTextFromImage(file);
+                if (!ocr.text) {
+                    status.textContent = 'OCR terminé mais aucun texte détecté sur l’image. Vérifie la qualité (netteté, contraste) puis réessaie.';
+                    return;
+                }
+                setEditorContent(convertTextToHtml(ocr.text), ocr.text);
+                if (ocr.confidence !== null && ocr.confidence < 55) {
+                    status.textContent = sourceLabel + ' converti par OCR avec une confiance partielle (' + Math.round(ocr.confidence) + '%). Vérifie et corrige le texte extrait.';
+                } else {
+                    status.textContent = sourceLabel + ' converti par OCR image dans l’éditeur. Vérifie la ponctuation et les sauts de ligne.';
+                }
                 return;
             }
             status.textContent = 'Ce format peut être enregistré comme document source, mais sa conversion automatique reste limitée. Utilise DOCX, PDF texte, TXT ou HTML pour une meilleure conversion.';

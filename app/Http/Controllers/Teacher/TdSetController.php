@@ -220,11 +220,11 @@ class TdSetController extends Controller
             'difficulty' => ['required', 'in:easy,medium,hard,exam'],
             'access_level' => ['required', 'in:free,premium'],
             'status' => ['required', 'in:draft,published,archived'],
-            'document' => ['nullable', 'file', 'max:20480', 'mimes:pdf,doc,docx,txt,odt,rtf,html,htm'],
+            'document' => ['nullable', 'file', 'max:20480', 'mimes:pdf,doc,docx,txt,odt,rtf,html,htm,png,jpg,jpeg,webp'],
             'editable_html' => ['nullable', 'string'],
             'editable_text' => ['nullable', 'string'],
             'correction_html' => ['nullable', 'string'],
-            'correction_document' => ['nullable', 'file', 'max:20480', 'mimes:pdf,doc,docx,txt,odt,rtf,html,htm'],
+            'correction_document' => ['nullable', 'file', 'max:20480', 'mimes:pdf,doc,docx,txt,odt,rtf,html,htm,png,jpg,jpeg,webp'],
             'remove_document' => ['nullable', 'boolean'],
             'remove_correction_document' => ['nullable', 'boolean'],
         ];
@@ -234,8 +234,8 @@ class TdSetController extends Controller
         }
 
         return $request->validate($rules, [
-            'document.mimes' => 'Formats TD autorisés : PDF, DOC, DOCX, TXT, ODT, RTF, HTML.',
-            'correction_document.mimes' => 'Formats corrigé autorisés : PDF, DOC, DOCX, TXT, ODT, RTF, HTML.',
+            'document.mimes' => 'Formats TD autorisés : PDF, DOC, DOCX, TXT, ODT, RTF, HTML, PNG, JPG, JPEG, WEBP.',
+            'correction_document.mimes' => 'Formats corrigé autorisés : PDF, DOC, DOCX, TXT, ODT, RTF, HTML, PNG, JPG, JPEG, WEBP.',
         ]);
     }
 
