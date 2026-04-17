@@ -61,8 +61,18 @@ class TdController extends Controller
 
         $attempt = TdAttempt::query()->firstOrCreate(
             ['td_set_id' => $td->id, 'student_id' => $user->id],
-            ['status' => TdAttempt::STATUS_OPENED, 'opened_at' => now()]
+            $this->buildAttemptAttributes([
+                'status' => TdAttempt::STATUS_OPENED,
+                'opened_at' => now(),
+            ])
         );
+
+        if ($attempt->status !== TdAttempt::STATUS_COMPLETED) {
+            $attempt->update($this->buildAttemptAttributes([
+                'status' => TdAttempt::STATUS_OPENED,
+                'opened_at' => $attempt->opened_at ?? now(),
+            ]));
+        }
 
         $thread = TdQuestionThread::query()
             ->with(['messages.sender'])
@@ -88,13 +98,13 @@ class TdController extends Controller
 
         TdAttempt::query()->updateOrCreate(
             ['td_set_id' => $td->id, 'student_id' => $user->id],
-            [
+            $this->buildAttemptAttributes([
                 'status' => TdAttempt::STATUS_COMPLETED,
                 'opened_at' => now(),
                 'completed_at' => now(),
                 'submitted_at' => now(),
                 'correction_unlocked_at' => now(),
-            ]
+            ])
         );
 
         return back()->with('success', 'TD marqué comme terminé.');
@@ -187,5 +197,20 @@ class TdController extends Controller
         abort_unless($message->attachment_path, 404);
 
         return Storage::disk('public')->response($message->attachment_path, $message->attachment_name ?: basename($message->attachment_path));
+    }
+
+    protected function buildAttemptAttributes(array $attributes): array
+    {
+        static $columns = null;
+
+        if ($columns === null) {
+            $columns = Schema::hasTable('td_attempts')
+                ? collect(Schema::getColumnListing('td_attempts'))->flip()->all()
+                : [];
+        }
+
+        return collect($attributes)
+            ->filter(fn ($value, $key) => array_key_exists($key, $columns))
+            ->all();
     }
 }
