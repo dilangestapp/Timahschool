@@ -349,6 +349,45 @@ document.addEventListener('DOMContentLoaded', function() {
         const averageItemsPerPage = pdf.numPages > 0 ? textItemCount / pdf.numPages : 0;
         const scannedLikely = averageItemsPerPage < 12 || plainText.length < 120;
 
+
+            content.items.forEach(function(item) {
+                const str = (item.str || '').trim();
+                if (!str) return;
+                textItemCount += 1;
+                const y = Math.round((item.transform && item.transform[5] ? item.transform[5] : 0) * 10) / 10;
+                if (!rowsByY.has(y)) rowsByY.set(y, []);
+                rowsByY.get(y).push({
+                    x: item.transform && item.transform[4] ? item.transform[4] : 0,
+                    str: str,
+                });
+            });
+
+            Array.from(rowsByY.keys())
+                .sort(function(a, b) { return b - a; })
+                .forEach(function(y) {
+                    const row = rowsByY.get(y)
+                        .sort(function(a, b) { return a.x - b.x; })
+                        .map(function(piece) { return piece.str; })
+                        .join(' ');
+
+                    const normalized = normalizeLine(row);
+                    if (normalized) {
+                        lines.push(normalized);
+                    }
+                });
+
+            lines.push('');
+        }
+
+        const cleanedLines = lines
+            .map(normalizeLine)
+            .filter(function(line) { return !lineLooksCorrupted(line); });
+
+        const plainText = cleanedLines.join('\n').trim();
+        const html = buildPdfHtmlFromLines(cleanedLines);
+        const averageItemsPerPage = pdf.numPages > 0 ? textItemCount / pdf.numPages : 0;
+        const scannedLikely = averageItemsPerPage < 12 || plainText.length < 120;
+
         return {
             text: plainText,
             html: html,
