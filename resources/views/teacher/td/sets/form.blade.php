@@ -339,6 +339,72 @@ document.addEventListener('DOMContentLoaded', function() {
             lines.push('');
         }
 
+
+            content.items.forEach(function(item) {
+                const str = (item.str || '').trim();
+                if (!str) return;
+                textItemCount += 1;
+                const y = Math.round((item.transform && item.transform[5] ? item.transform[5] : 0) * 10) / 10;
+                if (!rowsByY.has(y)) rowsByY.set(y, []);
+                rowsByY.get(y).push({
+                    x: item.transform && item.transform[4] ? item.transform[4] : 0,
+                    str: str,
+                });
+            });
+
+            Array.from(rowsByY.keys())
+                .sort(function(a, b) { return b - a; })
+                .forEach(function(y) {
+                    const row = rowsByY.get(y)
+                        .sort(function(a, b) { return a.x - b.x; })
+                        .map(function(piece) { return piece.str; })
+                        .join(' ');
+
+                    const normalized = normalizeLine(row);
+                    if (normalized) {
+                        lines.push(normalized);
+                    }
+                });
+
+            lines.push('');
+        }
+
+        const cleanedLines = lines
+            .map(normalizeLine)
+            .filter(function(line) { return !lineLooksCorrupted(line); });
+
+
+            content.items.forEach(function(item) {
+                const str = (item.str || '').trim();
+                if (!str) return;
+                textItemCount += 1;
+                const y = Math.round((item.transform && item.transform[5] ? item.transform[5] : 0) * 10) / 10;
+                if (!rowsByY.has(y)) rowsByY.set(y, []);
+                rowsByY.get(y).push({
+                    x: item.transform && item.transform[4] ? item.transform[4] : 0,
+                    str: str,
+                });
+            });
+
+            Array.from(rowsByY.keys())
+                .sort(function(a, b) { return b - a; })
+                .forEach(function(y) {
+                    const row = rowsByY.get(y)
+                        .sort(function(a, b) { return a.x - b.x; })
+                        .map(function(piece) { return piece.str; })
+                        .join(' ');
+
+                    const normalized = normalizeLine(row);
+                    if (normalized) {
+                        lines.push(normalized);
+                    }
+                });
+
+            lines.push('');
+            const pageText = content.items.map(function(item) { return item.str; }).join(' ');
+            text += pageText + '\n\n';
+        }
+
         const cleanedLines = lines
             .map(normalizeLine)
             .filter(function(line) { return !lineLooksCorrupted(line); });
@@ -353,6 +419,25 @@ document.addEventListener('DOMContentLoaded', function() {
             html: html,
             scannedLikely: scannedLikely,
             averageItemsPerPage: averageItemsPerPage,
+        };
+    }
+
+    async function extractTextFromImage(file) {
+        if (!window.Tesseract || typeof window.Tesseract.recognize !== 'function') {
+            throw new Error('Tesseract.js indisponible');
+        }
+
+        const result = await window.Tesseract.recognize(file, 'fra+eng', {
+            logger: function(message) {
+                if (message && message.status === 'recognizing text' && typeof message.progress === 'number') {
+                    status.textContent = 'OCR image en cours... ' + Math.round(message.progress * 100) + '%';
+                }
+            }
+        });
+
+        return {
+            text: (result && result.data && result.data.text ? result.data.text : '').trim(),
+            confidence: (result && result.data && typeof result.data.confidence === 'number') ? result.data.confidence : null,
         };
     }
 
@@ -410,6 +495,18 @@ document.addEventListener('DOMContentLoaded', function() {
             }
             if (name.endsWith('.doc')) {
                 status.textContent = 'Le format DOC (ancien Word) n’est pas convertible de façon fiable dans le navigateur. Convertis d’abord en DOCX pour une édition fidèle.';
+            if (name.endsWith('.png') || name.endsWith('.jpg') || name.endsWith('.jpeg') || name.endsWith('.webp')) {
+                const ocr = await extractTextFromImage(file);
+                if (!ocr.text) {
+                    status.textContent = 'OCR terminé mais aucun texte détecté sur l’image. Vérifie la qualité (netteté, contraste) puis réessaie.';
+                    return;
+                }
+                setEditorContent(convertTextToHtml(ocr.text), ocr.text);
+                if (ocr.confidence !== null && ocr.confidence < 55) {
+                    status.textContent = sourceLabel + ' converti par OCR avec une confiance partielle (' + Math.round(ocr.confidence) + '%). Vérifie et corrige le texte extrait.';
+                } else {
+                    status.textContent = sourceLabel + ' converti par OCR image dans l’éditeur. Vérifie la ponctuation et les sauts de ligne.';
+                }
                 return;
             }
             if (name.endsWith('.png') || name.endsWith('.jpg') || name.endsWith('.jpeg') || name.endsWith('.webp')) {
