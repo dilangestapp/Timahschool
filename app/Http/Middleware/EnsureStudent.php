@@ -37,6 +37,7 @@ class EnsureStudent
 
             return redirect()->route('home')
                 ->with('error', 'Accès élève indisponible pour ce compte.');
+            abort(403, 'Accès élève refusé.');
         }
 
         return $next($request);
