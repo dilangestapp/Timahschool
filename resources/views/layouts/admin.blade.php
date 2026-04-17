@@ -3,8 +3,9 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <meta name="description" content="Portail administrateur sécurisé TIMAH SCHOOL">
-    <title>@yield('title', 'Admin') - TIMAH SCHOOL</title>
+    <meta name="description" content="Portail administrateur sécurisé TIMAH ACADEMY">
+    <title>@yield('title', 'Admin') - TIMAH ACADEMY</title>
+    <link rel="icon" type="image/svg+xml" href="{{ asset('assets/brand/timah-academy-favicon.svg') }}">
     <style>{!! file_get_contents(public_path('assets/css/admin.css')) !!}</style>
 </head>
 <body>
@@ -12,11 +13,7 @@
     <aside class="admin-sidebar">
         <div class="admin-sidebar__top">
             <a href="{{ route('admin.dashboard') }}" class="admin-brand">
-                <span class="admin-brand__mark">T</span>
-                <span>
-                    <strong>TIMAH SCHOOL</strong>
-                    <small>Administration</small>
-                </span>
+                <img src="{{ asset('assets/brand/timah-academy-logo-horizontal-light.svg') }}" alt="TIMAH ACADEMY" style="height:34px; width:auto;">
             </a>
         </div>
 
@@ -54,7 +51,7 @@
         <header class="admin-topbar">
             <div>
                 <h1>@yield('page_title', 'Administration')</h1>
-                <p>@yield('page_subtitle', 'Portail d’administration central de TIMAH SCHOOL.')</p>
+                <p>@yield('page_subtitle', 'Portail d’administration central de TIMAH ACADEMY.')</p>
             </div>
             <div class="admin-topbar__actions">
                 <a href="{{ route('admin.teachers.index') }}" class="btn btn--ghost">+ Enseignant</a>

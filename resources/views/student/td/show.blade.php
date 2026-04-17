@@ -51,6 +51,13 @@
         @endif
     </div>
 </section>
+@elseif($td->hasCorrectionContent())
+<section class="panel td-show-panel">
+    <div class="panel__head"><h2>Corrigé</h2></div>
+    <div class="panel__body">
+        <div class="empty-state">Le corrigé est bien lié à ce TD et sera affiché ici dès que vos conditions d’accès seront remplies.</div>
+    </div>
+</section>
 @endif
 
 <section class="panel td-show-panel">

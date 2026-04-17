@@ -1,6 +1,6 @@
 @extends('layouts.public')
 
-@section('title', 'TIMAH SCHOOL - Réussissez vos examens')
+@section('title', 'TIMAH ACADEMY - Réussissez vos examens')
 
 @section('content')
 @php
@@ -13,7 +13,7 @@
         <div class="hero-card">
             <div class="hero-copy">
                 <div class="hero-badge">Essai gratuit 24h</div>
-                <h1 class="hero-title">Réussissez vos <span>examens</span> avec TIMAH SCHOOL</h1>
+                <h1 class="hero-title">Réussissez vos <span>examens</span> avec TIMAH ACADEMY</h1>
                 <p class="hero-text">Une plateforme claire, moderne et structurée pour apprendre avec des cours, quiz et TD adaptés à votre classe.</p>
 
                 <div class="hero-actions">
@@ -63,7 +63,7 @@
 <section id="classes" class="section">
     <div class="container">
         <h2 class="section-title">Classes disponibles</h2>
-        <p class="section-subtitle">TIMAH SCHOOL couvre le secondaire général et l'enseignement technique avec des contenus structurés.</p>
+        <p class="section-subtitle">TIMAH ACADEMY couvre le secondaire général et l'enseignement technique avec des contenus structurés.</p>
 
         @foreach($classGroups as $groupKey => $groupClasses)
             <div class="class-group-block">
@@ -96,7 +96,7 @@
 <section class="section section--tight">
     <div class="container">
         <div class="why-strip">
-            <h2 class="why-strip__title">Pourquoi choisir TIMAH SCHOOL ?</h2>
+            <h2 class="why-strip__title">Pourquoi choisir TIMAH ACADEMY ?</h2>
             <div class="why-strip__grid">
                 <div class="why-item"><h3>Cours organisés</h3><p>Leçons structurées par classe et matière.</p></div>
                 <div class="why-item"><h3>Quiz pratiques</h3><p>Évaluation rapide avec correction automatique.</p></div>
