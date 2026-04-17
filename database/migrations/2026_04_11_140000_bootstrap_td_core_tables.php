@@ -50,9 +50,12 @@ return new class extends Migration {
                 $table->unsignedBigInteger('td_set_id')->index();
                 $table->unsignedBigInteger('student_id')->index();
                 $table->string('status', 30)->default('started');
+                $table->timestamp('opened_at')->nullable();
+                $table->timestamp('completed_at')->nullable();
                 $table->timestamp('submitted_at')->nullable();
                 $table->timestamp('correction_unlocked_at')->nullable();
                 $table->timestamps();
+                $table->unique(['td_set_id', 'student_id']);
             });
         }
 
