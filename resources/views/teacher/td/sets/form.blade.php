@@ -1,5 +1,5 @@
 @php($isEdit = $isEdit ?? false)
-@php($existingDocumentUrl = $isEdit && !empty($td->document_path) ? \Illuminate\Support\Facades\Storage::disk('public')->url($td->document_path) : null)
+@php($existingDocumentFetchUrl = $isEdit && !empty($td->document_path) ? route('teacher.td.sets.document', $td) : null)
 @php($existingDocumentName = $isEdit && !empty($td->document_name) ? $td->document_name : ($isEdit && !empty($td->document_path) ? basename($td->document_path) : null))
 <section class="teacher-section">
     <form method="POST" action="{{ $action }}" enctype="multipart/form-data" class="teacher-form-stack">
@@ -127,7 +127,7 @@ document.addEventListener('DOMContentLoaded', function() {
     const fileInput = document.getElementById(prefix + '-td-source-file');
     const newBtn = document.getElementById(prefix + '-convert-new-file');
     const currentBtn = document.getElementById(prefix + '-convert-current-file');
-    const currentDocUrl = @json($existingDocumentUrl ?? null);
+    const currentDocFetchUrl = @json($existingDocumentFetchUrl ?? null);
     const currentDocName = @json($existingDocumentName ?? null);
 
     function updateEditableText(editorId, hiddenId) {
@@ -337,6 +337,40 @@ document.addEventListener('DOMContentLoaded', function() {
                 });
 
             lines.push('');
+        }
+
+        const cleanedLines = lines
+            .map(normalizeLine)
+            .filter(function(line) { return !lineLooksCorrupted(line); });
+
+
+            content.items.forEach(function(item) {
+                const str = (item.str || '').trim();
+                if (!str) return;
+                textItemCount += 1;
+                const y = Math.round((item.transform && item.transform[5] ? item.transform[5] : 0) * 10) / 10;
+                if (!rowsByY.has(y)) rowsByY.set(y, []);
+                rowsByY.get(y).push({
+                    x: item.transform && item.transform[4] ? item.transform[4] : 0,
+                    str: str,
+                });
+            });
+
+            Array.from(rowsByY.keys())
+                .sort(function(a, b) { return b - a; })
+                .forEach(function(y) {
+                    const row = rowsByY.get(y)
+                        .sort(function(a, b) { return a.x - b.x; })
+                        .map(function(piece) { return piece.str; })
+                        .join(' ');
+
+                    const normalized = normalizeLine(row);
+                    if (normalized) {
+                        lines.push(normalized);
+                    }
+                });
+
+            lines.push('');
             const pageText = content.items.map(function(item) { return item.str; }).join(' ');
             text += pageText + '\n\n';
         }
@@ -401,7 +435,7 @@ document.addEventListener('DOMContentLoaded', function() {
             status.textContent = 'Aucun document à convertir.';
             return;
         }
-        const name = (file.name || '').toLowerCase();
+        const name = (file.name || '').toLowerCase().trim();
         status.textContent = 'Conversion en cours...';
         try {
             if (name.endsWith('.docx')) {
@@ -429,6 +463,8 @@ document.addEventListener('DOMContentLoaded', function() {
                 status.textContent = sourceLabel + ' converti depuis PDF texte avec nettoyage avancé (paragraphes, titres, listes). Vérifie le rendu final.';
                 return;
             }
+            if (name.endsWith('.doc')) {
+                status.textContent = 'Le format DOC (ancien Word) n’est pas convertible de façon fiable dans le navigateur. Convertis d’abord en DOCX pour une édition fidèle.';
             if (name.endsWith('.png') || name.endsWith('.jpg') || name.endsWith('.jpeg') || name.endsWith('.webp')) {
                 const ocr = await extractTextFromImage(file);
                 if (!ocr.text) {
@@ -460,7 +496,8 @@ document.addEventListener('DOMContentLoaded', function() {
             status.textContent = 'Ce format peut être enregistré comme document source, mais sa conversion automatique reste limitée. Utilise DOCX, PDF texte, TXT ou HTML pour une meilleure conversion.';
         } catch (error) {
             console.error(error);
-            status.textContent = 'La conversion automatique a échoué. Tu peux quand même enregistrer le document source et compléter manuellement l’éditeur.';
+            const message = (error && error.message) ? error.message : 'Erreur inconnue';
+            status.textContent = 'Conversion échouée : ' + message + '. Vérifie le type de fichier (DOCX prioritaire, PDF texte, image OCR).';
         }
     }
 
@@ -477,20 +514,32 @@ document.addEventListener('DOMContentLoaded', function() {
 
     if (currentBtn) {
         currentBtn.addEventListener('click', async function() {
-            if (!currentDocUrl || !currentDocName) {
+            if (!currentDocFetchUrl || !currentDocName) {
                 status.textContent = 'Aucun document actuel à convertir.';
                 return;
             }
-            status.textContent = 'Chargement du document actuel...';
+            status.textContent = 'Chargement sécurisé du document actuel...';
             try {
-                const response = await fetch(currentDocUrl, { credentials: 'same-origin' });
-                if (!response.ok) throw new Error('Impossible de charger le document actuel');
+                const response = await fetch(currentDocFetchUrl, {
+                    credentials: 'same-origin',
+                    headers: {
+                        'X-Requested-With': 'XMLHttpRequest',
+                        'Accept': 'application/octet-stream,application/pdf,application/vnd.openxmlformats-officedocument.wordprocessingml.document,text/plain,text/html,image/*,*/*',
+                    }
+                });
+
+                if (!response.ok) {
+                    throw new Error('Impossible de relire le document actuel (HTTP ' + response.status + ')');
+                }
+
                 const blob = await response.blob();
-                const file = new File([blob], currentDocName, { type: blob.type || 'application/octet-stream' });
+                const inferredName = (currentDocName || '').trim() || 'document-source';
+                const file = new File([blob], inferredName, { type: blob.type || 'application/octet-stream' });
                 await handleFile(file, 'Le document actuel');
             } catch (error) {
                 console.error(error);
-                status.textContent = 'Le document actuel n’a pas pu être relu automatiquement. Recharge-le dans le champ ou colle le contenu manuellement.';
+                const message = (error && error.message) ? error.message : 'erreur inconnue';
+                status.textContent = 'Le document actuel n’a pas pu être relu automatiquement : ' + message + '. Recharge-le dans le champ pour conversion locale.';
             }
         });
     }
