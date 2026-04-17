@@ -3,8 +3,9 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <meta name="description" content="Timah School - Plateforme éducative moderne pour apprendre, réviser et réussir.">
-    <title>@yield('title', 'Timah School')</title>
+    <meta name="description" content="TIMAH ACADEMY - Plateforme éducative premium pour apprendre, progresser et réussir.">
+    <title>@yield('title', 'TIMAH ACADEMY')</title>
+    <link rel="icon" type="image/svg+xml" href="{{ asset('assets/brand/timah-academy-favicon.svg') }}">
     <style>{!! file_get_contents(public_path('assets/css/app.css')) !!}</style>
 </head>
 <body>
@@ -12,8 +13,7 @@
     <header class="site-header">
         <div class="container site-header__inner">
             <a href="{{ route('home') }}" class="brand">
-                <span class="brand__mark">T</span>
-                <span class="brand__text">TIMAH SCHOOL</span>
+                <img src="{{ asset('assets/brand/timah-academy-logo-horizontal-light.svg') }}" alt="TIMAH ACADEMY" style="height:36px; width:auto;">
             </a>
 
             <nav class="nav-links" aria-label="Navigation principale">
@@ -44,8 +44,7 @@
             <div class="footer-grid">
                 <div>
                     <a href="{{ route('home') }}" class="brand" style="color:#fff; margin-bottom:14px;">
-                        <span class="brand__mark">T</span>
-                        <span class="brand__text">TIMAH SCHOOL</span>
+                        <img src="{{ asset('assets/brand/timah-academy-logo-horizontal-dark.svg') }}" alt="TIMAH ACADEMY" style="height:36px; width:auto;">
                     </a>
                     <p class="footer-text">Apprendre aujourd'hui, réussir demain. Une plateforme pensée pour les élèves qui veulent progresser sérieusement.</p>
                 </div>
@@ -66,7 +65,7 @@
                     </ul>
                 </div>
                 <div>
-                    <h3 class="footer-title">TIMAH SCHOOL</h3>
+                    <h3 class="footer-title">TIMAH ACADEMY</h3>
                     <ul class="footer-list">
                         <li>Support pédagogique</li>
                         <li>Accompagnement élève</li>
@@ -74,7 +73,7 @@
                     </ul>
                 </div>
             </div>
-            <div class="footer-bottom">© {{ date('Y') }} TIMAH SCHOOL. Tous droits réservés.</div>
+            <div class="footer-bottom">© {{ date('Y') }} TIMAH ACADEMY. Tous droits réservés.</div>
         </div>
     </footer>
 </div>
