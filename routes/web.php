@@ -16,8 +16,8 @@ use App\Http\Controllers\Admin\Auth\AdminSetupController;
 use App\Http\Controllers\Auth\LoginController;
 use App\Http\Controllers\Auth\RegisterController;
 use App\Http\Controllers\Public\HomeController;
-use App\Http\Controllers\Student\DashboardController;
 use App\Http\Controllers\Student\CourseController as StudentCourseController;
+use App\Http\Controllers\Student\DashboardController;
 use App\Http\Controllers\Student\MessageController as StudentMessageController;
 use App\Http\Controllers\Student\SubscriptionController;
 use App\Http\Controllers\Student\TdController as StudentTdController;
@@ -26,8 +26,8 @@ use App\Http\Controllers\Teacher\CourseController as TeacherCourseController;
 use App\Http\Controllers\Teacher\DashboardController as TeacherDashboardController;
 use App\Http\Controllers\Teacher\MessageController as TeacherMessageController;
 use App\Http\Controllers\Teacher\TdQuestionController as TeacherTdQuestionController;
-use App\Http\Controllers\Teacher\TdSourceController as TeacherTdSourceController;
 use App\Http\Controllers\Teacher\TdSetController as TeacherTdSetController;
+use App\Http\Controllers\Teacher\TdSourceController as TeacherTdSourceController;
 use App\Http\Controllers\Webhook\NotchPayWebhookController;
 use App\Http\Middleware\EnsureAdmin;
 use App\Http\Middleware\EnsureStudent;
@@ -62,15 +62,15 @@ Route::get('/logout', function (Request $request) {
     return redirect()->route('student.dashboard');
 })->middleware(['no.cache'])->name('logout.history');
 
-Route::post('/logout', [LoginController::class, 'logout'])->name('logout')->middleware(['auth', 'no.cache']);
+Route::post('/logout', [LoginController::class, 'logout'])
+    ->name('logout')
+    ->middleware(['auth', 'no.cache']);
 
 $adminPath = trim((string) config('timahschool.admin_path', 'backoffice-access'), '/');
 
 Route::prefix($adminPath)->name('admin.')->group(function () {
     Route::get('/setup-admin', [AdminSetupController::class, 'showSetupForm'])->middleware('no.cache')->name('setup');
     Route::post('/setup-admin', [AdminSetupController::class, 'storeSetupForm'])->middleware('no.cache')->name('setup.store');
-
-    Route::middleware('no.cache')->group(function () {
 
     Route::get('/logout', function (Request $request) {
         $user = $request->user();
@@ -175,7 +175,6 @@ Route::middleware(['auth', 'no.cache', EnsureTeacher::class])->prefix('teacher')
     Route::get('/messages/{message}/attachment', [TeacherMessageController::class, 'attachment'])->name('messages.attachment');
 });
 
-Route::middleware(['auth', 'no.cache'])->prefix('student')->name('student.')->group(function () {
 Route::middleware(['auth', 'no.cache', EnsureStudent::class])->prefix('student')->name('student.')->group(function () {
     Route::get('/dashboard', [DashboardController::class, 'index'])->name('dashboard');
     Route::prefix('subscription')->name('subscription.')->group(function () {
@@ -200,7 +199,6 @@ Route::middleware(['auth', 'no.cache', EnsureStudent::class])->prefix('student')
         Route::get('/td/{td}/document', [StudentTdController::class, 'document'])->name('td.document');
         Route::get('/td/{td}/correction-document', [StudentTdController::class, 'correctionDocument'])->name('td.correction_document');
         Route::get('/td/messages/{message}/attachment', [StudentTdController::class, 'attachment'])->name('td.attachment');
-
     });
 
     Route::get('/messages', [StudentMessageController::class, 'index'])->name('messages.index');
@@ -209,5 +207,8 @@ Route::middleware(['auth', 'no.cache', EnsureStudent::class])->prefix('student')
     Route::get('/messages/{message}/attachment', [StudentMessageController::class, 'attachment'])->name('messages.attachment');
 });
 
-Route::get('/payment/callback', [SubscriptionController::class, 'callback'])->name('payment.callback')->middleware('auth');
+Route::get('/payment/callback', [SubscriptionController::class, 'callback'])
+    ->name('payment.callback')
+    ->middleware('auth');
+
 Route::post('/webhook/notchpay', [NotchPayWebhookController::class, 'handle'])->name('webhook.notchpay');

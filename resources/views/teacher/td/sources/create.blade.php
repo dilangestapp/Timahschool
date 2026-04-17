@@ -50,8 +50,10 @@
         </div>
         <div class="teacher-form-group teacher-form-group--full">
             <label>Document source</label>
-            <input type="file" name="source_file">
-            <small>Formats autorisés : PDF, DOC, DOCX, PNG, JPG, TXT, RTF, ODT.</small>
+            <input type="file" name="source_file" id="td-source-file-input" accept=".pdf,.doc,.docx,.png,.jpg,.jpeg,.webp,.txt,.rtf,.odt,.html,.htm,image/png,image/jpeg,image/webp">
+            <input type="hidden" name="ocr_extracted_text" id="td-source-ocr-text" value="{{ old('ocr_extracted_text') }}">
+            <small>Formats autorisés : PDF, DOC, DOCX, PNG, JPG, JPEG, WEBP, TXT, RTF, ODT, HTML.</small>
+            <small id="td-source-ocr-status" style="display:block; margin-top:6px;">Si vous chargez une image, un OCR automatique tentera d’extraire le texte vers le champ “Texte source”.</small>
         </div>
         <div class="teacher-form-group teacher-form-group--checkbox teacher-form-group--full">
             <label><input type="checkbox" name="rights_confirmed" value="1" @checked(old('rights_confirmed'))> Je confirme que cette source peut être utilisée pour construire un nouveau TD original dans la plateforme.</label>
@@ -62,4 +64,76 @@
         <a href="{{ route('teacher.td.sources.index') }}" class="teacher-btn teacher-btn--ghost">Retour</a>
     </div>
 </form>
+
+<script src="https://cdn.jsdelivr.net/npm/tesseract.js@5/dist/tesseract.min.js"></script>
+<script>
+document.addEventListener('DOMContentLoaded', function () {
+    const fileInput = document.getElementById('td-source-file-input');
+    const rawTextField = document.querySelector('textarea[name="raw_text"]');
+    const ocrHidden = document.getElementById('td-source-ocr-text');
+    const status = document.getElementById('td-source-ocr-status');
+
+    if (!fileInput || !rawTextField || !ocrHidden || !status) {
+        return;
+    }
+
+    const isImageFile = (file) => !!file && /(\.png|\.jpe?g|\.webp)$/i.test(file.name || '');
+
+    fileInput.addEventListener('change', async function () {
+        const file = fileInput.files && fileInput.files[0] ? fileInput.files[0] : null;
+
+        if (!file) {
+            ocrHidden.value = '';
+            status.textContent = 'Aucun fichier sélectionné.';
+            return;
+        }
+
+        if (!isImageFile(file)) {
+            ocrHidden.value = '';
+            status.textContent = 'Fichier non-image : OCR non requis. Les autres conversions restent inchangées.';
+            return;
+        }
+
+        if (!window.Tesseract || typeof window.Tesseract.recognize !== 'function') {
+            ocrHidden.value = '';
+            status.textContent = 'OCR image indisponible dans ce navigateur. Vous pouvez quand même coller le texte manuellement.';
+            return;
+        }
+
+        try {
+            status.textContent = 'OCR image en cours...';
+            const result = await window.Tesseract.recognize(file, 'fra+eng', {
+                logger: function (message) {
+                    if (message && message.status === 'recognizing text' && typeof message.progress === 'number') {
+                        status.textContent = 'OCR image en cours... ' + Math.round(message.progress * 100) + '%';
+                    }
+                }
+            });
+
+            const text = ((result && result.data && result.data.text) ? result.data.text : '').trim();
+            const confidence = (result && result.data && typeof result.data.confidence === 'number') ? result.data.confidence : null;
+            ocrHidden.value = text;
+
+            if (!text) {
+                status.textContent = 'OCR terminé mais aucun texte lisible détecté. Vérifiez la qualité de la photo (netteté, lumière, contraste).';
+                return;
+            }
+
+            if (!rawTextField.value || !rawTextField.value.trim()) {
+                rawTextField.value = text;
+            }
+
+            if (confidence !== null && confidence < 55) {
+                status.textContent = 'OCR partiel (' + Math.round(confidence) + '%). Le texte a été injecté, merci de le relire et corriger.';
+            } else {
+                status.textContent = 'OCR image terminé. Le texte extrait est prêt pour l’analyse/transformation.';
+            }
+        } catch (error) {
+            console.error(error);
+            ocrHidden.value = '';
+            status.textContent = 'Échec OCR image. Le fichier est conservé, mais ajoutez le texte manuellement si nécessaire.';
+        }
+    });
+});
+</script>
 @endsection
