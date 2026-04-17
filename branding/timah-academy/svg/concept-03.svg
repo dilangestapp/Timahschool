@@ -1,0 +1,8 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 960 320" role="img" aria-label="TIMAH ACADEMY concept 03 North Star Academic">
+  <rect width="960" height="320" fill="#FFFFFF"/>
+  <rect x="44" y="64" width="192" height="192" rx="44" fill="#0B1F4D"/>
+  <path d="M140 100 L154 132 L188 136 L163 160 L170 194 L140 176 L110 194 L117 160 L92 136 L126 132 Z" fill="#68A2FF"/>
+  <circle cx="140" cy="148" r="10" fill="#FFFFFF"/>
+  <text x="280" y="165" font-family="Inter, Manrope, Segoe UI, Arial, sans-serif" font-size="90" font-weight="800" fill="#0E1726">TIMAH</text>
+  <text x="284" y="218" font-family="Inter, Manrope, Segoe UI, Arial, sans-serif" font-size="38" letter-spacing="7" font-weight="600" fill="#2F6BFF">ACADEMY</text>
+</svg>
