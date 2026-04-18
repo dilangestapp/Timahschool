@@ -6,9 +6,9 @@
 @push('styles')
 <style>
     .login-page {
-        min-height: calc(100vh - 90px);
-        padding: 34px 0 56px;
         position: relative;
+        min-height: calc(100vh - 90px);
+        padding: 28px 0 52px;
         overflow: hidden;
     }
 
@@ -54,8 +54,8 @@
     .login-card {
         border: 1px solid var(--line);
         border-radius: 30px;
-        box-shadow: var(--shadow-lg);
         overflow: hidden;
+        box-shadow: var(--shadow-lg);
     }
 
     .login-showcase {
@@ -88,6 +88,7 @@
         background: rgba(255,255,255,.06);
         font-size: .84rem;
         font-weight: 900;
+        letter-spacing: -0.01em;
     }
 
     .login-title {
@@ -174,6 +175,7 @@
         align-items: center;
         gap: 12px;
         width: fit-content;
+        min-width: 0;
     }
 
     .login-brand__mark {
@@ -189,22 +191,26 @@
         font-weight: 900;
         font-size: 1.1rem;
         letter-spacing: -0.03em;
+        flex: 0 0 54px;
     }
 
     .login-brand__text {
         display: grid;
         gap: 3px;
+        min-width: 0;
     }
 
     .login-brand__text strong {
         font-size: 1.05rem;
         letter-spacing: -0.03em;
+        line-height: 1.2;
     }
 
     .login-brand__text span {
         color: var(--muted);
         font-size: .84rem;
         font-weight: 700;
+        line-height: 1.35;
     }
 
     .login-card h1 {
@@ -271,7 +277,7 @@
 
     .form-input {
         width: 100%;
-        height: 52px;
+        height: 54px;
         border-radius: 16px;
         border: 1px solid var(--line);
         background: var(--panel);
@@ -309,10 +315,12 @@
         width: 16px;
         height: 16px;
         accent-color: var(--primary);
+        flex: 0 0 16px;
     }
 
     .login-inline-link,
-    .login-alt a {
+    .login-alt a,
+    .login-forgot {
         color: var(--primary);
         font-weight: 800;
     }
@@ -333,22 +341,36 @@
         line-height: 1.65;
     }
 
+    .login-links-stack {
+        display: grid;
+        gap: 10px;
+    }
+
     .login-alt {
         margin-top: 18px;
         text-align: center;
         color: var(--muted);
         font-size: .94rem;
+        line-height: 1.7;
     }
 
     @media (max-width: 1180px) {
         .login-wrap {
             grid-template-columns: 1fr;
         }
+
+        .login-card {
+            order: 1;
+        }
+
+        .login-showcase {
+            order: 2;
+        }
     }
 
     @media (max-width: 720px) {
         .login-page {
-            padding: 22px 0 44px;
+            padding: 22px 0 42px;
         }
 
         .login-showcase,
@@ -369,6 +391,102 @@
         .login-row {
             align-items: flex-start;
             flex-direction: column;
+        }
+
+        .login-brand {
+            align-items: flex-start;
+        }
+
+        .login-brand__text span {
+            white-space: normal;
+        }
+
+        .login-check {
+            width: 100%;
+        }
+
+        .login-inline-link,
+        .login-forgot {
+            display: inline-block;
+        }
+    }
+
+    @media (max-width: 480px) {
+        .login-page {
+            padding: 18px 0 36px;
+        }
+
+        .login-showcase,
+        .login-card {
+            padding: 18px 14px;
+            border-radius: 20px;
+        }
+
+        .login-badge {
+            min-height: 34px;
+            padding: 0 12px;
+            font-size: .78rem;
+            line-height: 1.2;
+        }
+
+        .login-card h1 {
+            font-size: 1.75rem;
+        }
+
+        .login-title {
+            font-size: clamp(1.85rem, 10vw, 2.5rem);
+            line-height: 1.04;
+        }
+
+        .login-text,
+        .login-note,
+        .login-card p,
+        .login-alt {
+            font-size: .9rem;
+        }
+
+        .login-feature,
+        .login-mini-stat,
+        .login-note,
+        .login-alert {
+            padding: 14px;
+            border-radius: 16px;
+        }
+
+        .form-input {
+            height: 52px;
+            font-size: .93rem;
+        }
+
+        .login-brand__mark {
+            width: 48px;
+            height: 48px;
+            border-radius: 16px;
+            flex-basis: 48px;
+            font-size: 1rem;
+        }
+
+        .login-brand__text strong {
+            font-size: .98rem;
+        }
+
+        .login-brand__text span {
+            font-size: .8rem;
+        }
+    }
+
+    @media (max-width: 360px) {
+        .login-showcase,
+        .login-card {
+            padding: 16px 12px;
+        }
+
+        .login-title {
+            font-size: 1.7rem;
+        }
+
+        .form-input {
+            padding-left: 42px;
         }
     }
 </style>
@@ -492,13 +610,19 @@
                         </div>
                     </div>
 
-                    <div class="login-row">
-                        <label class="login-check" for="remember">
-                            <input id="remember" name="remember" type="checkbox">
-                            <span>Se souvenir de moi</span>
-                        </label>
+                    <div class="login-links-stack">
+                        <div class="login-row">
+                            <label class="login-check" for="remember">
+                                <input id="remember" name="remember" type="checkbox">
+                                <span>Se souvenir de moi</span>
+                            </label>
 
-                        <a href="{{ route('register') }}" class="login-inline-link">Créer un compte</a>
+                            <a href="{{ route('register') }}" class="login-inline-link">Créer un compte</a>
+                        </div>
+
+                        @if (Route::has('password.request'))
+                            <a href="{{ route('password.request') }}" class="login-forgot">Mot de passe oublié ?</a>
+                        @endif
                     </div>
 
                     <div class="login-actions">
