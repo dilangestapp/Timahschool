@@ -311,6 +311,47 @@
                     <a href="{{ route('register') }}" class="btn btn--primary btn--full">Choisir</a>
                 </article>
             @endforeach
+
+@if($sections->get('pricing')['enabled'] ?? true)
+<section id="pricing" class="section section--tight reveal">
+    <div class="container">
+        <h2 class="section-title">Abonnements flexibles</h2>
+        <p class="section-subtitle">Choisissez une formule adaptée à votre rythme. Besoin d’aide ? Notre équipe vous conseille.</p>
+        <div class="pricing-grid">
+            @foreach($plans as $plan)
+                <article class="pricing-card {{ $plan['highlight'] ? 'pricing-card--highlight' : '' }}">
+                    @if($plan['highlight'])<span class="pricing-badge">Le plus choisi</span>@endif
+                    <h3>{{ $plan['title'] }}</h3>
+                    <div class="plan-price">{{ $plan['price'] }}</div>
+                    <p class="muted">{{ $plan['desc'] }}</p>
+                    <ul class="feature-list">
+                        @foreach($plan['features'] as $feature)
+                            <li><span>✔</span><span>{{ $feature }}</span></li>
+                        @endforeach
+                    </ul>
+                    <a href="{{ route('register') }}" class="btn btn--primary btn--full">Choisir</a>
+                </article>
+            @endforeach
+        </div>
+    </div>
+</section>
+@endif
+
+@if($sections->get('faq')['enabled'] ?? true)
+<section id="mini-faq" class="section reveal">
+    <div class="container">
+        <h2 class="section-title">Mini FAQ</h2>
+        <div class="faq-grid">
+            @forelse($faqItems as $item)
+                <article class="faq-item">
+                    <details>
+                        <summary>{{ $item['question'] ?? '' }}</summary>
+                        <p>{{ $item['answer'] ?? '' }}</p>
+                    </details>
+                </article>
+            @empty
+                <article class="faq-item"><strong>FAQ bientôt disponible</strong><p class="muted">Ajoutez des questions/réponses depuis l’espace admin homepage.</p></article>
+            @endforelse
         </div>
     </div>
 </section>

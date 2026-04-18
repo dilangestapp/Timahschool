@@ -1,5 +1,14 @@
 <!DOCTYPE html>
 @php
+    $footerConfig = [
+        'about' => "Apprendre aujourd'hui, réussir demain. Une plateforme pensée pour les élèves qui veulent progresser sérieusement.",
+        'company_links' => [
+            ['label' => 'À propos', 'href' => '#'],
+            ['label' => 'Politique de confidentialité', 'href' => '#'],
+            ['label' => "Conditions d'utilisation", 'href' => '#'],
+            ['label' => 'Mentions légales', 'href' => '#'],
+        ],
+    ];
     $footerConfig = \App\Models\HomepageSetting::defaults()['footer'] ?? [];
     try {
         if (\Illuminate\Support\Facades\Schema::hasTable('homepage_settings')) {
@@ -86,6 +95,15 @@
                 </div>
                 <div>
                     <h3 class="footer-title">Support</h3>
+                    <ul class="footer-list">
+                        <li><a href="{{ route('home') }}#mini-faq">FAQ</a></li>
+                        <li><a href="{{ route('home') }}#help-support">Centre d'aide</a></li>
+                        <li><a href="{{ route('home') }}#help-support">Assistance</a></li>
+                    </ul>
+                </div>
+                <div>
+                    <h3 class="footer-title">Entreprise</h3>
+                    <ul class="footer-list">
                     <ul class="footer-list">
                         <li><a href="{{ route('home') }}#mini-faq">FAQ</a></li>
                         <li><a href="{{ route('home') }}#help-support">Centre d'aide</a></li>

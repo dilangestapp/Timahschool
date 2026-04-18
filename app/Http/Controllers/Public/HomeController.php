@@ -13,7 +13,11 @@ class HomeController extends Controller
 {
     public function index()
     {
-        $classes = SchoolClass::active()->orderBy('order')->get();
+        try {
+            $classes = SchoolClass::active()->orderBy('order')->get();
+        } catch (Throwable $e) {
+            $classes = collect();
+        }
 
         $classGroups = $classes->groupBy('level');
 
