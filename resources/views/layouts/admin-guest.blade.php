@@ -3,8 +3,9 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <meta name="description" content="TIMAH SCHOOL - Portail administrateur">
-    <title>@yield('title', 'TIMAH SCHOOL - Admin')</title>
+    <meta name="description" content="TIMAH ACADEMY - Portail administrateur">
+    <title>@yield('title', 'TIMAH ACADEMY - Admin')</title>
+    <link rel="icon" type="image/svg+xml" href="{{ asset('assets/brand/timah-academy-favicon.svg') }}">
     <link rel="stylesheet" href="{{ asset('assets/css/app.css') }}">
 </head>
 <body>

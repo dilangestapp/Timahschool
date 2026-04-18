@@ -7,7 +7,7 @@
     <div class="container">
         <div class="auth-card">
             <div class="auth-head">
-                <div class="auth-head__logo">T</div>
+                <div class="auth-head__logo"><img src="{{ asset('assets/brand/timah-academy-icon.svg') }}" alt="TIMAH ACADEMY" style="width:100%;height:100%;object-fit:contain;"></div>
                 <h1>Connexion</h1>
                 <p>Accédez à votre espace d'apprentissage.</p>
             </div>

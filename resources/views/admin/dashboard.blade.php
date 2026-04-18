@@ -2,7 +2,7 @@
 
 @section('title', 'Tableau de bord admin')
 @section('page_title', 'Tableau de bord administrateur')
-@section('page_subtitle', 'Vue globale des activités TIMAH SCHOOL : utilisateurs, pédagogique et monétisation.')
+@section('page_subtitle', 'Vue globale des activités TIMAH ACADEMY : utilisateurs, pédagogique et monétisation.')
 
 @section('content')
 <div class="admin-grid admin-grid--stats">
@@ -14,7 +14,7 @@
 
 <div class="admin-grid-2 admin-grid-2--wide-left">
     <section class="admin-section">
-    <article class="admin-stat-card"><span class="admin-stat-card__label">Utilisateurs</span><strong>{{ $stats['users'] }}</strong><small>Base active TIMAH SCHOOL</small></article>
+    <article class="admin-stat-card"><span class="admin-stat-card__label">Utilisateurs</span><strong>{{ $stats['users'] }}</strong><small>Base active TIMAH ACADEMY</small></article>
     <article class="admin-stat-card"><span class="admin-stat-card__label">Enseignants</span><strong>{{ $stats['teachers'] }}</strong><small>Comptes affectables</small></article>
     <article class="admin-stat-card"><span class="admin-stat-card__label">TD publiés</span><strong>{{ $stats['td_published'] }}</strong><small>Contenus immédiatement disponibles</small></article>
     <article class="admin-stat-card"><span class="admin-stat-card__label">Questions TD ouvertes</span><strong>{{ $stats['td_questions_open'] }}</strong><small>Demandes élève en attente</small></article>
@@ -28,6 +28,7 @@
             <a class="admin-module-card" href="{{ route('admin.assignments.index') }}"><strong>Affectations</strong><span>Lier enseignant, classe et matière.</span></a>
             <a class="admin-module-card" href="{{ route('admin.courses.index') }}"><strong>Cours</strong><span>Superviser le contenu importé/publié.</span></a>
             <a class="admin-module-card" href="{{ route('admin.td.index') }}"><strong>TD</strong><span>Vérifier publication, qualité et accès.</span></a>
+            <a class="admin-module-card" href="{{ route('admin.homepage.edit') }}"><strong>Homepage</strong><span>Modifier hero, sections, FAQ et messages anonymes.</span></a>
         </div>
     </section>
 
