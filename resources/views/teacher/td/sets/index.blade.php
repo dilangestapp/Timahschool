@@ -63,6 +63,7 @@
                     <td>
                         <div class="teacher-actions teacher-actions--stack">
                             <a href="{{ route('teacher.td.sets.edit', $td) }}?mode=editor#editor-zone" class="teacher-btn teacher-btn--primary">Modifier dans l’éditeur</a>
+                            <div class="teacher-muted" style="max-width:220px;">Conversion fiable : DOCX, PDF texte. PDF scanné et DOC ancien nécessitent OCR / conversion préalable.</div>
                             <a href="{{ route('teacher.td.sets.edit', $td) }}" class="teacher-btn teacher-btn--ghost">Modifier les infos</a>
                             @if($td->status !== 'published')
                                 <form method="POST" action="{{ route('teacher.td.sets.publish', $td) }}">@csrf<button class="teacher-btn teacher-btn--primary">Publier</button></form>

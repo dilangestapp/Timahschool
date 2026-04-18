@@ -9,6 +9,12 @@
         }
     } catch (\Throwable $e) {
         // Fallback silencieux: garder les valeurs par défaut pour éviter tout 500.
+    if (\Illuminate\Support\Facades\Schema::hasTable('homepage_settings')) {
+        $homepageSetting = \App\Models\HomepageSetting::query()->where('key', 'homepage')->first();
+        $footerConfig = array_merge(
+            $footerConfig,
+            ($homepageSetting->value['footer'] ?? [])
+        );
     }
 @endphp
 <html lang="fr" data-theme="auto">
@@ -80,6 +86,16 @@
                 </div>
                 <div>
                     <h3 class="footer-title">Support</h3>
+                    <ul class="footer-list">
+                        <li><a href="{{ route('home') }}#mini-faq">FAQ</a></li>
+                        <li><a href="{{ route('home') }}#help-support">Centre d'aide</a></li>
+                        <li><a href="{{ route('home') }}#help-support">Assistance</a></li>
+                    </ul>
+                </div>
+                <div>
+                    <h3 class="footer-title">Entreprise</h3>
+                    <ul class="footer-list">
+                    <h3 class="footer-title">TIMAH ACADEMY</h3>
                     <ul class="footer-list">
                         <li><a href="{{ route('home') }}#mini-faq">FAQ</a></li>
                         <li><a href="{{ route('home') }}#help-support">Centre d'aide</a></li>

@@ -1,6 +1,7 @@
 @extends('layouts.public')
 
 @section('title', 'TIMAH ACADEMY - Plateforme EdTech premium')
+@section('title', 'TIMAH ACADEMY - Réussissez vos examens')
 
 @section('content')
 @php
@@ -115,6 +116,15 @@
                 <div class="home-hero__actions">
                     <a href="{{ $hero['primary_cta_link'] ?? route('register') }}" class="btn btn--primary">{{ $hero['primary_cta_label'] ?? 'Commencer maintenant' }}</a>
                     <a href="{{ $hero['secondary_cta_link'] ?? '#classes' }}" class="btn btn--ghost">{{ $hero['secondary_cta_label'] ?? 'Voir les classes' }}</a>
+        <div class="hero-card">
+            <div class="hero-copy">
+                <div class="hero-badge">Essai gratuit 24h</div>
+                <h1 class="hero-title">Réussissez vos <span>examens</span> avec TIMAH ACADEMY</h1>
+                <p class="hero-text">Une plateforme claire, moderne et structurée pour apprendre avec des cours, quiz et TD adaptés à votre classe.</p>
+
+                <div class="hero-actions">
+                    <a href="{{ route('register') }}" class="btn btn--primary">Commencer gratuitement</a>
+                    <a href="#classes" class="btn btn--ghost">Voir les classes</a>
                 </div>
 
                 <div class="home-hero__secondary">
@@ -199,6 +209,14 @@
                         @if($index % 3 === 0)<span class="class-badge class-badge--popular">Populaire</span>@endif
                         @if($index % 4 === 0)<span class="class-badge class-badge--recommended">Recommandé</span>@endif
                         @if($index % 5 === 0)<span class="class-badge class-badge--new">Nouveau</span>@endif
+        <p class="section-subtitle">TIMAH ACADEMY couvre le secondaire général et l'enseignement technique avec des contenus structurés.</p>
+
+        @foreach($classGroups as $groupKey => $groupClasses)
+            <div class="class-group-block">
+                <div class="class-group-head">
+                    <div>
+                        <h3>{{ $classGroupLabels[$groupKey] ?? ucfirst(str_replace('_', ' ', $groupKey)) }}</h3>
+                        <p>{{ $groupKey === 'enseignement_technique' ? 'Classes techniques organisées par années de formation.' : 'Classes du secondaire général organisées par niveau.' }}</p>
                     </div>
                     <h3>{{ $class->name }}</h3>
                     <p class="muted">{{ $class->description ?: 'Contenus structurés, quiz et TD progressifs pour réussir avec méthode.' }}</p>
@@ -238,6 +256,15 @@
             @foreach($audiences as $item)
                 <article class="audience-card"><h3>{{ $item['title'] ?? '' }}</h3><p class="muted">{{ $item['text'] ?? '' }}</p></article>
             @endforeach
+        <div class="why-strip">
+            <h2 class="why-strip__title">Pourquoi choisir TIMAH ACADEMY ?</h2>
+            <div class="why-strip__grid">
+                <div class="why-item"><h3>Cours organisés</h3><p>Leçons structurées par classe et matière.</p></div>
+                <div class="why-item"><h3>Quiz pratiques</h3><p>Évaluation rapide avec correction automatique.</p></div>
+                <div class="why-item"><h3>Accompagnement</h3><p>Un cadre conçu pour faire progresser l'élève.</p></div>
+                <div class="why-item"><h3>Suivi</h3><p>Visualisez l'évolution et les résultats.</p></div>
+                <div class="why-item"><h3>Accès sécurisé</h3><p>Compte protégé avec abonnement simple.</p></div>
+            </div>
         </div>
     </div>
 </section>
@@ -263,6 +290,47 @@
                     <a href="{{ route('register') }}" class="btn btn--primary btn--full">Choisir</a>
                 </article>
             @endforeach
+
+@if($sections->get('pricing')['enabled'] ?? true)
+<section id="pricing" class="section section--tight reveal">
+    <div class="container">
+        <h2 class="section-title">Abonnements flexibles</h2>
+        <p class="section-subtitle">Choisissez une formule adaptée à votre rythme. Besoin d’aide ? Notre équipe vous conseille.</p>
+        <div class="pricing-grid">
+            @foreach($plans as $plan)
+                <article class="pricing-card {{ $plan['highlight'] ? 'pricing-card--highlight' : '' }}">
+                    @if($plan['highlight'])<span class="pricing-badge">Le plus choisi</span>@endif
+                    <h3>{{ $plan['title'] }}</h3>
+                    <div class="plan-price">{{ $plan['price'] }}</div>
+                    <p class="muted">{{ $plan['desc'] }}</p>
+                    <ul class="feature-list">
+                        @foreach($plan['features'] as $feature)
+                            <li><span>✔</span><span>{{ $feature }}</span></li>
+                        @endforeach
+                    </ul>
+                    <a href="{{ route('register') }}" class="btn btn--primary btn--full">Choisir</a>
+                </article>
+            @endforeach
+        </div>
+    </div>
+</section>
+@endif
+
+@if($sections->get('faq')['enabled'] ?? true)
+<section id="mini-faq" class="section reveal">
+    <div class="container">
+        <h2 class="section-title">Mini FAQ</h2>
+        <div class="faq-grid">
+            @forelse($faqItems as $item)
+                <article class="faq-item">
+                    <details>
+                        <summary>{{ $item['question'] ?? '' }}</summary>
+                        <p>{{ $item['answer'] ?? '' }}</p>
+                    </details>
+                </article>
+            @empty
+                <article class="faq-item"><strong>FAQ bientôt disponible</strong><p class="muted">Ajoutez des questions/réponses depuis l’espace admin homepage.</p></article>
+            @endforelse
         </div>
     </div>
 </section>

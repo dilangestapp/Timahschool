@@ -43,6 +43,18 @@ class HomeController extends Controller
             // Fallback silencieux pour éviter tout 500 si DB/migrations indisponibles au boot.
             $homepage = HomepageSetting::defaults();
             $messages = collect();
+        if (Schema::hasTable('homepage_settings')) {
+            $homepage = HomepageSetting::homepagePayload();
+        }
+
+        if (Schema::hasTable('homepage_messages')) {
+            $messages = HomepageMessage::query()
+                ->where('is_published', true)
+                ->orderByDesc('is_featured')
+                ->orderBy('sort_order')
+                ->latest()
+                ->take(18)
+                ->get();
         }
 
         $featuredClassIds = collect($homepage['featured_class_ids'] ?? [])->filter()->all();
