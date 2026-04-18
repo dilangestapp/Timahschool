@@ -9,9 +9,19 @@ class HomeController extends Controller
 {
     public function index()
     {
-        $classes = SchoolClass::active()->orderBy('order')->get();
+        $classes = SchoolClass::query()
+            ->where('is_active', true)
+            ->orderBy('order')
+            ->orderBy('name')
+            ->get();
 
-        $classGroups = $classes->groupBy('level');
+        $classGroups = $classes->groupBy(function ($class) {
+            $system = $class->system ?? null;
+
+            return $system === 'enseignement_technique'
+                ? 'enseignement_technique'
+                : 'enseignement_general';
+        });
 
         $classGroupLabels = [
             'enseignement_general' => 'Enseignement général',
