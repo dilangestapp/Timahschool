@@ -3,8 +3,9 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <meta name="description" content="Espace enseignant TIMAH SCHOOL">
-    <title>@yield('title', 'Espace enseignant') - TIMAH SCHOOL</title>
+    <meta name="description" content="Espace enseignant TIMAH ACADEMY">
+    <title>@yield('title', 'Espace enseignant') - TIMAH ACADEMY</title>
+    <link rel="icon" type="image/svg+xml" href="{{ asset('assets/brand/timah-academy-favicon.svg') }}">
     <style>{!! file_get_contents(public_path('assets/css/teacher.css')) !!}</style>
 </head>
 <body>
@@ -12,11 +13,7 @@
     <aside class="teacher-sidebar">
         <div class="teacher-sidebar__top">
             <a href="{{ route('teacher.dashboard') }}" class="teacher-brand">
-                <span class="teacher-brand__mark">T</span>
-                <span>
-                    <strong>TIMAH SCHOOL</strong>
-                    <small>Espace enseignant</small>
-                </span>
+                <img src="{{ asset('assets/brand/timah-academy-logo-horizontal-light.svg') }}" alt="TIMAH ACADEMY" style="height:34px; width:auto;">
             </a>
         </div>
 

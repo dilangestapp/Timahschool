@@ -45,6 +45,7 @@ class TdSet extends Model
 
     protected $casts = [
         'published_at' => 'datetime',
+        'correction_release_at' => 'datetime',
         'has_editable_version' => 'boolean',
     ];
 
@@ -96,6 +97,27 @@ class TdSet extends Model
     public function hasCorrectionContent(): bool
     {
         return !empty($this->correction_html) || $this->hasCorrectionDocument();
+    }
+
+    public function correctionIsAvailableFor(?User $user, ?TdAttempt $attempt = null): bool
+    {
+        if (!$this->hasCorrectionContent()) {
+            return false;
+        }
+
+        if (!$this->canStudentAccess($user)) {
+            return false;
+        }
+
+        if (($this->correction_mode ?? null) === 'after_submit') {
+            return (bool) ($attempt && in_array($attempt->status, [TdAttempt::STATUS_COMPLETED], true));
+        }
+
+        if (($this->correction_mode ?? null) === 'scheduled' && !empty($this->correction_release_at)) {
+            return now()->greaterThanOrEqualTo($this->correction_release_at);
+        }
+
+        return true;
     }
 
     public function humanDocumentSize(): string

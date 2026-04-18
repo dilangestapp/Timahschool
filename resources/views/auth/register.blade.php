@@ -1,6 +1,6 @@
 @extends('layouts.public')
 
-@section('title', 'Inscription - TIMAH SCHOOL')
+@section('title', 'Inscription - TIMAH ACADEMY')
 
 @section('content')
 <style>
@@ -151,7 +151,7 @@
 <div class="register-page">
     <div class="register-wrap">
         <div class="register-header">
-            <div class="register-badge">T</div>
+            <div class="register-badge"><img src="{{ asset('assets/brand/timah-academy-icon.svg') }}" alt="TIMAH ACADEMY" style="width:44px;height:44px;"></div>
             <h1 class="register-title">Créer un compte</h1>
             <p class="register-subtitle">Commencez votre essai gratuit de <strong>24 heures</strong></p>
         </div>
