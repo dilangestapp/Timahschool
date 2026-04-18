@@ -6,6 +6,7 @@ use App\Http\Controllers\Controller;
 use App\Models\HomepageMessage;
 use App\Models\HomepageSetting;
 use App\Models\SchoolClass;
+use Throwable;
 use Illuminate\Support\Facades\Schema;
 
 class HomeController extends Controller
@@ -24,6 +25,24 @@ class HomeController extends Controller
         $homepage = HomepageSetting::defaults();
         $messages = collect();
 
+        try {
+            if (Schema::hasTable('homepage_settings')) {
+                $homepage = HomepageSetting::homepagePayload();
+            }
+
+            if (Schema::hasTable('homepage_messages')) {
+                $messages = HomepageMessage::query()
+                    ->where('is_published', true)
+                    ->orderByDesc('is_featured')
+                    ->orderBy('sort_order')
+                    ->latest()
+                    ->take(18)
+                    ->get();
+            }
+        } catch (Throwable $e) {
+            // Fallback silencieux pour éviter tout 500 si DB/migrations indisponibles au boot.
+            $homepage = HomepageSetting::defaults();
+            $messages = collect();
         if (Schema::hasTable('homepage_settings')) {
             $homepage = HomepageSetting::homepagePayload();
         }
