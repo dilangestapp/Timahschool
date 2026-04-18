@@ -113,6 +113,15 @@
                 <div>
                     <h3 class="footer-title">Entreprise</h3>
                     <ul class="footer-list">
+                    <ul class="footer-list">
+                        <li><a href="{{ route('home') }}#mini-faq">FAQ</a></li>
+                        <li><a href="{{ route('home') }}#help-support">Centre d'aide</a></li>
+                        <li><a href="{{ route('home') }}#help-support">Assistance</a></li>
+                    </ul>
+                </div>
+                <div>
+                    <h3 class="footer-title">Entreprise</h3>
+                    <ul class="footer-list">
                     <h3 class="footer-title">TIMAH ACADEMY</h3>
                     <ul class="footer-list">
                         <li><a href="{{ route('home') }}#mini-faq">FAQ</a></li>

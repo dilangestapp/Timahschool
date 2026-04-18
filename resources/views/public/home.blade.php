@@ -14,6 +14,14 @@
     $support = array_merge($defaults['support'] ?? [], $homepage['support'] ?? []);
     $footer = array_merge($defaults['footer'] ?? [], $homepage['footer'] ?? []);
     $sections = collect($homepage['sections'] ?? [])->keyBy('key');
+    $isMessagesEnabled = (bool) data_get($sections, 'messages.enabled', true);
+    $isTrustEnabled = (bool) data_get($sections, 'trust.enabled', true);
+    $isClassesEnabled = (bool) data_get($sections, 'classes.enabled', true);
+    $isWhyEnabled = (bool) data_get($sections, 'why.enabled', true);
+    $isAudiencesEnabled = (bool) data_get($sections, 'audiences.enabled', true);
+    $isPricingEnabled = (bool) data_get($sections, 'pricing.enabled', true);
+    $isFaqEnabled = (bool) data_get($sections, 'faq.enabled', true);
+    $isSupportEnabled = (bool) data_get($sections, 'support.enabled', true);
     $classTabs = $classGroups->mapWithKeys(fn($items, $key) => [$key => $classGroupLabels[$key] ?? ucfirst(str_replace('_', ' ', $key))]);
     $plans = collect($homepage['pricing'] ?? $defaults['pricing'] ?? [])->values()->all();
     $displayMessages = $messages->isNotEmpty() ? $messages : collect([
@@ -157,6 +165,7 @@
     </div>
 </section>
 
+@if($isMessagesEnabled)
 @if(($sections->get('messages')['enabled'] ?? true))
 <section class="home-messages reveal">
     <div class="container">
@@ -178,6 +187,7 @@
 </section>
 @endif
 
+@if($isTrustEnabled)
 @if($sections->get('trust')['enabled'] ?? true)
 <section class="section section--tight reveal">
     <div class="container">
@@ -190,6 +200,7 @@
 </section>
 @endif
 
+@if($isClassesEnabled)
 @if($sections->get('classes')['enabled'] ?? true)
 <section id="classes" class="section reveal">
     <div class="container">
@@ -233,6 +244,7 @@
 </section>
 @endif
 
+@if($isWhyEnabled)
 @if($sections->get('why')['enabled'] ?? true)
 <section class="section section--tight reveal">
     <div class="container">
@@ -248,6 +260,7 @@
 </section>
 @endif
 
+@if($isAudiencesEnabled)
 @if($sections->get('audiences')['enabled'] ?? true)
 <section class="section reveal">
     <div class="container">
@@ -270,6 +283,27 @@
 </section>
 @endif
 
+@if($isPricingEnabled)
+<section id="pricing" class="section section--tight reveal">
+    <div class="container">
+        <h2 class="section-title">Abonnements flexibles</h2>
+        <p class="section-subtitle">Choisissez une formule adaptée à votre rythme. Besoin d’aide ? Notre équipe vous conseille.</p>
+        <div class="pricing-grid">
+            @foreach($plans as $plan)
+                <article class="pricing-card {{ $plan['highlight'] ? 'pricing-card--highlight' : '' }}">
+                    @if($plan['highlight'])<span class="pricing-badge">Le plus choisi</span>@endif
+                    <h3>{{ $plan['title'] }}</h3>
+                    <div class="plan-price">{{ $plan['price'] }}</div>
+                    <p class="muted">{{ $plan['desc'] }}</p>
+                    <ul class="feature-list">
+                        @foreach($plan['features'] as $feature)
+                            <li><span>✔</span><span>{{ $feature }}</span></li>
+                        @endforeach
+                    </ul>
+                    <a href="{{ route('register') }}" class="btn btn--primary btn--full">Choisir</a>
+                </article>
+            @endforeach
+
 @if($sections->get('pricing')['enabled'] ?? true)
 <section id="pricing" class="section section--tight reveal">
     <div class="container">
@@ -377,6 +411,7 @@
 </section>
 @endif
 
+@if($isFaqEnabled)
 @if($sections->get('faq')['enabled'] ?? true)
 <section id="mini-faq" class="section reveal">
     <div class="container">
@@ -397,6 +432,7 @@
 </section>
 @endif
 
+@if($isSupportEnabled)
 @if($sections->get('support')['enabled'] ?? true)
 <section id="help-support" class="section reveal">
     <div class="container">
