@@ -761,7 +761,9 @@
     .audience-card:hover,
     .pricing-card:hover,
     .faq-card:hover,
-    .support-card:hover {
+    .support-card:hover,
+    .classes-panel:hover,
+    .classes-featured:hover {
         transform: translateY(-4px);
         box-shadow: var(--shadow-lg);
     }
@@ -783,6 +785,109 @@
     .trust-note {
         color: var(--muted);
         font-size: .92rem;
+    }
+
+    .classes-zone {
+        display: grid;
+        grid-template-columns: .98fr 1.02fr;
+        gap: 18px;
+        margin-bottom: 18px;
+    }
+
+    .classes-featured,
+    .classes-panel {
+        border: 1px solid var(--line);
+        border-radius: 30px;
+        background: linear-gradient(180deg, var(--panel), var(--panel-soft));
+        box-shadow: var(--shadow);
+        transition: transform .2s ease, box-shadow .2s ease;
+    }
+
+    .classes-featured {
+        padding: 26px;
+        display: grid;
+        gap: 18px;
+        background:
+            radial-gradient(circle at top right, rgba(29,109,255,.14), transparent 30%),
+            linear-gradient(180deg, var(--panel), var(--panel-soft));
+    }
+
+    .classes-featured h3,
+    .classes-panel h3 {
+        margin: 0;
+        letter-spacing: -0.03em;
+    }
+
+    .classes-featured p,
+    .classes-panel p {
+        margin: 0;
+        color: var(--muted);
+    }
+
+    .classes-featured__stats {
+        display: grid;
+        gap: 12px;
+    }
+
+    .classes-featured__stat {
+        display: flex;
+        justify-content: space-between;
+        gap: 12px;
+        padding: 14px 16px;
+        border-radius: 18px;
+        border: 1px solid var(--line);
+        background: rgba(29,109,255,.06);
+    }
+
+    .classes-featured__stat strong {
+        font-size: 1rem;
+    }
+
+    .classes-featured__chips {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 10px;
+    }
+
+    .classes-panel {
+        padding: 22px;
+        display: grid;
+        gap: 16px;
+    }
+
+    .classes-panel__list {
+        display: grid;
+        gap: 10px;
+    }
+
+    .classes-panel__item {
+        display: flex;
+        justify-content: space-between;
+        gap: 12px;
+        padding: 13px 14px;
+        border-radius: 18px;
+        border: 1px solid var(--line);
+        background: rgba(255,255,255,.64);
+    }
+
+    html[data-theme='dark'] .classes-panel__item {
+        background: rgba(14, 27, 49, 0.62);
+    }
+
+    .classes-panel__item strong {
+        display: block;
+        margin-bottom: 4px;
+    }
+
+    .classes-panel__item span {
+        color: var(--muted);
+        font-size: .9rem;
+    }
+
+    .classes-panel__item b {
+        align-self: center;
+        color: var(--primary);
+        font-size: 1.02rem;
     }
 
     .class-tabs {
@@ -820,17 +925,19 @@
 
     .classes-grid {
         display: grid;
-        grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
-        gap: 16px;
+        grid-template-columns: repeat(auto-fit, minmax(270px, 1fr));
+        gap: 18px;
     }
 
     .class-card {
-        padding: 20px;
+        padding: 22px;
         display: grid;
         gap: 14px;
-        border-radius: 26px;
+        border-radius: 28px;
         border: 1px solid var(--line);
-        background: linear-gradient(180deg, var(--panel), var(--panel-soft));
+        background:
+            radial-gradient(circle at top right, rgba(29,109,255,.08), transparent 30%),
+            linear-gradient(180deg, var(--panel), var(--panel-soft));
         box-shadow: var(--shadow);
         transition: transform .2s ease, box-shadow .2s ease;
     }
@@ -838,7 +945,8 @@
     .class-card__top,
     .class-badges,
     .class-actions,
-    .class-preview {
+    .class-preview,
+    .class-progress {
         display: flex;
         align-items: center;
         gap: 10px;
@@ -886,13 +994,44 @@
 
     .class-card h3 {
         margin: 0;
-        font-size: 1.18rem;
+        font-size: 1.2rem;
         letter-spacing: -0.03em;
     }
 
     .class-card p {
         margin: 0;
         color: var(--muted);
+        line-height: 1.7;
+    }
+
+    .class-card__divider {
+        height: 1px;
+        background: var(--line);
+        opacity: .8;
+    }
+
+    .class-progress {
+        justify-content: space-between;
+        gap: 12px;
+    }
+
+    .class-progress span {
+        color: var(--muted);
+        font-size: .88rem;
+    }
+
+    .class-progress strong {
+        color: var(--text);
+        font-size: .92rem;
+    }
+
+    .class-cta-note {
+        padding: 12px 14px;
+        border-radius: 18px;
+        border: 1px solid var(--line);
+        background: rgba(29,109,255,.06);
+        color: var(--muted);
+        font-size: .9rem;
     }
 
     .class-empty {
@@ -1267,7 +1406,8 @@
         .trust-grid,
         .dark-grid,
         .faq-grid,
-        .support-grid {
+        .support-grid,
+        .classes-zone {
             grid-template-columns: 1fr;
         }
 
@@ -1300,7 +1440,9 @@
         .hero-main,
         .hero-side,
         .dark-showcase,
-        .support-card {
+        .support-card,
+        .classes-featured,
+        .classes-panel {
             border-radius: 26px;
         }
 
@@ -1333,7 +1475,9 @@
         .hero-main,
         .hero-side,
         .dark-showcase,
-        .support-card {
+        .support-card,
+        .classes-featured,
+        .classes-panel {
             padding: 20px 18px;
         }
 
@@ -1671,10 +1815,10 @@
                 <div class="section-head">
                     <div class="section-head__text">
                         <span class="eyebrow">Classes disponibles</span>
-                        <h2 class="section-title">Explorer rapidement la bonne classe et le bon parcours</h2>
+                        <h2 class="section-title">Trouver rapidement la bonne classe et le bon parcours</h2>
                         <p class="section-subtitle">
-                            L’utilisateur doit sentir immédiatement que l’entrée dans la plateforme est simple,
-                            structurée et adaptée à son niveau ou à sa filière.
+                            Cette zone doit donner une impression de structure, de richesse et de clarté.
+                            On doit sentir qu’il ne s’agit pas d’une simple liste, mais d’une vraie porte d’entrée vers les parcours d’apprentissage.
                         </p>
                     </div>
 
@@ -1683,6 +1827,74 @@
                         <span class="chip">{{ $technicalClassesCount }} technique</span>
                         <span class="chip">{{ $activeClassesCount }} classes actives</span>
                     </div>
+                </div>
+
+                <div class="classes-zone">
+                    <article class="classes-featured">
+                        <span class="eyebrow">Organisation des parcours</span>
+                        <h3>Une navigation pensée pour orienter vite l’élève, le parent ou l’enseignant</h3>
+                        <p>
+                            L’objectif est que chacun comprenne rapidement où entrer, quel niveau choisir
+                            et comment accéder à un parcours clair avec cours, quiz, TD et suivi.
+                        </p>
+
+                        <div class="classes-featured__stats">
+                            <div class="classes-featured__stat">
+                                <span>Parcours général</span>
+                                <strong>{{ $generalClassesCount > 0 ? $generalClassesCount : '—' }}</strong>
+                            </div>
+                            <div class="classes-featured__stat">
+                                <span>Parcours technique</span>
+                                <strong>{{ $technicalClassesCount > 0 ? $technicalClassesCount : '—' }}</strong>
+                            </div>
+                            <div class="classes-featured__stat">
+                                <span>Classes mises en avant</span>
+                                <strong>{{ $featuredClassesCount > 0 ? $featuredClassesCount : '—' }}</strong>
+                            </div>
+                        </div>
+
+                        <div class="classes-featured__chips">
+                            <span class="chip">Cours structurés</span>
+                            <span class="chip">Quiz interactifs</span>
+                            <span class="chip">TD corrigés</span>
+                            <span class="chip">Progression visible</span>
+                        </div>
+                    </article>
+
+                    <article class="classes-panel">
+                        <span class="eyebrow">Ce que l’utilisateur doit ressentir</span>
+                        <h3>Une section plus premium, plus utile et plus rassurante</h3>
+                        <p>
+                            L’utilisateur ne doit pas avoir l’impression de tomber sur une simple grille vide.
+                            Chaque carte doit transmettre une promesse claire : commencer, suivre, progresser.
+                        </p>
+
+                        <div class="classes-panel__list">
+                            <div class="classes-panel__item">
+                                <div>
+                                    <strong>Entrée simple</strong>
+                                    <span>Un chemin clair vers la bonne classe</span>
+                                </div>
+                                <b>01</b>
+                            </div>
+
+                            <div class="classes-panel__item">
+                                <div>
+                                    <strong>Repères visibles</strong>
+                                    <span>Badges, filière, contenus et niveau de guidage</span>
+                                </div>
+                                <b>02</b>
+                            </div>
+
+                            <div class="classes-panel__item">
+                                <div>
+                                    <strong>Action immédiate</strong>
+                                    <span>Explorer la classe ou démarrer sans confusion</span>
+                                </div>
+                                <b>03</b>
+                            </div>
+                        </div>
+                    </article>
                 </div>
 
                 <div class="class-tabs">
@@ -1702,6 +1914,18 @@
 
                             $systemLabel = $classGroupLabels[$classGroup] ?? 'Enseignement général';
                             $classDescription = $class->description ?: 'Cours, quiz, TD et progression structurée pour aider l’élève à travailler avec méthode.';
+
+                            $classGuidance = match (($loop->index % 3)) {
+                                0 => 'Parcours conseillé',
+                                1 => 'Suivi progressif',
+                                default => 'Révision guidée',
+                            };
+
+                            $classActionText = match (($loop->index % 3)) {
+                                0 => 'Bon point d’entrée pour démarrer rapidement.',
+                                1 => 'Idéal pour garder un bon rythme de travail.',
+                                default => 'Pensé pour réviser avec plus de méthode.',
+                            };
                         @endphp
 
                         <article class="class-card" data-class-group="{{ $classGroup }}">
@@ -1718,8 +1942,8 @@
                                     <span class="class-badge class-badge--recommended">Recommandé</span>
                                 @endif
 
-                                @if ($loop->iteration === 3 || $loop->iteration === 5)
-                                    <span class="class-badge class-badge--guided">Suivi guidé</span>
+                                @if ($loop->iteration === 3 || $loop->iteration === 5 || $loop->last)
+                                    <span class="class-badge class-badge--guided">{{ $classGuidance }}</span>
                                 @endif
                             </div>
 
@@ -1731,12 +1955,23 @@
                                 <span class="meta-pill">Cours</span>
                                 <span class="meta-pill">Quiz</span>
                                 <span class="meta-pill">TD</span>
-                                <span class="meta-pill">Progression</span>
+                                <span class="meta-pill">Suivi</span>
+                            </div>
+
+                            <div class="class-card__divider"></div>
+
+                            <div class="class-progress">
+                                <span>Expérience visée</span>
+                                <strong>{{ $classGuidance }}</strong>
+                            </div>
+
+                            <div class="class-cta-note">
+                                {{ $classActionText }}
                             </div>
 
                             <div class="class-actions">
                                 <a href="{{ $registerLink }}" class="btn btn--primary">Commencer</a>
-                                <a href="{{ $registerLink }}" class="btn btn--ghost">Voir détails</a>
+                                <a href="{{ $registerLink }}" class="btn btn--ghost">Explorer la classe</a>
                             </div>
                         </article>
                     @empty
