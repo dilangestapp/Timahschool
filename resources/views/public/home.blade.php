@@ -11,7 +11,6 @@
     $whyItems = collect($homepage['why_choose'] ?? $defaults['why_choose'] ?? [])->values();
     $faqItems = collect($homepage['faq'] ?? $defaults['faq'] ?? [])->values();
     $support = array_merge($defaults['support'] ?? [], $homepage['support'] ?? []);
-    $footer = array_merge($defaults['footer'] ?? [], $homepage['footer'] ?? []);
     $sections = collect($homepage['sections'] ?? [])->keyBy('key');
     $plans = collect($homepage['pricing'] ?? $defaults['pricing'] ?? [])->values();
 
@@ -35,57 +34,57 @@
                 'is_anonymous' => true,
                 'author_label' => 'Anonyme',
                 'role_tag' => 'Élève',
-                'message' => 'Les quiz m’aident à travailler chaque semaine sans attendre les examens.',
+                'message' => 'Les quiz m’aident à travailler plus régulièrement avant les contrôles.',
             ],
             (object) [
                 'is_anonymous' => true,
                 'author_label' => 'Anonyme',
                 'role_tag' => 'Parent',
-                'message' => 'Je comprends mieux la progression de mon enfant et je peux l’accompagner.',
+                'message' => 'Je vois mieux la progression de mon enfant et je peux mieux l’encadrer.',
             ],
             (object) [
                 'is_anonymous' => false,
                 'author_label' => 'Mme N.',
                 'role_tag' => 'Enseignante',
-                'message' => 'La plateforme donne un cadre plus clair pour suivre les TD et les points faibles.',
-            ],
-            (object) [
-                'is_anonymous' => true,
-                'author_label' => 'Anonyme',
-                'role_tag' => 'Élève',
-                'message' => 'Le mélange cours + TD + quiz me permet de réviser avec plus de confiance.',
-            ],
-            (object) [
-                'is_anonymous' => false,
-                'author_label' => 'Parent actif',
-                'role_tag' => 'Parent',
-                'message' => 'Le rendu est simple à comprendre et l’accès aux contenus est rapide.',
+                'message' => 'Les TD et le suivi rendent l’accompagnement plus clair et plus simple.',
             ],
             (object) [
                 'is_anonymous' => false,
                 'author_label' => 'Coach pédagogique',
                 'role_tag' => 'Support',
-                'message' => 'Les élèves peuvent avancer à leur rythme tout en gardant un cadre structuré.',
+                'message' => 'La plateforme aide à orienter les élèves vers un vrai rythme de progression.',
+            ],
+            (object) [
+                'is_anonymous' => true,
+                'author_label' => 'Anonyme',
+                'role_tag' => 'Élève',
+                'message' => 'Je retrouve vite mes contenus et je sais quoi faire chaque semaine.',
+            ],
+            (object) [
+                'is_anonymous' => false,
+                'author_label' => 'Parent impliqué',
+                'role_tag' => 'Parent',
+                'message' => 'Le rendu est plus sérieux qu’un simple site de cours posé à la va-vite.',
             ],
         ]);
 
-    $messageLaneOne = $displayMessages->values();
-    $messageLaneTwo = $displayMessages->reverse()->values();
+    $laneOne = $displayMessages->values();
+    $laneTwo = $displayMessages->reverse()->values();
 
     $audiences = collect($homepage['audiences'] ?? $defaults['audiences'] ?? [])->values();
 
     $hasParentAudience = $audiences->contains(function ($item) {
-        $title = mb_strtolower((string) ($item['title'] ?? ''));
-        $text = mb_strtolower((string) ($item['text'] ?? ''));
+        $title = strtolower((string) ($item['title'] ?? ''));
+        $text = strtolower((string) ($item['text'] ?? ''));
 
         return str_contains($title, 'parent') || str_contains($text, 'parent');
     });
 
     if (! $hasParentAudience) {
-        $audiences = $audiences->splice(0)->prepend([
+        $audiences->push([
             'title' => 'Pour les parents',
-            'text' => 'Suivez plus facilement le rythme, les progrès et les besoins d’accompagnement.',
-        ])->values();
+            'text' => 'Suivre plus facilement les progrès, les besoins d’encadrement et le rythme de travail.',
+        ]);
     }
 
     $audiences = $audiences->unique(fn ($item) => ($item['title'] ?? '') . '|' . ($item['text'] ?? ''))->take(4)->values();
@@ -100,20 +99,22 @@
         ]);
     }
 
-    $activeClassesCount = $classes->count();
-    $featuredClassesCount = $featuredClasses->count();
-    $generalClassesCount = $classGroups->get('enseignement_general', collect())->count();
-    $technicalClassesCount = $classGroups->get('enseignement_technique', collect())->count();
+    $registerLink = Route::has('register') ? route('register') : '#';
 
     $supportContactLink = ! empty($support['contact_link']) && $support['contact_link'] !== '#'
         ? $support['contact_link']
-        : (Route::has('register') ? route('register') : '#');
+        : $registerLink;
 
     $supportHelpLink = ! empty($support['help_link']) ? $support['help_link'] : '#mini-faq';
     $supportFaqLink = ! empty($support['faq_link']) ? $support['faq_link'] : '#mini-faq';
     $supportInfoLink = ! empty($support['info_link']) && $support['info_link'] !== '#'
         ? $support['info_link']
         : $supportContactLink;
+
+    $activeClassesCount = $classes->count();
+    $featuredClassesCount = $featuredClasses->count();
+    $generalClassesCount = $classGroups->get('enseignement_general', collect())->count();
+    $technicalClassesCount = $classGroups->get('enseignement_technique', collect())->count();
 @endphp
 
 @push('styles')
@@ -134,19 +135,19 @@
     }
 
     .home-shell::before {
-        width: 420px;
-        height: 420px;
-        top: -140px;
-        right: -120px;
-        background: radial-gradient(circle, rgba(29, 109, 255, 0.18), transparent 68%);
+        width: 460px;
+        height: 460px;
+        top: -150px;
+        right: -150px;
+        background: radial-gradient(circle, rgba(29, 109, 255, 0.18), transparent 70%);
     }
 
     .home-shell::after {
-        width: 320px;
-        height: 320px;
-        left: -120px;
-        top: 520px;
-        background: radial-gradient(circle, rgba(56, 189, 248, 0.12), transparent 68%);
+        width: 360px;
+        height: 360px;
+        left: -150px;
+        top: 620px;
+        background: radial-gradient(circle, rgba(56, 189, 248, 0.12), transparent 72%);
     }
 
     .home-shell .container {
@@ -156,316 +157,6 @@
 
     .home-shell section[id] {
         scroll-margin-top: 112px;
-    }
-
-    .home-hero {
-        padding: 44px 0 34px;
-    }
-
-    .home-hero__grid {
-        display: grid;
-        grid-template-columns: 1.02fr .98fr;
-        gap: 28px;
-        align-items: stretch;
-    }
-
-    .hero-panel,
-    .hero-visual {
-        position: relative;
-        border: 1px solid var(--line);
-        border-radius: 30px;
-        background: linear-gradient(180deg, rgba(255, 255, 255, 0.90), rgba(255, 255, 255, 0.72));
-        box-shadow: var(--shadow-lg);
-        overflow: hidden;
-    }
-
-    html[data-theme='dark'] .hero-panel,
-    html[data-theme='dark'] .hero-visual {
-        background: linear-gradient(180deg, rgba(14, 27, 49, 0.96), rgba(16, 32, 58, 0.88));
-    }
-
-    .hero-panel {
-        padding: 36px;
-    }
-
-    .hero-panel::before {
-        content: "";
-        position: absolute;
-        inset: 0;
-        background:
-            radial-gradient(circle at top right, rgba(29, 109, 255, 0.14), transparent 34%),
-            linear-gradient(180deg, transparent, rgba(29, 109, 255, 0.03));
-        pointer-events: none;
-    }
-
-    .hero-panel > * {
-        position: relative;
-        z-index: 1;
-    }
-
-    .hero-title {
-        margin: 18px 0 14px;
-        font-size: clamp(2.3rem, 4vw, 4rem);
-        line-height: 1.02;
-        letter-spacing: -0.04em;
-        max-width: 12ch;
-    }
-
-    .hero-title .accent {
-        display: block;
-        color: var(--primary);
-    }
-
-    .hero-subtitle {
-        margin: 0;
-        max-width: 60ch;
-        color: var(--muted);
-        font-size: 1.04rem;
-    }
-
-    .hero-actions {
-        margin-top: 24px;
-        display: flex;
-        flex-wrap: wrap;
-        gap: 12px;
-    }
-
-    .hero-actions--secondary {
-        margin-top: 12px;
-    }
-
-    .hero-reassurance {
-        margin-top: 24px;
-        display: flex;
-        flex-wrap: wrap;
-        gap: 10px;
-    }
-
-    .hero-reassurance__pill,
-    .stat-chip,
-    .class-meta,
-    .audience-tag,
-    .support-tag {
-        display: inline-flex;
-        align-items: center;
-        gap: 8px;
-        min-height: 34px;
-        padding: 0 12px;
-        border-radius: 999px;
-        border: 1px solid var(--line);
-        background: rgba(255, 255, 255, 0.72);
-        color: var(--text);
-        font-size: .84rem;
-        font-weight: 700;
-    }
-
-    html[data-theme='dark'] .hero-reassurance__pill,
-    html[data-theme='dark'] .stat-chip,
-    html[data-theme='dark'] .class-meta,
-    html[data-theme='dark'] .audience-tag,
-    html[data-theme='dark'] .support-tag {
-        background: rgba(14, 27, 49, 0.94);
-    }
-
-    .hero-bottom {
-        margin-top: 28px;
-        display: grid;
-        grid-template-columns: repeat(3, minmax(0, 1fr));
-        gap: 12px;
-    }
-
-    .hero-bottom__card {
-        padding: 16px;
-        border-radius: 20px;
-        border: 1px solid var(--line);
-        background: rgba(255, 255, 255, 0.72);
-        box-shadow: var(--shadow-xs);
-    }
-
-    html[data-theme='dark'] .hero-bottom__card {
-        background: rgba(12, 26, 47, 0.94);
-    }
-
-    .hero-bottom__value {
-        display: block;
-        font-size: 1.2rem;
-        font-weight: 900;
-        letter-spacing: -0.03em;
-    }
-
-    .hero-bottom__label {
-        display: block;
-        margin-top: 4px;
-        color: var(--muted);
-        font-size: .88rem;
-    }
-
-    .hero-visual {
-        padding: 26px;
-        min-height: 100%;
-    }
-
-    .hero-visual::before {
-        content: "";
-        position: absolute;
-        inset: 0;
-        background:
-            radial-gradient(circle at 15% 14%, rgba(29, 109, 255, 0.16), transparent 24%),
-            radial-gradient(circle at 100% 0%, rgba(56, 189, 248, 0.12), transparent 24%);
-        pointer-events: none;
-    }
-
-    .dashboard-window {
-        position: relative;
-        border: 1px solid var(--line);
-        border-radius: 28px;
-        background: linear-gradient(180deg, var(--panel), var(--panel-soft));
-        box-shadow: var(--shadow);
-        overflow: hidden;
-    }
-
-    .dashboard-topbar {
-        padding: 14px 18px;
-        display: flex;
-        align-items: center;
-        justify-content: space-between;
-        gap: 12px;
-        border-bottom: 1px solid var(--line);
-        background: rgba(29, 109, 255, 0.05);
-    }
-
-    .dashboard-topbar__dots {
-        display: inline-flex;
-        gap: 7px;
-    }
-
-    .dashboard-topbar__dots span {
-        width: 10px;
-        height: 10px;
-        border-radius: 999px;
-        background: rgba(29, 109, 255, 0.16);
-    }
-
-    .dashboard-body {
-        padding: 18px;
-        display: grid;
-        gap: 16px;
-    }
-
-    .dashboard-summary {
-        display: grid;
-        grid-template-columns: repeat(3, minmax(0, 1fr));
-        gap: 12px;
-    }
-
-    .summary-card {
-        padding: 14px;
-        border: 1px solid var(--line);
-        border-radius: 20px;
-        background: var(--panel);
-        box-shadow: var(--shadow-xs);
-    }
-
-    .summary-card strong {
-        display: block;
-        font-size: 1.2rem;
-        font-weight: 900;
-        letter-spacing: -0.03em;
-        margin-top: 5px;
-    }
-
-    .summary-card small {
-        color: var(--muted);
-        font-weight: 700;
-    }
-
-    .dashboard-grid {
-        display: grid;
-        grid-template-columns: 1.05fr .95fr;
-        gap: 14px;
-    }
-
-    .dashboard-stack {
-        display: grid;
-        gap: 14px;
-    }
-
-    .dashboard-block {
-        padding: 16px;
-        border: 1px solid var(--line);
-        border-radius: 22px;
-        background: var(--panel);
-        box-shadow: var(--shadow-xs);
-    }
-
-    .progress-row {
-        display: flex;
-        align-items: center;
-        justify-content: space-between;
-        gap: 10px;
-        margin-bottom: 10px;
-    }
-
-    .progress-track {
-        height: 12px;
-        border-radius: 999px;
-        background: rgba(29, 109, 255, 0.10);
-        overflow: hidden;
-    }
-
-    .progress-track span {
-        display: block;
-        height: 100%;
-        border-radius: inherit;
-        background: linear-gradient(90deg, var(--primary), #70abff);
-    }
-
-    .mini-list {
-        display: grid;
-        gap: 10px;
-    }
-
-    .mini-list__item {
-        display: flex;
-        justify-content: space-between;
-        gap: 12px;
-        padding: 12px 14px;
-        border-radius: 16px;
-        border: 1px solid var(--line);
-        background: var(--panel-soft);
-        color: var(--muted);
-    }
-
-    .mini-list__item strong {
-        color: var(--text);
-    }
-
-    .floating-badge {
-        position: absolute;
-        display: inline-flex;
-        align-items: center;
-        gap: 8px;
-        padding: 10px 14px;
-        border-radius: 16px;
-        border: 1px solid var(--line);
-        background: rgba(255, 255, 255, 0.92);
-        box-shadow: var(--shadow);
-        font-weight: 800;
-        font-size: .86rem;
-    }
-
-    html[data-theme='dark'] .floating-badge {
-        background: rgba(14, 27, 49, 0.96);
-    }
-
-    .floating-badge--top {
-        top: 26px;
-        right: 22px;
-    }
-
-    .floating-badge--bottom {
-        left: 18px;
-        bottom: 22px;
     }
 
     .section-head {
@@ -488,17 +179,352 @@
         gap: 10px;
     }
 
-    .message-section {
+    .eyebrow {
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+        min-height: 34px;
+        padding: 0 14px;
+        border-radius: 999px;
+        border: 1px solid var(--line);
+        background: rgba(255, 255, 255, 0.76);
+        color: var(--primary);
+        font-weight: 900;
+        font-size: .82rem;
+        letter-spacing: -0.01em;
+        width: fit-content;
+    }
+
+    html[data-theme='dark'] .eyebrow {
+        background: rgba(14, 27, 49, 0.92);
+    }
+
+    .chip,
+    .meta-pill,
+    .support-pill,
+    .audience-pill {
+        display: inline-flex;
+        align-items: center;
+        min-height: 34px;
+        padding: 0 12px;
+        border-radius: 999px;
+        border: 1px solid var(--line);
+        background: rgba(255, 255, 255, 0.72);
+        color: var(--text);
+        font-size: .82rem;
+        font-weight: 800;
+    }
+
+    html[data-theme='dark'] .chip,
+    html[data-theme='dark'] .meta-pill,
+    html[data-theme='dark'] .support-pill,
+    html[data-theme='dark'] .audience-pill {
+        background: rgba(14, 27, 49, 0.94);
+    }
+
+    .home-hero {
+        padding: 42px 0 32px;
+    }
+
+    .hero-grid {
+        display: grid;
+        grid-template-columns: 1.04fr .96fr;
+        gap: 24px;
+        align-items: stretch;
+    }
+
+    .hero-main,
+    .hero-side {
+        position: relative;
+        border: 1px solid var(--line);
+        border-radius: 32px;
+        overflow: hidden;
+        box-shadow: var(--shadow-lg);
+    }
+
+    .hero-main {
+        padding: 38px;
+        background:
+            radial-gradient(circle at top right, rgba(29, 109, 255, 0.16), transparent 32%),
+            linear-gradient(180deg, rgba(255,255,255,.94), rgba(255,255,255,.76));
+    }
+
+    .hero-side {
+        padding: 24px;
+        background:
+            radial-gradient(circle at top left, rgba(29, 109, 255, 0.12), transparent 24%),
+            linear-gradient(180deg, rgba(255,255,255,.94), rgba(255,255,255,.78));
+    }
+
+    html[data-theme='dark'] .hero-main {
+        background:
+            radial-gradient(circle at top right, rgba(110, 161, 255, 0.16), transparent 32%),
+            linear-gradient(180deg, rgba(14, 27, 49, .98), rgba(16, 32, 58, .90));
+    }
+
+    html[data-theme='dark'] .hero-side {
+        background:
+            radial-gradient(circle at top left, rgba(110, 161, 255, 0.14), transparent 24%),
+            linear-gradient(180deg, rgba(14, 27, 49, .98), rgba(16, 32, 58, .90));
+    }
+
+    .hero-title {
+        margin: 18px 0 14px;
+        font-size: clamp(2.35rem, 4vw, 4.25rem);
+        line-height: 1.01;
+        letter-spacing: -0.05em;
+        max-width: 11ch;
+    }
+
+    .hero-title .accent {
+        display: block;
+        color: var(--primary);
+    }
+
+    .hero-subtitle {
+        margin: 0;
+        max-width: 62ch;
+        color: var(--muted);
+        font-size: 1.04rem;
+    }
+
+    .hero-actions {
+        margin-top: 24px;
+        display: flex;
+        flex-wrap: wrap;
+        gap: 12px;
+    }
+
+    .hero-actions--secondary {
+        margin-top: 12px;
+    }
+
+    .hero-reassurance {
+        margin-top: 24px;
+        display: flex;
+        flex-wrap: wrap;
+        gap: 10px;
+    }
+
+    .hero-reassurance span {
+        display: inline-flex;
+        align-items: center;
+        min-height: 36px;
+        padding: 0 12px;
+        border-radius: 999px;
+        border: 1px solid var(--line);
+        background: rgba(255,255,255,.70);
+        font-size: .84rem;
+        font-weight: 800;
+    }
+
+    html[data-theme='dark'] .hero-reassurance span {
+        background: rgba(14, 27, 49, .94);
+    }
+
+    .hero-metrics {
+        margin-top: 28px;
+        display: grid;
+        grid-template-columns: repeat(3, minmax(0, 1fr));
+        gap: 12px;
+    }
+
+    .hero-metric {
+        padding: 16px;
+        border-radius: 22px;
+        border: 1px solid var(--line);
+        background: rgba(255,255,255,.72);
+        box-shadow: var(--shadow-xs);
+    }
+
+    html[data-theme='dark'] .hero-metric {
+        background: rgba(12, 26, 47, .94);
+    }
+
+    .hero-metric strong {
+        display: block;
+        font-size: 1.35rem;
+        font-weight: 900;
+        letter-spacing: -0.04em;
+    }
+
+    .hero-metric span {
+        display: block;
+        margin-top: 6px;
+        color: var(--muted);
+        font-size: .88rem;
+    }
+
+    .hero-strip {
+        margin-top: 18px;
+        display: flex;
+        flex-wrap: wrap;
+        gap: 10px;
+    }
+
+    .dashboard-card {
+        position: relative;
+        border-radius: 28px;
+        border: 1px solid var(--line);
+        background: linear-gradient(180deg, var(--panel), var(--panel-soft));
+        box-shadow: var(--shadow);
+        overflow: hidden;
+    }
+
+    .dashboard-top {
+        padding: 14px 18px;
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 12px;
+        border-bottom: 1px solid var(--line);
+        background: rgba(29, 109, 255, 0.05);
+    }
+
+    .dashboard-dots {
+        display: inline-flex;
+        gap: 6px;
+    }
+
+    .dashboard-dots span {
+        width: 10px;
+        height: 10px;
+        border-radius: 999px;
+        background: rgba(29, 109, 255, 0.16);
+    }
+
+    .dashboard-body {
+        padding: 18px;
+        display: grid;
+        gap: 14px;
+    }
+
+    .dashboard-summary {
+        display: grid;
+        grid-template-columns: repeat(3, minmax(0, 1fr));
+        gap: 10px;
+    }
+
+    .summary-box,
+    .dashboard-box {
+        padding: 14px;
+        border-radius: 20px;
+        border: 1px solid var(--line);
+        background: var(--panel);
+        box-shadow: var(--shadow-xs);
+    }
+
+    .summary-box small,
+    .dashboard-box small {
+        color: var(--muted);
+        font-weight: 800;
+    }
+
+    .summary-box strong {
+        display: block;
+        margin-top: 6px;
+        font-size: 1.2rem;
+        font-weight: 900;
+        letter-spacing: -0.03em;
+    }
+
+    .dashboard-layout {
+        display: grid;
+        grid-template-columns: 1.05fr .95fr;
+        gap: 12px;
+    }
+
+    .dashboard-stack {
+        display: grid;
+        gap: 12px;
+    }
+
+    .progress-head {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 10px;
+        margin-bottom: 10px;
+    }
+
+    .progress-track {
+        height: 12px;
+        border-radius: 999px;
+        background: rgba(29, 109, 255, 0.10);
+        overflow: hidden;
+    }
+
+    .progress-track span {
+        display: block;
+        height: 100%;
+        border-radius: inherit;
+        background: linear-gradient(90deg, var(--primary), #79b0ff);
+    }
+
+    .mini-list {
+        display: grid;
+        gap: 10px;
+    }
+
+    .mini-row {
+        display: flex;
+        justify-content: space-between;
+        gap: 12px;
+        padding: 12px 14px;
+        border-radius: 16px;
+        border: 1px solid var(--line);
+        background: var(--panel-soft);
+        color: var(--muted);
+    }
+
+    .mini-row strong {
+        color: var(--text);
+    }
+
+    .floating-note {
+        position: absolute;
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+        min-height: 40px;
+        padding: 0 14px;
+        border-radius: 16px;
+        border: 1px solid var(--line);
+        background: rgba(255,255,255,.92);
+        box-shadow: var(--shadow);
+        font-size: .84rem;
+        font-weight: 900;
+    }
+
+    html[data-theme='dark'] .floating-note {
+        background: rgba(14, 27, 49, .96);
+    }
+
+    .floating-note--top {
+        top: 20px;
+        right: 18px;
+    }
+
+    .floating-note--bottom {
+        left: 18px;
+        bottom: 18px;
+    }
+
+    .messages-section {
         padding-top: 18px;
     }
 
     .message-wrap {
         display: grid;
-        gap: 18px;
+        gap: 16px;
+    }
+
+    .message-track {
+        overflow: hidden;
+        mask-image: linear-gradient(to right, transparent, #000 6%, #000 94%, transparent);
     }
 
     .message-lane {
-        position: relative;
         display: flex;
         gap: 14px;
         width: max-content;
@@ -506,34 +532,28 @@
         will-change: transform;
     }
 
-    .message-track {
-        overflow: hidden;
-        padding: 4px 0;
-        mask-image: linear-gradient(to right, transparent, #000 6%, #000 94%, transparent);
+    .message-track--reverse .message-lane {
+        animation-direction: reverse;
+        animation-duration: 38s;
     }
 
     .message-track:hover .message-lane {
         animation-play-state: paused;
     }
 
-    .message-track--reverse .message-lane {
-        animation-direction: reverse;
-        animation-duration: 38s;
-    }
-
     .message-card {
         min-width: 300px;
         max-width: 320px;
+        padding: 18px;
         display: grid;
         gap: 14px;
-        padding: 18px;
         border-radius: 24px;
         border: 1px solid var(--line);
         background: linear-gradient(180deg, var(--panel), var(--panel-soft));
         box-shadow: var(--shadow);
     }
 
-    .message-card__top {
+    .message-top {
         display: flex;
         align-items: center;
         gap: 12px;
@@ -547,26 +567,26 @@
         display: inline-flex;
         align-items: center;
         justify-content: center;
-        font-weight: 900;
-        color: var(--primary);
-        background: rgba(29, 109, 255, 0.10);
         border: 1px solid var(--line);
+        background: rgba(29, 109, 255, 0.10);
+        color: var(--primary);
+        font-weight: 900;
     }
 
-    .message-card__meta {
+    .message-meta {
         min-width: 0;
         display: grid;
         gap: 2px;
     }
 
-    .message-card__meta strong {
+    .message-meta strong {
         font-size: .98rem;
         line-height: 1.2;
     }
 
-    .message-card__role {
+    .message-meta span {
         color: var(--muted);
-        font-size: .85rem;
+        font-size: .84rem;
         font-weight: 700;
     }
 
@@ -576,20 +596,16 @@
         line-height: 1.7;
     }
 
-    .trust-section {
-        padding-top: 10px;
-    }
-
     .trust-grid {
         display: grid;
-        grid-template-columns: 1.05fr repeat(3, minmax(0, 1fr));
+        grid-template-columns: 1.08fr repeat(3, minmax(0, 1fr));
         gap: 14px;
     }
 
     .trust-featured,
-    .trust-item {
+    .trust-card {
         border: 1px solid var(--line);
-        border-radius: 26px;
+        border-radius: 28px;
         background: linear-gradient(180deg, var(--panel), var(--panel-soft));
         box-shadow: var(--shadow);
     }
@@ -602,9 +618,9 @@
 
     .trust-featured h3 {
         margin: 0;
-        font-size: 1.5rem;
-        line-height: 1.08;
-        letter-spacing: -0.03em;
+        font-size: 1.55rem;
+        line-height: 1.06;
+        letter-spacing: -0.04em;
     }
 
     .trust-featured p {
@@ -612,31 +628,35 @@
         color: var(--muted);
     }
 
-    .trust-highlight-list {
+    .trust-checks {
         display: grid;
         gap: 10px;
     }
 
-    .trust-highlight-list div {
+    .trust-check {
         display: flex;
         justify-content: space-between;
         gap: 12px;
         padding: 12px 14px;
-        border-radius: 16px;
-        background: rgba(29, 109, 255, 0.06);
+        border-radius: 18px;
         border: 1px solid var(--line);
+        background: rgba(29,109,255,.06);
     }
 
-    .trust-item {
+    .trust-check strong {
+        font-size: 1rem;
+    }
+
+    .trust-card {
         padding: 18px;
         display: grid;
         gap: 10px;
         align-content: start;
-        min-height: 170px;
+        min-height: 172px;
         transition: transform .2s ease, box-shadow .2s ease;
     }
 
-    .trust-item:hover,
+    .trust-card:hover,
     .class-card:hover,
     .why-card:hover,
     .audience-card:hover,
@@ -657,7 +677,7 @@
 
     .trust-title {
         font-size: 1rem;
-        font-weight: 800;
+        font-weight: 900;
         letter-spacing: -0.02em;
     }
 
@@ -666,14 +686,10 @@
         font-size: .92rem;
     }
 
-    .class-section {
-        position: relative;
-    }
-
     .class-tabs {
         display: flex;
-        gap: 10px;
         flex-wrap: wrap;
+        gap: 10px;
         margin-top: 6px;
         margin-bottom: 20px;
     }
@@ -686,35 +702,35 @@
         background: var(--panel);
         color: var(--muted);
         font-size: .92rem;
-        font-weight: 800;
+        font-weight: 900;
         cursor: pointer;
         transition: .2s ease;
     }
 
     .class-tab:hover {
-        background: var(--panel-soft);
         color: var(--text);
+        background: var(--panel-soft);
     }
 
     .class-tab.is-active {
         color: #fff;
         border-color: transparent;
         background: linear-gradient(135deg, var(--primary), #4f86ff);
-        box-shadow: 0 14px 28px rgba(29, 109, 255, 0.20);
+        box-shadow: 0 14px 28px rgba(29,109,255,.20);
     }
 
     .classes-grid {
         display: grid;
-        grid-template-columns: repeat(auto-fit, minmax(255px, 1fr));
+        grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
         gap: 16px;
     }
 
     .class-card {
-        padding: 18px;
+        padding: 20px;
         display: grid;
         gap: 14px;
+        border-radius: 26px;
         border: 1px solid var(--line);
-        border-radius: 24px;
         background: linear-gradient(180deg, var(--panel), var(--panel-soft));
         box-shadow: var(--shadow);
         transition: transform .2s ease, box-shadow .2s ease;
@@ -722,7 +738,8 @@
 
     .class-card__top,
     .class-badges,
-    .class-actions {
+    .class-actions,
+    .class-preview {
         display: flex;
         align-items: center;
         gap: 10px;
@@ -732,15 +749,14 @@
     .class-system {
         display: inline-flex;
         align-items: center;
-        gap: 8px;
         min-height: 32px;
         padding: 0 11px;
         border-radius: 999px;
-        background: rgba(29, 109, 255, 0.08);
-        color: var(--primary);
-        font-size: .78rem;
-        font-weight: 900;
         border: 1px solid var(--line);
+        background: rgba(29,109,255,.08);
+        color: var(--primary);
+        font-size: .76rem;
+        font-weight: 900;
     }
 
     .class-badge {
@@ -750,24 +766,23 @@
         padding: 0 10px;
         border-radius: 999px;
         border: 1px solid var(--line);
-        font-size: .74rem;
+        font-size: .72rem;
         font-weight: 900;
-        letter-spacing: -0.01em;
     }
 
     .class-badge--popular {
         color: #0f766e;
-        background: rgba(15, 118, 110, 0.08);
+        background: rgba(15,118,110,.08);
     }
 
     .class-badge--recommended {
         color: #1d4ed8;
-        background: rgba(29, 78, 216, 0.08);
+        background: rgba(29,78,216,.08);
     }
 
     .class-badge--guided {
         color: #7c3aed;
-        background: rgba(124, 58, 237, 0.08);
+        background: rgba(124,58,237,.08);
     }
 
     .class-card h3 {
@@ -781,73 +796,61 @@
         color: var(--muted);
     }
 
-    .class-footer {
-        margin-top: auto;
-        display: grid;
-        gap: 14px;
-    }
-
-    .class-preview {
-        display: flex;
-        gap: 8px;
-        flex-wrap: wrap;
-    }
-
     .class-empty {
         padding: 20px;
         border-radius: 24px;
-        border: 1px dashed var(--line-strong);
+        border: 1px dashed var(--line);
         background: var(--panel);
         color: var(--muted);
     }
 
     .dark-showcase {
         padding: 34px;
-        border-radius: 32px;
+        border-radius: 34px;
         color: #e9f0ff;
         background:
-            radial-gradient(circle at top right, rgba(110, 161, 255, 0.22), transparent 28%),
+            radial-gradient(circle at top right, rgba(110, 161, 255, .20), transparent 28%),
             linear-gradient(180deg, #0d1a36, #081224);
         box-shadow: var(--shadow-lg);
     }
 
-    .dark-showcase__grid {
+    .dark-grid {
         display: grid;
-        grid-template-columns: .92fr 1.08fr;
+        grid-template-columns: .9fr 1.1fr;
         gap: 22px;
         align-items: start;
     }
 
-    .dark-showcase__intro {
+    .dark-intro {
         display: grid;
         gap: 16px;
         align-content: start;
     }
 
-    .dark-showcase__intro p {
+    .dark-intro p {
         margin: 0;
-        color: rgba(232, 239, 255, 0.78);
+        color: rgba(232,239,255,.78);
     }
 
-    .dark-showcase__chips {
+    .dark-chips {
         display: flex;
         flex-wrap: wrap;
         gap: 10px;
     }
 
-    .dark-showcase__chips span {
+    .dark-chips span {
         display: inline-flex;
         align-items: center;
         min-height: 34px;
         padding: 0 12px;
         border-radius: 999px;
-        border: 1px solid rgba(255, 255, 255, 0.14);
-        background: rgba(255, 255, 255, 0.06);
+        border: 1px solid rgba(255,255,255,.14);
+        background: rgba(255,255,255,.06);
         font-size: .84rem;
         font-weight: 800;
     }
 
-    .dark-showcase__stats {
+    .dark-stats {
         display: grid;
         gap: 12px;
     }
@@ -858,16 +861,16 @@
         gap: 12px;
         padding: 14px 16px;
         border-radius: 18px;
-        border: 1px solid rgba(255, 255, 255, 0.12);
-        background: rgba(255, 255, 255, 0.05);
+        border: 1px solid rgba(255,255,255,.12);
+        background: rgba(255,255,255,.05);
     }
 
     .dark-stat strong {
-        font-size: 1.05rem;
+        font-size: 1.02rem;
     }
 
     .dark-stat span {
-        color: rgba(232, 239, 255, 0.72);
+        color: rgba(232,239,255,.72);
     }
 
     .why-grid {
@@ -879,21 +882,21 @@
     .why-card {
         padding: 18px;
         border-radius: 22px;
-        border: 1px solid rgba(255, 255, 255, 0.12);
-        background: rgba(255, 255, 255, 0.05);
+        border: 1px solid rgba(255,255,255,.12);
+        background: rgba(255,255,255,.05);
         transition: transform .2s ease, box-shadow .2s ease;
     }
 
     .why-card h3 {
         margin: 0 0 10px;
-        font-size: 1.08rem;
-        letter-spacing: -0.02em;
         color: #fff;
+        font-size: 1.06rem;
+        letter-spacing: -0.02em;
     }
 
     .why-card p {
         margin: 0;
-        color: rgba(232, 239, 255, 0.78);
+        color: rgba(232,239,255,.78);
     }
 
     .audience-grid {
@@ -906,7 +909,7 @@
         padding: 20px;
         display: grid;
         gap: 14px;
-        border-radius: 24px;
+        border-radius: 26px;
         border: 1px solid var(--line);
         background: linear-gradient(180deg, var(--panel), var(--panel-soft));
         box-shadow: var(--shadow);
@@ -915,7 +918,7 @@
 
     .audience-card h3 {
         margin: 0;
-        font-size: 1.1rem;
+        font-size: 1.08rem;
         letter-spacing: -0.03em;
     }
 
@@ -935,7 +938,7 @@
         padding: 22px;
         display: grid;
         gap: 12px;
-        border-radius: 28px;
+        border-radius: 30px;
         border: 1px solid var(--line);
         background: linear-gradient(180deg, var(--panel), var(--panel-soft));
         box-shadow: var(--shadow);
@@ -944,7 +947,7 @@
 
     .pricing-card--highlight {
         border: 2px solid var(--primary);
-        box-shadow: 0 18px 40px rgba(29, 109, 255, 0.20);
+        box-shadow: 0 18px 40px rgba(29,109,255,.20);
         transform: translateY(-6px);
     }
 
@@ -957,14 +960,13 @@
         border-radius: 999px;
         background: linear-gradient(135deg, var(--primary), #4f86ff);
         color: #fff;
-        font-size: .76rem;
+        font-size: .74rem;
         font-weight: 900;
-        letter-spacing: -0.01em;
     }
 
     .pricing-card h3 {
         margin: 0;
-        font-size: 1.2rem;
+        font-size: 1.18rem;
         letter-spacing: -0.03em;
     }
 
@@ -987,15 +989,14 @@
         padding: 0 12px;
         border-radius: 999px;
         border: 1px solid var(--line);
-        background: rgba(29, 109, 255, 0.06);
-        color: var(--text);
+        background: rgba(29,109,255,.06);
         font-size: .84rem;
         font-weight: 800;
     }
 
     .faq-grid {
         display: grid;
-        grid-template-columns: 1.08fr .92fr;
+        grid-template-columns: 1.06fr .94fr;
         gap: 18px;
         align-items: start;
     }
@@ -1007,7 +1008,7 @@
 
     .faq-card {
         padding: 18px 20px;
-        border-radius: 22px;
+        border-radius: 24px;
         border: 1px solid var(--line);
         background: linear-gradient(180deg, var(--panel), var(--panel-soft));
         box-shadow: var(--shadow);
@@ -1035,9 +1036,9 @@
 
     .faq-card summary::after {
         content: "+";
+        color: var(--primary);
         font-size: 1.2rem;
         line-height: 1;
-        color: var(--primary);
     }
 
     .faq-card details[open] summary::after {
@@ -1054,48 +1055,48 @@
         gap: 14px;
     }
 
-    .faq-side__card {
+    .faq-side-card {
         padding: 22px;
-        border-radius: 24px;
+        border-radius: 26px;
         border: 1px solid var(--line);
         background:
-            radial-gradient(circle at top right, rgba(29, 109, 255, 0.14), transparent 30%),
+            radial-gradient(circle at top right, rgba(29,109,255,.14), transparent 30%),
             linear-gradient(180deg, var(--panel), var(--panel-soft));
         box-shadow: var(--shadow);
     }
 
-    .faq-side__card h3,
+    .faq-side-card h3,
     .support-card h2 {
         margin: 0 0 10px;
         letter-spacing: -0.03em;
     }
 
-    .faq-side__card p,
+    .faq-side-card p,
     .support-card p {
         margin: 0;
         color: var(--muted);
     }
 
     .support-card {
-        padding: 24px;
-        border-radius: 28px;
+        padding: 26px;
+        border-radius: 30px;
         border: 1px solid var(--line);
         background:
-            radial-gradient(circle at top right, rgba(29, 109, 255, 0.12), transparent 26%),
+            radial-gradient(circle at top right, rgba(29,109,255,.12), transparent 26%),
             linear-gradient(180deg, var(--panel), var(--panel-soft));
         box-shadow: var(--shadow-lg);
         transition: transform .2s ease, box-shadow .2s ease;
     }
 
-    .support-layout {
+    .support-grid {
         display: grid;
         grid-template-columns: 1.05fr .95fr;
         gap: 22px;
         align-items: start;
     }
 
-    .support-content,
-    .support-panel {
+    .support-main,
+    .support-side {
         display: grid;
         gap: 16px;
     }
@@ -1112,34 +1113,34 @@
         gap: 12px;
     }
 
-    .support-panel__box {
+    .support-side-box {
         padding: 18px;
         border-radius: 22px;
         border: 1px solid var(--line);
-        background: rgba(29, 109, 255, 0.06);
+        background: rgba(29,109,255,.06);
         display: grid;
         gap: 12px;
     }
 
-    .support-panel__box strong {
+    .support-side-box strong {
         letter-spacing: -0.02em;
     }
 
-    .support-panel__list {
+    .support-list {
         display: grid;
         gap: 10px;
     }
 
-    .support-panel__list div {
+    .support-list div {
         display: flex;
         justify-content: space-between;
         gap: 12px;
         color: var(--muted);
     }
 
-    .support-panel__list div span:last-child {
+    .support-list div span:last-child {
         color: var(--text);
-        font-weight: 700;
+        font-weight: 800;
     }
 
     .reveal {
@@ -1163,11 +1164,11 @@
     }
 
     @media (max-width: 1180px) {
-        .home-hero__grid,
-        .dark-showcase__grid,
-        .support-layout,
+        .hero-grid,
+        .trust-grid,
+        .dark-grid,
         .faq-grid,
-        .trust-grid {
+        .support-grid {
             grid-template-columns: 1fr;
         }
 
@@ -1182,10 +1183,6 @@
         .pricing-card--highlight {
             transform: none;
         }
-
-        .trust-grid {
-            gap: 16px;
-        }
     }
 
     @media (max-width: 900px) {
@@ -1193,54 +1190,40 @@
             padding-top: 28px;
         }
 
-        .hero-panel,
-        .hero-visual,
+        .hero-main,
+        .hero-side,
         .dark-showcase,
         .support-card {
-            border-radius: 24px;
+            border-radius: 26px;
         }
 
-        .hero-panel,
-        .hero-visual,
+        .hero-main,
+        .hero-side,
         .dark-showcase,
-        .support-card,
-        .faq-card,
-        .faq-side__card,
-        .trust-featured,
-        .trust-item,
-        .class-card,
-        .audience-card,
-        .pricing-card {
-            box-shadow: var(--shadow);
-        }
-
-        .hero-panel,
-        .hero-visual,
-        .dark-showcase {
+        .support-card {
             padding-left: 20px;
             padding-right: 20px;
         }
 
+        .hero-metrics,
         .dashboard-summary,
-        .dashboard-grid,
-        .hero-bottom,
+        .dashboard-layout,
         .why-grid {
             grid-template-columns: 1fr;
         }
 
-        .floating-badge {
+        .floating-note {
             position: static;
             margin-top: 12px;
         }
     }
 
     @media (max-width: 720px) {
-        .hero-panel {
-            padding: 24px 18px;
-        }
-
-        .hero-visual {
-            padding: 18px;
+        .hero-main,
+        .hero-side,
+        .dark-showcase,
+        .support-card {
+            padding: 20px 18px;
         }
 
         .hero-title {
@@ -1257,32 +1240,17 @@
             grid-template-columns: 1fr;
         }
 
-        .dark-showcase,
-        .support-card {
-            padding: 20px 18px;
-        }
-
+        .hero-actions,
         .class-actions,
-        .support-actions,
-        .hero-actions {
+        .support-actions {
             display: grid;
             grid-template-columns: 1fr;
         }
 
+        .hero-actions .btn,
         .class-actions .btn,
-        .support-actions .btn,
-        .hero-actions .btn {
+        .support-actions .btn {
             width: 100%;
-        }
-
-        .faq-card,
-        .faq-side__card,
-        .trust-featured,
-        .trust-item,
-        .class-card,
-        .audience-card,
-        .pricing-card {
-            padding: 18px;
         }
     }
 </style>
@@ -1292,8 +1260,8 @@
 <div class="home-shell">
     <section class="home-hero">
         <div class="container">
-            <div class="home-hero__grid">
-                <div class="hero-panel reveal">
+            <div class="hero-grid">
+                <div class="hero-main reveal">
                     <span class="eyebrow">✨ {{ $hero['badge'] ?? 'Essai gratuit 24h' }}</span>
 
                     <h1 class="hero-title">
@@ -1306,7 +1274,7 @@
                     </p>
 
                     <div class="hero-actions">
-                        <a href="{{ $hero['primary_cta_link'] ?? (Route::has('register') ? route('register') : '#') }}" class="btn btn--primary">
+                        <a href="{{ $hero['primary_cta_link'] ?? $registerLink }}" class="btn btn--primary">
                             {{ $hero['primary_cta_label'] ?? 'Commencer maintenant' }}
                         </a>
 
@@ -1327,86 +1295,91 @@
 
                     <div class="hero-reassurance">
                         @foreach ($heroReassurance as $pill)
-                            <span class="hero-reassurance__pill">✔ {{ $pill }}</span>
+                            <span>✔ {{ $pill }}</span>
                         @endforeach
                     </div>
 
-                    <div class="hero-bottom">
-                        <article class="hero-bottom__card">
-                            <span class="hero-bottom__value">{{ $activeClassesCount > 0 ? $activeClassesCount : '12+' }}</span>
-                            <span class="hero-bottom__label">classes actives et prêtes à explorer</span>
+                    <div class="hero-strip">
+                        <span class="chip">Secondaire général</span>
+                        <span class="chip">Enseignement technique</span>
+                        <span class="chip">Progression visible</span>
+                        <span class="chip">Support réactif</span>
+                    </div>
+
+                    <div class="hero-metrics">
+                        <article class="hero-metric">
+                            <strong>{{ $activeClassesCount > 0 ? $activeClassesCount : '12+' }}</strong>
+                            <span>classes actives disponibles</span>
                         </article>
 
-                        <article class="hero-bottom__card">
-                            <span class="hero-bottom__value">{{ $featuredClassesCount > 0 ? $featuredClassesCount : '9+' }}</span>
-                            <span class="hero-bottom__label">classes mises en avant sur la homepage</span>
+                        <article class="hero-metric">
+                            <strong>{{ $featuredClassesCount > 0 ? $featuredClassesCount : '9+' }}</strong>
+                            <span>classes mises en avant</span>
                         </article>
 
-                        <article class="hero-bottom__card">
-                            <span class="hero-bottom__value">{{ $displayMessages->count() > 0 ? $displayMessages->count() : '6+' }}</span>
-                            <span class="hero-bottom__label">retours visibles d’élèves, parents et enseignants</span>
+                        <article class="hero-metric">
+                            <strong>{{ $displayMessages->count() > 0 ? $displayMessages->count() : '6+' }}</strong>
+                            <span>retours visibles sur la plateforme</span>
                         </article>
                     </div>
                 </div>
 
-                <div class="hero-visual reveal">
-                    <div class="dashboard-window">
-                        <div class="dashboard-topbar">
-                            <div class="dashboard-topbar__dots">
+                <div class="hero-side reveal">
+                    <div class="dashboard-card">
+                        <div class="dashboard-top">
+                            <div class="dashboard-dots">
                                 <span></span>
                                 <span></span>
                                 <span></span>
                             </div>
+
                             <strong>Dashboard élève</strong>
                             <small class="muted">Activité récente</small>
                         </div>
 
                         <div class="dashboard-body">
                             <div class="dashboard-summary">
-                                <article class="summary-card">
+                                <article class="summary-box">
                                     <small>Progression</small>
                                     <strong>78%</strong>
                                 </article>
 
-                                <article class="summary-card">
+                                <article class="summary-box">
                                     <small>Quiz validés</small>
                                     <strong>17/20</strong>
                                 </article>
 
-                                <article class="summary-card">
+                                <article class="summary-box">
                                     <small>TD terminés</small>
                                     <strong>11</strong>
                                 </article>
                             </div>
 
-                            <div class="dashboard-grid">
+                            <div class="dashboard-layout">
                                 <div class="dashboard-stack">
-                                    <article class="dashboard-block">
-                                        <div class="progress-row">
+                                    <article class="dashboard-box">
+                                        <div class="progress-head">
                                             <strong>Objectif de la semaine</strong>
-                                            <span class="muted">Atteint à 82%</span>
+                                            <span class="muted">82%</span>
                                         </div>
                                         <div class="progress-track">
                                             <span style="width: 82%;"></span>
                                         </div>
                                     </article>
 
-                                    <article class="dashboard-block">
-                                        <div class="progress-row">
-                                            <strong>Révisions par matière</strong>
-                                            <span class="muted">3 matières</span>
-                                        </div>
+                                    <article class="dashboard-box">
+                                        <small>Révisions par matière</small>
 
-                                        <div class="mini-list">
-                                            <div class="mini-list__item">
+                                        <div class="mini-list" style="margin-top: 10px;">
+                                            <div class="mini-row">
                                                 <span>Mathématiques</span>
                                                 <strong>Très bon rythme</strong>
                                             </div>
-                                            <div class="mini-list__item">
+                                            <div class="mini-row">
                                                 <span>Physique</span>
                                                 <strong>À renforcer</strong>
                                             </div>
-                                            <div class="mini-list__item">
+                                            <div class="mini-row">
                                                 <span>Français</span>
                                                 <strong>Bonne stabilité</strong>
                                             </div>
@@ -1414,23 +1387,20 @@
                                     </article>
                                 </div>
 
-                                <article class="dashboard-block">
-                                    <div class="progress-row">
-                                        <strong>À faire aujourd’hui</strong>
-                                        <span class="muted">3 actions</span>
-                                    </div>
+                                <article class="dashboard-box">
+                                    <small>À faire aujourd’hui</small>
 
-                                    <div class="mini-list">
-                                        <div class="mini-list__item">
+                                    <div class="mini-list" style="margin-top: 10px;">
+                                        <div class="mini-row">
                                             <span>Quiz de révision</span>
                                             <strong>Commencer</strong>
                                         </div>
-                                        <div class="mini-list__item">
+                                        <div class="mini-row">
                                             <span>TD corrigé</span>
                                             <strong>Disponible</strong>
                                         </div>
-                                        <div class="mini-list__item">
-                                            <span>Suivi de score</span>
+                                        <div class="mini-row">
+                                            <span>Suivi des scores</span>
                                             <strong>En direct</strong>
                                         </div>
                                     </div>
@@ -1439,50 +1409,50 @@
                         </div>
                     </div>
 
-                    <div class="floating-badge floating-badge--top">⚡ +3 quiz cette semaine</div>
-                    <div class="floating-badge floating-badge--bottom">🎯 Objectif du mois : 82%</div>
+                    <div class="floating-note floating-note--top">⚡ +3 quiz cette semaine</div>
+                    <div class="floating-note floating-note--bottom">🎯 Objectif du mois : 82%</div>
                 </div>
             </div>
         </div>
     </section>
 
     @if ($isMessagesEnabled)
-        <section class="section section--tight message-section reveal">
+        <section class="section section--tight messages-section reveal">
             <div class="container">
                 <div class="section-head">
                     <div class="section-head__text">
                         <span class="eyebrow">Témoignages visibles</span>
-                        <h2 class="section-title">Des retours qui rendent la plateforme vivante</h2>
+                        <h2 class="section-title">Une homepage plus vivante et plus crédible</h2>
                         <p class="section-subtitle">
-                            Élèves, parents et enseignants doivent sentir qu’ils entrent dans une vraie plateforme utile,
-                            humaine et sérieuse — pas dans un simple site figé.
+                            Cette section doit rassurer, humaniser la plateforme et montrer qu’elle sert
+                            réellement aux élèves, aux parents et aux enseignants.
                         </p>
                     </div>
 
                     <div class="section-head__chips">
-                        <span class="stat-chip">Élèves</span>
-                        <span class="stat-chip">Parents</span>
-                        <span class="stat-chip">Enseignants</span>
-                        <span class="stat-chip">Support</span>
+                        <span class="chip">Élèves</span>
+                        <span class="chip">Parents</span>
+                        <span class="chip">Enseignants</span>
+                        <span class="chip">Support</span>
                     </div>
                 </div>
 
                 <div class="message-wrap">
                     <div class="message-track">
                         <div class="message-lane">
-                            @foreach ($messageLaneOne->concat($messageLaneOne) as $message)
+                            @foreach ($laneOne->concat($laneOne) as $message)
                                 @php
                                     $displayName = $message->is_anonymous ? 'Anonyme' : ($message->author_label ?: 'Utilisateur');
-                                    $avatarLetter = mb_strtoupper(mb_substr($displayName, 0, 1));
+                                    $avatar = strtoupper(substr($displayName, 0, 1));
                                 @endphp
 
                                 <article class="message-card">
-                                    <div class="message-card__top">
-                                        <span class="message-avatar">{{ $avatarLetter }}</span>
+                                    <div class="message-top">
+                                        <span class="message-avatar">{{ $avatar }}</span>
 
-                                        <div class="message-card__meta">
+                                        <div class="message-meta">
                                             <strong>{{ $displayName }}</strong>
-                                            <span class="message-card__role">{{ $message->role_tag ?: 'Utilisateur' }}</span>
+                                            <span>{{ $message->role_tag ?: 'Utilisateur' }}</span>
                                         </div>
                                     </div>
 
@@ -1494,19 +1464,19 @@
 
                     <div class="message-track message-track--reverse">
                         <div class="message-lane">
-                            @foreach ($messageLaneTwo->concat($messageLaneTwo) as $message)
+                            @foreach ($laneTwo->concat($laneTwo) as $message)
                                 @php
                                     $displayName = $message->is_anonymous ? 'Anonyme' : ($message->author_label ?: 'Utilisateur');
-                                    $avatarLetter = mb_strtoupper(mb_substr($displayName, 0, 1));
+                                    $avatar = strtoupper(substr($displayName, 0, 1));
                                 @endphp
 
                                 <article class="message-card">
-                                    <div class="message-card__top">
-                                        <span class="message-avatar">{{ $avatarLetter }}</span>
+                                    <div class="message-top">
+                                        <span class="message-avatar">{{ $avatar }}</span>
 
-                                        <div class="message-card__meta">
+                                        <div class="message-meta">
                                             <strong>{{ $displayName }}</strong>
-                                            <span class="message-card__role">{{ $message->role_tag ?: 'Utilisateur' }}</span>
+                                            <span>{{ $message->role_tag ?: 'Utilisateur' }}</span>
                                         </div>
                                     </div>
 
@@ -1521,27 +1491,29 @@
     @endif
 
     @if ($isTrustEnabled)
-        <section class="section section--tight trust-section reveal">
+        <section class="section section--tight reveal">
             <div class="container">
                 <div class="trust-grid">
                     <article class="trust-featured">
                         <span class="eyebrow">Confiance et repères</span>
-                        <h3>Une homepage qui rassure, informe et donne envie d’entrer dans la plateforme</h3>
+
+                        <h3>Un bloc de preuves sociales qui rassure vraiment</h3>
+
                         <p>
-                            Les chiffres ne doivent pas seulement “remplir un bloc”.
-                            Ils doivent rassurer, prouver l’utilité et renforcer la crédibilité de TIMAH ACADEMY.
+                            Les chiffres doivent donner du poids à la plateforme, pas seulement remplir de petites cartes.
+                            Ici, ils participent au discours commercial et à la crédibilité générale.
                         </p>
 
-                        <div class="trust-highlight-list">
-                            <div>
+                        <div class="trust-checks">
+                            <div class="trust-check">
                                 <span>Enseignement général</span>
                                 <strong>{{ $generalClassesCount > 0 ? $generalClassesCount : '—' }}</strong>
                             </div>
-                            <div>
+                            <div class="trust-check">
                                 <span>Enseignement technique</span>
                                 <strong>{{ $technicalClassesCount > 0 ? $technicalClassesCount : '—' }}</strong>
                             </div>
-                            <div>
+                            <div class="trust-check">
                                 <span>Classes mises en avant</span>
                                 <strong>{{ $featuredClassesCount > 0 ? $featuredClassesCount : '—' }}</strong>
                             </div>
@@ -1549,10 +1521,10 @@
                     </article>
 
                     @foreach ($trustItems as $item)
-                        <article class="trust-item">
+                        <article class="trust-card">
                             <span class="trust-value">{{ $item['value'] ?? '' }}</span>
                             <span class="trust-title">{{ $item['title'] ?? '' }}</span>
-                            <span class="trust-note">Des indicateurs visibles pour rassurer dès la première visite.</span>
+                            <span class="trust-note">Un indicateur visible pour renforcer le sérieux et la confiance.</span>
                         </article>
                     @endforeach
                 </div>
@@ -1561,22 +1533,22 @@
     @endif
 
     @if ($isClassesEnabled)
-        <section id="classes" class="section class-section reveal">
+        <section id="classes" class="section reveal">
             <div class="container">
                 <div class="section-head">
                     <div class="section-head__text">
                         <span class="eyebrow">Classes disponibles</span>
-                        <h2 class="section-title">Un accès clair par filière et par niveau</h2>
+                        <h2 class="section-title">Explorer rapidement la bonne classe et le bon parcours</h2>
                         <p class="section-subtitle">
-                            L’utilisateur doit immédiatement comprendre qu’il peut trouver sa classe,
-                            entrer dans le bon parcours et commencer sans confusion.
+                            L’utilisateur doit sentir immédiatement que l’entrée dans la plateforme est simple,
+                            structurée et adaptée à son niveau ou à sa filière.
                         </p>
                     </div>
 
                     <div class="section-head__chips">
-                        <span class="stat-chip">{{ $generalClassesCount }} général</span>
-                        <span class="stat-chip">{{ $technicalClassesCount }} technique</span>
-                        <span class="stat-chip">{{ $activeClassesCount }} classes actives</span>
+                        <span class="chip">{{ $generalClassesCount }} général</span>
+                        <span class="chip">{{ $technicalClassesCount }} technique</span>
+                        <span class="chip">{{ $activeClassesCount }} classes actives</span>
                     </div>
                 </div>
 
@@ -1588,7 +1560,7 @@
                     @endforeach
                 </div>
 
-                <div class="classes-grid" data-classes-grid>
+                <div class="classes-grid">
                     @forelse ($featuredClasses as $class)
                         @php
                             $classGroup = ($class->system ?? null) === 'enseignement_technique'
@@ -1596,7 +1568,7 @@
                                 : 'enseignement_general';
 
                             $systemLabel = $classGroupLabels[$classGroup] ?? 'Enseignement général';
-                            $classDescription = $class->description ?: 'Contenus structurés, quiz progressifs, TD et accompagnement pour avancer avec méthode.';
+                            $classDescription = $class->description ?: 'Cours, quiz, TD et progression structurée pour aider l’élève à travailler avec méthode.';
                         @endphp
 
                         <article class="class-card" data-class-group="{{ $classGroup }}">
@@ -1622,18 +1594,16 @@
 
                             <p>{{ $classDescription }}</p>
 
-                            <div class="class-footer">
-                                <div class="class-preview">
-                                    <span class="class-meta">Cours</span>
-                                    <span class="class-meta">Quiz</span>
-                                    <span class="class-meta">TD</span>
-                                    <span class="class-meta">Progression</span>
-                                </div>
+                            <div class="class-preview">
+                                <span class="meta-pill">Cours</span>
+                                <span class="meta-pill">Quiz</span>
+                                <span class="meta-pill">TD</span>
+                                <span class="meta-pill">Progression</span>
+                            </div>
 
-                                <div class="class-actions">
-                                    <a href="{{ Route::has('register') ? route('register') : '#' }}" class="btn btn--primary">Commencer</a>
-                                    <a href="{{ Route::has('register') ? route('register') : '#' }}" class="btn btn--ghost">Voir détails</a>
-                                </div>
+                            <div class="class-actions">
+                                <a href="{{ $registerLink }}" class="btn btn--primary">Commencer</a>
+                                <a href="{{ $registerLink }}" class="btn btn--ghost">Voir détails</a>
                             </div>
                         </article>
                     @empty
@@ -1650,39 +1620,37 @@
         <section class="section section--tight reveal">
             <div class="container">
                 <div class="dark-showcase">
-                    <div class="dark-showcase__grid">
-                        <div class="dark-showcase__intro">
+                    <div class="dark-grid">
+                        <div class="dark-intro">
                             <span class="eyebrow">Pourquoi choisir TIMAH ACADEMY</span>
 
-                            <h2 class="section-title" style="color: #fff; margin-bottom: 0;">
-                                Une plateforme pensée pour la réussite,
-                                pas un simple empilement de pages.
+                            <h2 class="section-title" style="color:#fff; margin-bottom:0;">
+                                Une plateforme pensée pour convaincre et pour faire progresser.
                             </h2>
 
                             <p>
-                                L’objectif est de réunir dans une seule expérience une vraie logique pédagogique,
-                                une bonne lisibilité, une structure commerciale claire et un rendu suffisamment premium
-                                pour donner confiance dès l’arrivée sur le site.
+                                Le bon rendu ne suffit pas. Il faut aussi une vraie logique pédagogique,
+                                une lisibilité forte et une structure assez crédible pour donner envie d’entrer dans l’outil.
                             </p>
 
-                            <div class="dark-showcase__chips">
+                            <div class="dark-chips">
                                 <span>Cours structurés</span>
                                 <span>Quiz interactifs</span>
                                 <span>TD corrigés</span>
                                 <span>Suivi continu</span>
                             </div>
 
-                            <div class="dark-showcase__stats">
+                            <div class="dark-stats">
                                 <div class="dark-stat">
                                     <strong>Expérience claire</strong>
                                     <span>Navigation simple et directe</span>
                                 </div>
                                 <div class="dark-stat">
                                     <strong>Progression visible</strong>
-                                    <span>Un meilleur suivi pour l’élève</span>
+                                    <span>Repères utiles pour l’élève</span>
                                 </div>
                                 <div class="dark-stat">
-                                    <strong>Utilité concrète</strong>
+                                    <strong>Utilité immédiate</strong>
                                     <span>Apprendre, réviser, s’exercer</span>
                                 </div>
                             </div>
@@ -1710,8 +1678,8 @@
                         <span class="eyebrow">Pour qui ?</span>
                         <h2 class="section-title">Une plateforme utile pour toute la chaîne éducative</h2>
                         <p class="section-subtitle">
-                            Le discours doit être clair : TIMAH ACADEMY ne parle pas seulement aux élèves,
-                            mais aussi aux parents, aux enseignants et, plus tard, aux établissements.
+                            Il faut parler clairement aux élèves, aux parents, aux enseignants
+                            et garder la porte ouverte aux établissements pour la suite.
                         </p>
                     </div>
                 </div>
@@ -1719,7 +1687,7 @@
                 <div class="audience-grid">
                     @foreach ($audiences as $item)
                         <article class="audience-card">
-                            <span class="audience-tag">Public cible</span>
+                            <span class="audience-pill">Public cible</span>
                             <h3>{{ $item['title'] ?? '' }}</h3>
                             <p>{{ $item['text'] ?? '' }}</p>
                         </article>
@@ -1735,10 +1703,10 @@
                 <div class="section-head">
                     <div class="section-head__text">
                         <span class="eyebrow">Abonnements</span>
-                        <h2 class="section-title">Des formules simples, lisibles et orientées conversion</h2>
+                        <h2 class="section-title">Des offres plus lisibles et plus vendeuses</h2>
                         <p class="section-subtitle">
-                            L’offre doit être compréhensible immédiatement, avec un plan mis en avant,
-                            des bénéfices concrets et un vrai sentiment de choix guidé.
+                            L’utilisateur doit comprendre vite quelle formule choisir,
+                            pourquoi elle est utile et où se trouve l’offre la plus attractive.
                         </p>
                     </div>
                 </div>
@@ -1763,16 +1731,16 @@
                                 @endforeach
                             </ul>
 
-                            <a href="{{ Route::has('register') ? route('register') : '#' }}" class="btn btn--primary btn--full">Choisir</a>
+                            <a href="{{ $registerLink }}" class="btn btn--primary btn--full">Choisir</a>
                         </article>
                     @endforeach
                 </div>
 
                 <div class="pricing-footnote">
                     <span>Activation rapide</span>
-                    <span>Choix guidé</span>
                     <span>Essai gratuit possible</span>
-                    <span>Support disponible</span>
+                    <span>Accompagnement disponible</span>
+                    <span>Choix guidé</span>
                 </div>
             </div>
         </section>
@@ -1786,9 +1754,9 @@
                         <div class="section-head" style="margin-bottom: 6px;">
                             <div class="section-head__text">
                                 <span class="eyebrow">Mini FAQ</span>
-                                <h2 class="section-title">Réponses rapides aux questions fréquentes</h2>
+                                <h2 class="section-title">Réponses rapides aux questions importantes</h2>
                                 <p class="section-subtitle">
-                                    Une FAQ propre renforce la confiance, réduit les hésitations et facilite la conversion.
+                                    Une FAQ bien traitée réduit les hésitations et complète le travail commercial de la homepage.
                                 </p>
                             </div>
                         </div>
@@ -1809,18 +1777,18 @@
                     </div>
 
                     <div class="faq-side">
-                        <article class="faq-side__card">
-                            <h3>Besoin d’un accompagnement plus direct ?</h3>
+                        <article class="faq-side-card">
+                            <h3>Ce que la homepage doit transmettre</h3>
                             <p>
-                                Si une réponse n’apparaît pas ici, l’équipe peut orienter l’utilisateur vers la bonne classe,
-                                la bonne formule ou la meilleure façon de démarrer.
+                                Clarté, sérieux, modernité, confiance, utilité réelle et envie d’entrer dans la plateforme.
                             </p>
                         </article>
 
-                        <article class="faq-side__card">
-                            <h3>Ce que la homepage doit transmettre</h3>
+                        <article class="faq-side-card">
+                            <h3>Besoin d’un accompagnement direct ?</h3>
                             <p>
-                                Clarté, sérieux, modernité, confiance, utilité immédiate et envie d’entrer dans la plateforme.
+                                Si une réponse ne suffit pas, l’équipe peut orienter l’utilisateur vers la bonne classe,
+                                la bonne formule ou le bon point d’entrée.
                             </p>
                         </article>
                     </div>
@@ -1833,8 +1801,8 @@
         <section id="help-support" class="section section--tight reveal">
             <div class="container">
                 <article class="support-card">
-                    <div class="support-layout">
-                        <div class="support-content">
+                    <div class="support-grid">
+                        <div class="support-main">
                             <span class="eyebrow">Support / Contact</span>
 
                             <h2>{{ $support['title'] ?? 'Besoin d’aide pour bien démarrer ?' }}</h2>
@@ -1845,19 +1813,19 @@
 
                             <div class="support-meta">
                                 @if (!empty($support['email']))
-                                    <span class="support-tag">Email : {{ $support['email'] }}</span>
+                                    <span class="support-pill">Email : {{ $support['email'] }}</span>
                                 @endif
 
                                 @if (!empty($support['phone']))
-                                    <span class="support-tag">Tél : {{ $support['phone'] }}</span>
+                                    <span class="support-pill">Tél : {{ $support['phone'] }}</span>
                                 @endif
 
                                 @if (!empty($support['whatsapp']))
-                                    <span class="support-tag">WhatsApp : {{ $support['whatsapp'] }}</span>
+                                    <span class="support-pill">WhatsApp : {{ $support['whatsapp'] }}</span>
                                 @endif
 
                                 @if (!empty($support['hours']))
-                                    <span class="support-tag">Horaires : {{ $support['hours'] }}</span>
+                                    <span class="support-pill">Horaires : {{ $support['hours'] }}</span>
                                 @endif
                             </div>
 
@@ -1869,34 +1837,34 @@
                             </div>
                         </div>
 
-                        <div class="support-panel">
-                            <div class="support-panel__box">
+                        <div class="support-side">
+                            <div class="support-side-box">
                                 <strong>Ce que cette zone doit inspirer</strong>
 
-                                <div class="support-panel__list">
+                                <div class="support-list">
                                     <div>
                                         <span>Réponse rapide</span>
                                         <span>Oui</span>
                                     </div>
                                     <div>
-                                        <span>Accompagnement</span>
+                                        <span>Orientation claire</span>
                                         <span>Oui</span>
                                     </div>
                                     <div>
-                                        <span>Orientation utilisateur</span>
+                                        <span>Accompagnement réel</span>
                                         <span>Oui</span>
                                     </div>
                                     <div>
-                                        <span>Confiance finale avant action</span>
+                                        <span>Confiance avant action</span>
                                         <span>Oui</span>
                                     </div>
                                 </div>
                             </div>
 
-                            <div class="support-panel__box">
-                                <strong>Promesse de la plateforme</strong>
+                            <div class="support-side-box">
+                                <strong>Promesse de TIMAH ACADEMY</strong>
                                 <p class="muted">
-                                    Donner un accès simple à des contenus utiles, bien présentés et pensés pour la progression réelle.
+                                    Donner accès à des contenus utiles, mieux présentés et pensés pour une progression réelle.
                                 </p>
                             </div>
                         </div>
