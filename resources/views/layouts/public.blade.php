@@ -1,10 +1,22 @@
 <!DOCTYPE html>
+@php
+    $footerConfig = [
+        'about' => "Apprendre aujourd'hui, réussir demain. Une plateforme pensée pour les élèves qui veulent progresser sérieusement.",
+        'company_links' => [
+            ['label' => 'À propos', 'href' => '#'],
+            ['label' => 'Politique de confidentialité', 'href' => '#'],
+            ['label' => "Conditions d'utilisation", 'href' => '#'],
+            ['label' => 'Mentions légales', 'href' => '#'],
+        ],
+    ];
+@endphp
 <html lang="fr" data-theme="auto">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <meta name="description" content="Timah School - Plateforme éducative moderne pour apprendre, réviser et réussir.">
-    <title>@yield('title', 'Timah School')</title>
+    <meta name="description" content="TIMAH ACADEMY - Plateforme éducative premium pour apprendre, progresser et réussir.">
+    <title>@yield('title', 'TIMAH ACADEMY')</title>
+    <link rel="icon" type="image/svg+xml" href="{{ asset('assets/brand/timah-academy-favicon.svg') }}">
     <style>{!! file_get_contents(public_path('assets/css/app.css')) !!}</style>
 </head>
 <body>
@@ -12,8 +24,7 @@
     <header class="site-header">
         <div class="container site-header__inner">
             <a href="{{ route('home') }}" class="brand">
-                <span class="brand__mark">T</span>
-                <span class="brand__text">TIMAH SCHOOL</span>
+                <img src="{{ asset('assets/brand/timah-academy-logo-horizontal-light.svg') }}" alt="TIMAH ACADEMY" style="height:36px; width:auto;">
             </a>
 
             <nav class="nav-links" aria-label="Navigation principale">
@@ -21,6 +32,8 @@
                 <a href="{{ route('home') }}#classes">Cours</a>
                 <a href="{{ route('home') }}#classes">Quiz</a>
                 <a href="{{ route('home') }}#pricing">Tarifs</a>
+                <a href="{{ route('home') }}#help-support">Aide</a>
+                <a href="{{ route('home') }}#help-support">Contact</a>
             </nav>
 
             <div class="header-actions">
@@ -44,10 +57,9 @@
             <div class="footer-grid">
                 <div>
                     <a href="{{ route('home') }}" class="brand" style="color:#fff; margin-bottom:14px;">
-                        <span class="brand__mark">T</span>
-                        <span class="brand__text">TIMAH SCHOOL</span>
+                        <img src="{{ asset('assets/brand/timah-academy-logo-horizontal-dark.svg') }}" alt="TIMAH ACADEMY" style="height:36px; width:auto;">
                     </a>
-                    <p class="footer-text">Apprendre aujourd'hui, réussir demain. Une plateforme pensée pour les élèves qui veulent progresser sérieusement.</p>
+                    <p class="footer-text">{{ $footerConfig['about'] ?? "Apprendre aujourd'hui, réussir demain. Une plateforme pensée pour les élèves qui veulent progresser sérieusement." }}</p>
                 </div>
                 <div>
                     <h3 class="footer-title">Plateforme</h3>
@@ -66,15 +78,23 @@
                     </ul>
                 </div>
                 <div>
-                    <h3 class="footer-title">TIMAH SCHOOL</h3>
+                    <h3 class="footer-title">Support</h3>
                     <ul class="footer-list">
-                        <li>Support pédagogique</li>
-                        <li>Accompagnement élève</li>
-                        <li>Suivi de progression</li>
+                        <li><a href="{{ route('home') }}#mini-faq">FAQ</a></li>
+                        <li><a href="{{ route('home') }}#help-support">Centre d'aide</a></li>
+                        <li><a href="{{ route('home') }}#help-support">Assistance</a></li>
+                    </ul>
+                </div>
+                <div>
+                    <h3 class="footer-title">Entreprise</h3>
+                    <ul class="footer-list">
+                        @foreach(($footerConfig['company_links'] ?? []) as $link)
+                            <li><a href="{{ $link['href'] ?? '#' }}">{{ $link['label'] ?? 'Lien' }}</a></li>
+                        @endforeach
                     </ul>
                 </div>
             </div>
-            <div class="footer-bottom">© {{ date('Y') }} TIMAH SCHOOL. Tous droits réservés.</div>
+            <div class="footer-bottom">© {{ date('Y') }} TIMAH ACADEMY. Tous droits réservés.</div>
         </div>
     </footer>
 </div>
