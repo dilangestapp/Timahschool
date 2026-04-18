@@ -28,7 +28,7 @@
     );
 
     $displayMessages = $messages->isNotEmpty()
-        ? $messages->take(8)->values()
+        ? $messages->take(10)->values()
         : collect([
             (object) [
                 'is_anonymous' => true,
@@ -115,6 +115,9 @@
     $featuredClassesCount = $featuredClasses->count();
     $generalClassesCount = $classGroups->get('enseignement_general', collect())->count();
     $technicalClassesCount = $classGroups->get('enseignement_technique', collect())->count();
+
+    $faqCount = $faqItems->count();
+    $planCount = $plans->count();
 @endphp
 
 @push('styles')
@@ -202,7 +205,9 @@
     .chip,
     .meta-pill,
     .support-pill,
-    .audience-pill {
+    .audience-pill,
+    .pricing-chip,
+    .hero-proof {
         display: inline-flex;
         align-items: center;
         min-height: 34px;
@@ -218,12 +223,14 @@
     html[data-theme='dark'] .chip,
     html[data-theme='dark'] .meta-pill,
     html[data-theme='dark'] .support-pill,
-    html[data-theme='dark'] .audience-pill {
+    html[data-theme='dark'] .audience-pill,
+    html[data-theme='dark'] .pricing-chip,
+    html[data-theme='dark'] .hero-proof {
         background: rgba(14, 27, 49, 0.94);
     }
 
     .home-hero {
-        padding: 30px 0 34px;
+        padding: 28px 0 36px;
     }
 
     .hero-grid {
@@ -294,21 +301,8 @@
     }
 
     .hero-proof {
-        display: inline-flex;
-        align-items: center;
         gap: 10px;
-        min-height: 34px;
-        padding: 0 12px;
-        border-radius: 999px;
-        border: 1px solid var(--line);
-        background: rgba(255,255,255,.72);
         color: var(--muted);
-        font-size: .82rem;
-        font-weight: 800;
-    }
-
-    html[data-theme='dark'] .hero-proof {
-        background: rgba(14, 27, 49, 0.94);
     }
 
     .hero-proof b {
@@ -756,14 +750,17 @@
     }
 
     .trust-card:hover,
+    .classes-featured:hover,
+    .classes-panel:hover,
     .class-card:hover,
     .why-card:hover,
     .audience-card:hover,
+    .pricing-main:hover,
     .pricing-card:hover,
     .faq-card:hover,
+    .faq-side-card:hover,
     .support-card:hover,
-    .classes-panel:hover,
-    .classes-featured:hover {
+    .support-side-box:hover {
         transform: translateY(-4px);
         box-shadow: var(--shadow-lg);
     }
@@ -1165,6 +1162,109 @@
         color: var(--muted);
     }
 
+    .pricing-zone {
+        display: grid;
+        grid-template-columns: .92fr 1.08fr;
+        gap: 18px;
+        margin-bottom: 18px;
+    }
+
+    .pricing-main,
+    .pricing-side {
+        border: 1px solid var(--line);
+        border-radius: 30px;
+        background: linear-gradient(180deg, var(--panel), var(--panel-soft));
+        box-shadow: var(--shadow);
+        transition: transform .2s ease, box-shadow .2s ease;
+    }
+
+    .pricing-main {
+        padding: 26px;
+        display: grid;
+        gap: 18px;
+        background:
+            radial-gradient(circle at top right, rgba(29,109,255,.14), transparent 30%),
+            linear-gradient(180deg, var(--panel), var(--panel-soft));
+    }
+
+    .pricing-main h3,
+    .pricing-side h3 {
+        margin: 0;
+        letter-spacing: -0.03em;
+    }
+
+    .pricing-main p,
+    .pricing-side p {
+        margin: 0;
+        color: var(--muted);
+    }
+
+    .pricing-main__stats {
+        display: grid;
+        gap: 12px;
+    }
+
+    .pricing-main__stat {
+        display: flex;
+        justify-content: space-between;
+        gap: 12px;
+        padding: 14px 16px;
+        border-radius: 18px;
+        border: 1px solid var(--line);
+        background: rgba(29,109,255,.06);
+    }
+
+    .pricing-main__stat strong {
+        font-size: 1rem;
+    }
+
+    .pricing-main__chips {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 10px;
+    }
+
+    .pricing-side {
+        padding: 22px;
+        display: grid;
+        gap: 16px;
+    }
+
+    .pricing-side__list {
+        display: grid;
+        gap: 10px;
+    }
+
+    .pricing-side__item {
+        display: flex;
+        justify-content: space-between;
+        gap: 12px;
+        padding: 13px 14px;
+        border-radius: 18px;
+        border: 1px solid var(--line);
+        background: rgba(255,255,255,.64);
+    }
+
+    html[data-theme='dark'] .pricing-side__item {
+        background: rgba(14, 27, 49, 0.62);
+    }
+
+    .pricing-side__item strong {
+        display: block;
+        margin-bottom: 4px;
+    }
+
+    .pricing-side__item span {
+        color: var(--muted);
+        font-size: .9rem;
+    }
+
+    .pricing-side__item b {
+        align-self: center;
+        color: var(--primary);
+        font-size: 1.02rem;
+    }
+
     .pricing-grid {
         display: grid;
         grid-template-columns: repeat(3, minmax(0, 1fr));
@@ -1173,12 +1273,14 @@
 
     .pricing-card {
         position: relative;
-        padding: 22px;
+        padding: 24px;
         display: grid;
         gap: 12px;
         border-radius: 30px;
         border: 1px solid var(--line);
-        background: linear-gradient(180deg, var(--panel), var(--panel-soft));
+        background:
+            radial-gradient(circle at top right, rgba(29,109,255,.08), transparent 30%),
+            linear-gradient(180deg, var(--panel), var(--panel-soft));
         box-shadow: var(--shadow);
         transition: transform .2s ease, box-shadow .2s ease;
     }
@@ -1194,6 +1296,7 @@
         align-items: center;
         justify-content: center;
         min-height: 32px;
+        width: fit-content;
         padding: 0 12px;
         border-radius: 999px;
         background: linear-gradient(135deg, var(--primary), #4f86ff);
@@ -1213,6 +1316,34 @@
         color: var(--muted);
     }
 
+    .pricing-price {
+        display: flex;
+        align-items: flex-end;
+        gap: 8px;
+        margin-top: 2px;
+    }
+
+    .pricing-price strong {
+        font-size: 2rem;
+        line-height: 1;
+        font-weight: 900;
+        letter-spacing: -0.04em;
+    }
+
+    .pricing-price span {
+        color: var(--muted);
+        font-size: .9rem;
+    }
+
+    .pricing-card__note {
+        padding: 12px 14px;
+        border-radius: 18px;
+        border: 1px solid var(--line);
+        background: rgba(29,109,255,.06);
+        color: var(--muted);
+        font-size: .9rem;
+    }
+
     .pricing-footnote {
         margin-top: 18px;
         display: flex;
@@ -1220,21 +1351,9 @@
         gap: 10px;
     }
 
-    .pricing-footnote span {
-        display: inline-flex;
-        align-items: center;
-        min-height: 34px;
-        padding: 0 12px;
-        border-radius: 999px;
-        border: 1px solid var(--line);
-        background: rgba(29,109,255,.06);
-        font-size: .84rem;
-        font-weight: 800;
-    }
-
     .faq-grid {
         display: grid;
-        grid-template-columns: 1.06fr .94fr;
+        grid-template-columns: 1.02fr .98fr;
         gap: 18px;
         align-items: start;
     }
@@ -1286,6 +1405,7 @@
     .faq-card p {
         margin: 12px 0 0;
         color: var(--muted);
+        line-height: 1.7;
     }
 
     .faq-side {
@@ -1313,14 +1433,35 @@
     .support-card p {
         margin: 0;
         color: var(--muted);
+        line-height: 1.7;
+    }
+
+    .faq-side-list {
+        display: grid;
+        gap: 10px;
+        margin-top: 14px;
+    }
+
+    .faq-side-list div {
+        display: flex;
+        justify-content: space-between;
+        gap: 12px;
+        padding: 12px 14px;
+        border-radius: 16px;
+        border: 1px solid var(--line);
+        background: rgba(29,109,255,.06);
+    }
+
+    .faq-side-list div strong {
+        font-size: .96rem;
     }
 
     .support-card {
-        padding: 26px;
-        border-radius: 30px;
+        padding: 28px;
+        border-radius: 32px;
         border: 1px solid var(--line);
         background:
-            radial-gradient(circle at top right, rgba(29,109,255,.12), transparent 26%),
+            radial-gradient(circle at top right, rgba(29,109,255,.14), transparent 26%),
             linear-gradient(180deg, var(--panel), var(--panel-soft));
         box-shadow: var(--shadow-lg);
         transition: transform .2s ease, box-shadow .2s ease;
@@ -1328,7 +1469,7 @@
 
     .support-grid {
         display: grid;
-        grid-template-columns: 1.05fr .95fr;
+        grid-template-columns: .98fr 1.02fr;
         gap: 22px;
         align-items: start;
     }
@@ -1358,6 +1499,7 @@
         background: rgba(29,109,255,.06);
         display: grid;
         gap: 12px;
+        transition: transform .2s ease, box-shadow .2s ease;
     }
 
     .support-side-box strong {
@@ -1374,11 +1516,38 @@
         justify-content: space-between;
         gap: 12px;
         color: var(--muted);
+        padding: 12px 14px;
+        border-radius: 16px;
+        border: 1px solid var(--line);
+        background: rgba(255,255,255,.64);
+    }
+
+    html[data-theme='dark'] .support-list div {
+        background: rgba(14, 27, 49, 0.62);
     }
 
     .support-list div span:last-child {
         color: var(--text);
         font-weight: 800;
+    }
+
+    .support-highlight {
+        display: grid;
+        gap: 12px;
+    }
+
+    .support-highlight__item {
+        display: flex;
+        justify-content: space-between;
+        gap: 12px;
+        padding: 14px 16px;
+        border-radius: 18px;
+        border: 1px solid var(--line);
+        background: rgba(29,109,255,.06);
+    }
+
+    .support-highlight__item strong {
+        font-size: .98rem;
     }
 
     .reveal {
@@ -1404,18 +1573,13 @@
     @media (max-width: 1180px) {
         .hero-grid,
         .trust-grid,
+        .classes-zone,
         .dark-grid,
+        .audience-grid,
+        .pricing-zone,
+        .pricing-grid,
         .faq-grid,
-        .support-grid,
-        .classes-zone {
-            grid-template-columns: 1fr;
-        }
-
-        .audience-grid {
-            grid-template-columns: repeat(2, minmax(0, 1fr));
-        }
-
-        .pricing-grid {
+        .support-grid {
             grid-template-columns: 1fr;
         }
 
@@ -1439,19 +1603,29 @@
 
         .hero-main,
         .hero-side,
-        .dark-showcase,
-        .support-card,
         .classes-featured,
-        .classes-panel {
+        .classes-panel,
+        .dark-showcase,
+        .pricing-main,
+        .pricing-side,
+        .support-card {
             border-radius: 26px;
         }
 
         .hero-main,
         .hero-side,
+        .classes-featured,
+        .classes-panel,
         .dark-showcase,
+        .pricing-main,
+        .pricing-side,
         .support-card {
             padding-left: 20px;
             padding-right: 20px;
+        }
+
+        .hero-kicker-row {
+            align-items: flex-start;
         }
 
         .hero-metrics,
@@ -1465,19 +1639,17 @@
             position: static;
             margin-top: 12px;
         }
-
-        .hero-kicker-row {
-            align-items: flex-start;
-        }
     }
 
     @media (max-width: 720px) {
         .hero-main,
         .hero-side,
-        .dark-showcase,
-        .support-card,
         .classes-featured,
-        .classes-panel {
+        .classes-panel,
+        .dark-showcase,
+        .pricing-main,
+        .pricing-side,
+        .support-card {
             padding: 20px 18px;
         }
 
@@ -1491,8 +1663,7 @@
             max-width: 272px;
         }
 
-        .classes-grid,
-        .audience-grid {
+        .classes-grid {
             grid-template-columns: 1fr;
         }
 
@@ -2066,32 +2237,125 @@
     @endif
 
     @if ($isPricingEnabled)
-        <section id="pricing" class="section section--tight reveal">
+        <section id="pricing" class="section reveal">
             <div class="container">
                 <div class="section-head">
                     <div class="section-head__text">
                         <span class="eyebrow">Abonnements</span>
-                        <h2 class="section-title">Des offres plus lisibles et plus vendeuses</h2>
+                        <h2 class="section-title">Des offres plus lisibles, plus fortes et plus commerciales</h2>
                         <p class="section-subtitle">
-                            L’utilisateur doit comprendre vite quelle formule choisir,
-                            pourquoi elle est utile et où se trouve l’offre la plus attractive.
+                            Cette section doit réellement pousser à l’action. L’utilisateur doit comprendre vite,
+                            comparer facilement et sentir qu’il y a une formule claire pour lui.
                         </p>
                     </div>
+
+                    <div class="section-head__chips">
+                        <span class="chip">{{ $planCount > 0 ? $planCount : '3' }} formules</span>
+                        <span class="chip">Choix guidé</span>
+                        <span class="chip">Support disponible</span>
+                    </div>
+                </div>
+
+                <div class="pricing-zone">
+                    <article class="pricing-main">
+                        <span class="eyebrow">Pourquoi cette section compte</span>
+                        <h3>Une tarification qui rassure et qui aide à choisir</h3>
+                        <p>
+                            Le prix seul ne suffit pas. Il faut montrer la valeur, l’accompagnement et la logique du plan recommandé.
+                            Cette zone doit transformer l’intérêt en vraie décision.
+                        </p>
+
+                        <div class="pricing-main__stats">
+                            <div class="pricing-main__stat">
+                                <span>Plans disponibles</span>
+                                <strong>{{ $planCount > 0 ? $planCount : '3' }}</strong>
+                            </div>
+                            <div class="pricing-main__stat">
+                                <span>Plan recommandé</span>
+                                <strong>Mis en avant</strong>
+                            </div>
+                            <div class="pricing-main__stat">
+                                <span>Accompagnement</span>
+                                <strong>Oui</strong>
+                            </div>
+                        </div>
+
+                        <div class="pricing-main__chips">
+                            <span class="pricing-chip">Activation rapide</span>
+                            <span class="pricing-chip">Essai possible</span>
+                            <span class="pricing-chip">Choix guidé</span>
+                            <span class="pricing-chip">Support disponible</span>
+                        </div>
+                    </article>
+
+                    <article class="pricing-side">
+                        <span class="eyebrow">Ce que l’utilisateur doit comprendre</span>
+                        <h3>Une lecture simple et rassurante des offres</h3>
+                        <p>
+                            Pas de confusion, pas d’effet catalogue froid. Chaque offre doit être lisible,
+                            valorisée et reliée à un bénéfice concret.
+                        </p>
+
+                        <div class="pricing-side__list">
+                            <div class="pricing-side__item">
+                                <div>
+                                    <strong>Lire vite</strong>
+                                    <span>Comprendre immédiatement la différence entre les formules</span>
+                                </div>
+                                <b>01</b>
+                            </div>
+
+                            <div class="pricing-side__item">
+                                <div>
+                                    <strong>Comparer facilement</strong>
+                                    <span>Repérer le plan mis en avant sans hésitation</span>
+                                </div>
+                                <b>02</b>
+                            </div>
+
+                            <div class="pricing-side__item">
+                                <div>
+                                    <strong>Passer à l’action</strong>
+                                    <span>Choisir une formule et démarrer sans blocage</span>
+                                </div>
+                                <b>03</b>
+                            </div>
+                        </div>
+                    </article>
                 </div>
 
                 <div class="pricing-grid">
                     @foreach ($plans as $plan)
-                        <article class="pricing-card {{ !empty($plan['highlight']) ? 'pricing-card--highlight' : '' }}">
-                            @if (!empty($plan['highlight']))
+                        @php
+                            $planTitle = $plan['title'] ?? '';
+                            $planPrice = $plan['price'] ?? '';
+                            $planDesc = $plan['desc'] ?? '';
+                            $planFeatures = $plan['features'] ?? [];
+                            $isHighlight = ! empty($plan['highlight']);
+
+                            $planNote = $isHighlight
+                                ? 'Le meilleur équilibre entre budget, progression et confort d’utilisation.'
+                                : ($loop->first
+                                    ? 'Une bonne formule pour commencer avec l’essentiel.'
+                                    : 'Une formule pensée pour une vision plus complète sur la durée.');
+                        @endphp
+
+                        <article class="pricing-card {{ $isHighlight ? 'pricing-card--highlight' : '' }}">
+                            @if ($isHighlight)
                                 <span class="pricing-badge">Le plus choisi</span>
                             @endif
 
-                            <h3>{{ $plan['title'] ?? '' }}</h3>
-                            <div class="plan-price">{{ $plan['price'] ?? '' }}</div>
-                            <p>{{ $plan['desc'] ?? '' }}</p>
+                            <h3>{{ $planTitle }}</h3>
+
+                            <div class="pricing-price">
+                                <strong>{{ $planPrice }}</strong>
+                                <span>par formule</span>
+                            </div>
+
+                            <p>{{ $planDesc }}</p>
 
                             <ul class="feature-list">
-                                @foreach (($plan['features'] ?? []) as $feature)
+                                @foreach ($planFeatures as $feature)
                                     <li>
                                         <span>✔</span>
                                         <span>{{ $feature }}</span>
@@ -2099,16 +2363,20 @@
                                 @endforeach
                             </ul>
 
-                            <a href="{{ $registerLink }}" class="btn btn--primary btn--full">Choisir</a>
+                            <div class="pricing-card__note">
+                                {{ $planNote }}
+                            </div>
+
+                            <a href="{{ $registerLink }}" class="btn btn--primary btn--full">Choisir cette formule</a>
                         </article>
                     @endforeach
                 </div>
 
                 <div class="pricing-footnote">
-                    <span>Activation rapide</span>
-                    <span>Essai gratuit possible</span>
-                    <span>Accompagnement disponible</span>
-                    <span>Choix guidé</span>
+                    <span class="pricing-chip">Activation rapide</span>
+                    <span class="pricing-chip">Support disponible</span>
+                    <span class="pricing-chip">Choix guidé</span>
+                    <span class="pricing-chip">Décision plus simple</span>
                 </div>
             </div>
         </section>
@@ -2122,9 +2390,10 @@
                         <div class="section-head" style="margin-bottom: 6px;">
                             <div class="section-head__text">
                                 <span class="eyebrow">Mini FAQ</span>
-                                <h2 class="section-title">Réponses rapides aux questions importantes</h2>
+                                <h2 class="section-title">Réponses rapides aux vraies questions importantes</h2>
                                 <p class="section-subtitle">
-                                    Une FAQ bien traitée réduit les hésitations et complète le travail commercial de la homepage.
+                                    Une FAQ bien traitée réduit les hésitations, rassure avant l’inscription
+                                    et complète proprement le travail commercial de la homepage.
                                 </p>
                             </div>
                         </div>
@@ -2146,17 +2415,33 @@
 
                     <div class="faq-side">
                         <article class="faq-side-card">
-                            <h3>Ce que la homepage doit transmettre</h3>
+                            <h3>Ce que cette zone doit transmettre</h3>
                             <p>
-                                Clarté, sérieux, modernité, confiance, utilité réelle et envie d’entrer dans la plateforme.
+                                Clarté, sérieux, confiance et envie d’aller plus loin.
+                                La FAQ n’est pas une case à cocher : elle sert à lever les derniers freins.
                             </p>
+
+                            <div class="faq-side-list">
+                                <div>
+                                    <span>Questions visibles</span>
+                                    <strong>{{ $faqCount > 0 ? $faqCount : '5+' }}</strong>
+                                </div>
+                                <div>
+                                    <span>Freins levés</span>
+                                    <strong>Oui</strong>
+                                </div>
+                                <div>
+                                    <span>Confiance renforcée</span>
+                                    <strong>Oui</strong>
+                                </div>
+                            </div>
                         </article>
 
                         <article class="faq-side-card">
                             <h3>Besoin d’un accompagnement direct ?</h3>
                             <p>
                                 Si une réponse ne suffit pas, l’équipe peut orienter l’utilisateur vers la bonne classe,
-                                la bonne formule ou le bon point d’entrée.
+                                la bonne formule ou le bon point d’entrée dans la plateforme.
                             </p>
                         </article>
                     </div>
@@ -2166,7 +2451,7 @@
     @endif
 
     @if ($isSupportEnabled)
-        <section id="help-support" class="section section--tight reveal">
+        <section id="help-support" class="section reveal">
             <div class="container">
                 <article class="support-card">
                     <div class="support-grid">
@@ -2203,6 +2488,17 @@
                                 <a href="{{ $supportFaqLink }}" class="btn btn--ghost">FAQ</a>
                                 <a href="{{ $supportInfoLink }}" class="btn">Demander des informations</a>
                             </div>
+
+                            <div class="support-highlight">
+                                <div class="support-highlight__item">
+                                    <span>Réponse rapide</span>
+                                    <strong>Oui</strong>
+                                </div>
+                                <div class="support-highlight__item">
+                                    <span>Orientation claire</span>
+                                    <strong>Oui</strong>
+                                </div>
+                            </div>
                         </div>
 
                         <div class="support-side">
@@ -2233,6 +2529,14 @@
                                 <strong>Promesse de TIMAH ACADEMY</strong>
                                 <p class="muted">
                                     Donner accès à des contenus utiles, mieux présentés et pensés pour une progression réelle.
+                                </p>
+                            </div>
+
+                            <div class="support-side-box">
+                                <strong>Pourquoi terminer la homepage par ce bloc</strong>
+                                <p class="muted">
+                                    Parce qu’après avoir convaincu, il faut encore rassurer. Cette zone sert de dernier appui
+                                    avant l’action finale : s’inscrire, demander des informations ou entrer dans la plateforme.
                                 </p>
                             </div>
                         </div>
