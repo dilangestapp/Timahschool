@@ -18,8 +18,19 @@ class HomeController extends Controller
         } catch (Throwable $e) {
             $classes = collect();
         }
+        $classes = SchoolClass::query()
+            ->where('is_active', true)
+            ->orderBy('order')
+            ->orderBy('name')
+            ->get();
 
-        $classGroups = $classes->groupBy('level');
+        $classGroups = $classes->groupBy(function ($class) {
+            $system = $class->system ?? null;
+
+            return $system === 'enseignement_technique'
+                ? 'enseignement_technique'
+                : 'enseignement_general';
+        });
 
         $classGroupLabels = [
             'enseignement_general' => 'Enseignement général',
