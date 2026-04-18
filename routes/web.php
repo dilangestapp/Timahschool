@@ -3,6 +3,7 @@
 use App\Http\Controllers\Admin\AdminClassController;
 use App\Http\Controllers\Admin\AdminCourseController;
 use App\Http\Controllers\Admin\AdminDashboardController;
+use App\Http\Controllers\Admin\AdminHomepageController;
 use App\Http\Controllers\Admin\AdminPaymentController;
 use App\Http\Controllers\Admin\AdminPlanController;
 use App\Http\Controllers\Admin\AdminSubjectController;
@@ -89,6 +90,11 @@ Route::prefix($adminPath)->name('admin.')->group(function () {
 
     Route::middleware(['auth', 'no.cache', EnsureAdmin::class])->group(function () {
         Route::get('/dashboard', [AdminDashboardController::class, 'index'])->name('dashboard');
+        Route::get('/homepage', [AdminHomepageController::class, 'edit'])->name('homepage.edit');
+        Route::post('/homepage', [AdminHomepageController::class, 'update'])->name('homepage.update');
+        Route::post('/homepage/messages', [AdminHomepageController::class, 'storeMessage'])->name('homepage.messages.store');
+        Route::post('/homepage/messages/{message}/update', [AdminHomepageController::class, 'updateMessage'])->name('homepage.messages.update');
+        Route::post('/homepage/messages/{message}/delete', [AdminHomepageController::class, 'deleteMessage'])->name('homepage.messages.delete');
         Route::get('/users', [AdminUserController::class, 'index'])->name('users.index');
         Route::post('/users', [AdminUserController::class, 'store'])->name('users.store');
         Route::post('/users/{id}/update', [AdminUserController::class, 'update'])->name('users.update');
