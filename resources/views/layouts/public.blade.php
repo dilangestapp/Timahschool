@@ -1,4 +1,14 @@
 <!DOCTYPE html>
+@php
+    $footerConfig = \App\Models\HomepageSetting::defaults()['footer'] ?? [];
+    if (\Illuminate\Support\Facades\Schema::hasTable('homepage_settings')) {
+        $homepageSetting = \App\Models\HomepageSetting::query()->where('key', 'homepage')->first();
+        $footerConfig = array_merge(
+            $footerConfig,
+            ($homepageSetting->value['footer'] ?? [])
+        );
+    }
+@endphp
 <html lang="fr" data-theme="auto">
 <head>
     <meta charset="UTF-8">
@@ -21,6 +31,8 @@
                 <a href="{{ route('home') }}#classes">Cours</a>
                 <a href="{{ route('home') }}#classes">Quiz</a>
                 <a href="{{ route('home') }}#pricing">Tarifs</a>
+                <a href="{{ route('home') }}#help-support">Aide</a>
+                <a href="{{ route('home') }}#help-support">Contact</a>
             </nav>
 
             <div class="header-actions">
@@ -46,7 +58,7 @@
                     <a href="{{ route('home') }}" class="brand" style="color:#fff; margin-bottom:14px;">
                         <img src="{{ asset('assets/brand/timah-academy-logo-horizontal-dark.svg') }}" alt="TIMAH ACADEMY" style="height:36px; width:auto;">
                     </a>
-                    <p class="footer-text">Apprendre aujourd'hui, réussir demain. Une plateforme pensée pour les élèves qui veulent progresser sérieusement.</p>
+                    <p class="footer-text">{{ $footerConfig['about'] ?? "Apprendre aujourd'hui, réussir demain. Une plateforme pensée pour les élèves qui veulent progresser sérieusement." }}</p>
                 </div>
                 <div>
                     <h3 class="footer-title">Plateforme</h3>
@@ -65,11 +77,20 @@
                     </ul>
                 </div>
                 <div>
+                    <h3 class="footer-title">Support</h3>
                     <h3 class="footer-title">TIMAH ACADEMY</h3>
                     <ul class="footer-list">
-                        <li>Support pédagogique</li>
-                        <li>Accompagnement élève</li>
-                        <li>Suivi de progression</li>
+                        <li><a href="{{ route('home') }}#mini-faq">FAQ</a></li>
+                        <li><a href="{{ route('home') }}#help-support">Centre d'aide</a></li>
+                        <li><a href="{{ route('home') }}#help-support">Assistance</a></li>
+                    </ul>
+                </div>
+                <div>
+                    <h3 class="footer-title">Entreprise</h3>
+                    <ul class="footer-list">
+                        @foreach(($footerConfig['company_links'] ?? []) as $link)
+                            <li><a href="{{ $link['href'] ?? '#' }}">{{ $link['label'] ?? 'Lien' }}</a></li>
+                        @endforeach
                     </ul>
                 </div>
             </div>

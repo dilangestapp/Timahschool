@@ -20,6 +20,7 @@
         <nav class="admin-nav">
             <div class="admin-nav__group-label">Pilotage</div>
             <a href="{{ route('admin.dashboard') }}" class="admin-link {{ request()->routeIs('admin.dashboard') ? 'is-active' : '' }}">Tableau de bord</a>
+            <a href="{{ route('admin.homepage.edit') }}" class="admin-link {{ request()->routeIs('admin.homepage.*') ? 'is-active' : '' }}">Homepage</a>
 
             <div class="admin-nav__group-label">Utilisateurs</div>
             <a href="{{ route('admin.users.index') }}" class="admin-link {{ request()->routeIs('admin.users.*') ? 'is-active' : '' }}">Utilisateurs</a>
@@ -54,6 +55,7 @@
                 <p>@yield('page_subtitle', 'Portail d’administration central de TIMAH ACADEMY.')</p>
             </div>
             <div class="admin-topbar__actions">
+                <a href="{{ route('admin.homepage.edit') }}" class="btn btn--ghost">Homepage</a>
                 <a href="{{ route('admin.teachers.index') }}" class="btn btn--ghost">+ Enseignant</a>
                 <a href="{{ route('admin.assignments.index') }}" class="btn btn--ghost">+ Affectation</a>
                 <button type="button" class="btn btn--ghost theme-toggle" data-theme-toggle>🌗 Thème</button>

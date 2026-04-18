@@ -28,6 +28,7 @@
             <a class="admin-module-card" href="{{ route('admin.assignments.index') }}"><strong>Affectations</strong><span>Lier enseignant, classe et matière.</span></a>
             <a class="admin-module-card" href="{{ route('admin.courses.index') }}"><strong>Cours</strong><span>Superviser le contenu importé/publié.</span></a>
             <a class="admin-module-card" href="{{ route('admin.td.index') }}"><strong>TD</strong><span>Vérifier publication, qualité et accès.</span></a>
+            <a class="admin-module-card" href="{{ route('admin.homepage.edit') }}"><strong>Homepage</strong><span>Modifier hero, sections, FAQ et messages anonymes.</span></a>
         </div>
     </section>
 
