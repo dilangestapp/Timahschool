@@ -7,8 +7,8 @@
     <div class="container">
         <div class="auth-card" style="max-width:560px;">
             <div class="auth-head">
-                <div class="auth-head__logo">T</div>
-                <h1>TIMAH SCHOOL</h1>
+                <div class="auth-head__logo"><img src="{{ asset('assets/brand/timah-academy-icon.svg') }}" alt="TIMAH ACADEMY" style="width:100%;height:100%;object-fit:contain;"></div>
+                <h1>TIMAH ACADEMY</h1>
                 <p>Portail admin sécurisé</p>
             </div>
 

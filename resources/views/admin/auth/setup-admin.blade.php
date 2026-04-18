@@ -7,7 +7,7 @@
     <div class="container">
         <div class="auth-card" style="max-width: 760px;">
             <div class="auth-head">
-                <div class="auth-head__logo">T</div>
+                <div class="auth-head__logo"><img src="{{ asset('assets/brand/timah-academy-icon.svg') }}" alt="TIMAH ACADEMY" style="width:100%;height:100%;object-fit:contain;"></div>
                 <h1>Création du compte administrateur</h1>
                 <p>Cette page ne sert qu'une seule fois pour créer le premier compte admin.</p>
             </div>
