@@ -223,12 +223,12 @@
     }
 
     .home-hero {
-        padding: 42px 0 32px;
+        padding: 30px 0 34px;
     }
 
     .hero-grid {
         display: grid;
-        grid-template-columns: 1.04fr .96fr;
+        grid-template-columns: 1.06fr .94fr;
         gap: 24px;
         align-items: stretch;
     }
@@ -237,43 +237,90 @@
     .hero-side {
         position: relative;
         border: 1px solid var(--line);
-        border-radius: 32px;
+        border-radius: 34px;
         overflow: hidden;
         box-shadow: var(--shadow-lg);
     }
 
     .hero-main {
-        padding: 38px;
+        padding: 42px;
         background:
-            radial-gradient(circle at top right, rgba(29, 109, 255, 0.16), transparent 32%),
-            linear-gradient(180deg, rgba(255,255,255,.94), rgba(255,255,255,.76));
+            radial-gradient(circle at top right, rgba(29, 109, 255, 0.18), transparent 30%),
+            radial-gradient(circle at 20% 100%, rgba(56, 189, 248, 0.10), transparent 28%),
+            linear-gradient(180deg, rgba(255,255,255,.96), rgba(255,255,255,.80));
+    }
+
+    .hero-main::before {
+        content: "";
+        position: absolute;
+        inset: 0;
+        background:
+            linear-gradient(135deg, rgba(255,255,255,.32), transparent 40%),
+            linear-gradient(180deg, transparent, rgba(29,109,255,.03));
+        pointer-events: none;
+    }
+
+    .hero-main > * {
+        position: relative;
+        z-index: 1;
     }
 
     .hero-side {
         padding: 24px;
         background:
-            radial-gradient(circle at top left, rgba(29, 109, 255, 0.12), transparent 24%),
-            linear-gradient(180deg, rgba(255,255,255,.94), rgba(255,255,255,.78));
+            radial-gradient(circle at top left, rgba(29, 109, 255, 0.14), transparent 24%),
+            linear-gradient(180deg, rgba(255,255,255,.95), rgba(255,255,255,.82));
     }
 
     html[data-theme='dark'] .hero-main {
         background:
-            radial-gradient(circle at top right, rgba(110, 161, 255, 0.16), transparent 32%),
-            linear-gradient(180deg, rgba(14, 27, 49, .98), rgba(16, 32, 58, .90));
+            radial-gradient(circle at top right, rgba(110, 161, 255, .18), transparent 30%),
+            radial-gradient(circle at 20% 100%, rgba(56, 189, 248, .10), transparent 28%),
+            linear-gradient(180deg, rgba(14,27,49,.99), rgba(16,32,58,.92));
     }
 
     html[data-theme='dark'] .hero-side {
         background:
-            radial-gradient(circle at top left, rgba(110, 161, 255, 0.14), transparent 24%),
-            linear-gradient(180deg, rgba(14, 27, 49, .98), rgba(16, 32, 58, .90));
+            radial-gradient(circle at top left, rgba(110, 161, 255, .14), transparent 24%),
+            linear-gradient(180deg, rgba(14,27,49,.98), rgba(16,32,58,.92));
+    }
+
+    .hero-kicker-row {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 14px;
+        flex-wrap: wrap;
+    }
+
+    .hero-proof {
+        display: inline-flex;
+        align-items: center;
+        gap: 10px;
+        min-height: 34px;
+        padding: 0 12px;
+        border-radius: 999px;
+        border: 1px solid var(--line);
+        background: rgba(255,255,255,.72);
+        color: var(--muted);
+        font-size: .82rem;
+        font-weight: 800;
+    }
+
+    html[data-theme='dark'] .hero-proof {
+        background: rgba(14, 27, 49, 0.94);
+    }
+
+    .hero-proof b {
+        color: var(--text);
     }
 
     .hero-title {
         margin: 18px 0 14px;
-        font-size: clamp(2.35rem, 4vw, 4.25rem);
-        line-height: 1.01;
-        letter-spacing: -0.05em;
-        max-width: 11ch;
+        font-size: clamp(2.45rem, 4vw, 4.45rem);
+        line-height: 0.98;
+        letter-spacing: -0.06em;
+        max-width: 10ch;
     }
 
     .hero-title .accent {
@@ -285,7 +332,8 @@
         margin: 0;
         max-width: 62ch;
         color: var(--muted);
-        font-size: 1.04rem;
+        font-size: 1.06rem;
+        line-height: 1.75;
     }
 
     .hero-actions {
@@ -313,62 +361,107 @@
         padding: 0 12px;
         border-radius: 999px;
         border: 1px solid var(--line);
-        background: rgba(255,255,255,.70);
+        background: rgba(255,255,255,.74);
         font-size: .84rem;
         font-weight: 800;
     }
 
     html[data-theme='dark'] .hero-reassurance span {
-        background: rgba(14, 27, 49, .94);
+        background: rgba(14, 27, 49, 0.94);
+    }
+
+    .hero-mini-story {
+        margin-top: 20px;
+        padding: 16px 18px;
+        border-radius: 22px;
+        border: 1px solid var(--line);
+        background: rgba(29,109,255,.06);
+        display: grid;
+        gap: 10px;
+    }
+
+    .hero-mini-story strong {
+        font-size: .98rem;
+        letter-spacing: -0.02em;
+    }
+
+    .hero-mini-story p {
+        margin: 0;
+        color: var(--muted);
+        font-size: .94rem;
+        line-height: 1.7;
     }
 
     .hero-metrics {
-        margin-top: 28px;
+        margin-top: 24px;
         display: grid;
         grid-template-columns: repeat(3, minmax(0, 1fr));
         gap: 12px;
     }
 
     .hero-metric {
-        padding: 16px;
+        padding: 18px;
         border-radius: 22px;
         border: 1px solid var(--line);
-        background: rgba(255,255,255,.72);
+        background: rgba(255,255,255,.74);
         box-shadow: var(--shadow-xs);
     }
 
     html[data-theme='dark'] .hero-metric {
-        background: rgba(12, 26, 47, .94);
+        background: rgba(12, 26, 47, 0.94);
     }
 
     .hero-metric strong {
         display: block;
-        font-size: 1.35rem;
+        font-size: 1.45rem;
         font-weight: 900;
         letter-spacing: -0.04em;
+        line-height: 1;
     }
 
     .hero-metric span {
         display: block;
-        margin-top: 6px;
+        margin-top: 7px;
         color: var(--muted);
         font-size: .88rem;
     }
 
     .hero-strip {
-        margin-top: 18px;
+        margin-top: 16px;
         display: flex;
         flex-wrap: wrap;
         gap: 10px;
     }
 
+    .dashboard-stack-shell {
+        position: relative;
+    }
+
+    .dashboard-glow {
+        position: absolute;
+        inset: -20px -16px auto auto;
+        width: 180px;
+        height: 180px;
+        border-radius: 999px;
+        background: radial-gradient(circle, rgba(29,109,255,.18), transparent 70%);
+        pointer-events: none;
+    }
+
     .dashboard-card {
         position: relative;
-        border-radius: 28px;
+        border-radius: 30px;
         border: 1px solid var(--line);
         background: linear-gradient(180deg, var(--panel), var(--panel-soft));
         box-shadow: var(--shadow);
         overflow: hidden;
+    }
+
+    .dashboard-card::before {
+        content: "";
+        position: absolute;
+        inset: 0;
+        background: linear-gradient(180deg, rgba(255,255,255,.08), transparent 35%);
+        pointer-events: none;
     }
 
     .dashboard-top {
@@ -490,19 +583,25 @@
         padding: 0 14px;
         border-radius: 16px;
         border: 1px solid var(--line);
-        background: rgba(255,255,255,.92);
+        background: rgba(255,255,255,.94);
         box-shadow: var(--shadow);
         font-size: .84rem;
         font-weight: 900;
+        backdrop-filter: blur(12px);
     }
 
     html[data-theme='dark'] .floating-note {
-        background: rgba(14, 27, 49, .96);
+        background: rgba(14, 27, 49, 0.97);
     }
 
     .floating-note--top {
-        top: 20px;
+        top: 18px;
         right: 18px;
+    }
+
+    .floating-note--mid {
+        left: -10px;
+        top: 44%;
     }
 
     .floating-note--bottom {
@@ -1185,9 +1284,17 @@
         }
     }
 
+    @media (max-width: 980px) {
+        .floating-note--mid {
+            left: 12px;
+            top: auto;
+            bottom: 76px;
+        }
+    }
+
     @media (max-width: 900px) {
         .home-hero {
-            padding-top: 28px;
+            padding-top: 22px;
         }
 
         .hero-main,
@@ -1216,6 +1323,10 @@
             position: static;
             margin-top: 12px;
         }
+
+        .hero-kicker-row {
+            align-items: flex-start;
+        }
     }
 
     @media (max-width: 720px) {
@@ -1227,7 +1338,8 @@
         }
 
         .hero-title {
-            font-size: clamp(2rem, 11vw, 3rem);
+            font-size: clamp(2rem, 11vw, 3.15rem);
+            max-width: none;
         }
 
         .message-card {
@@ -1252,6 +1364,11 @@
         .support-actions .btn {
             width: 100%;
         }
+
+        .hero-proof {
+            width: 100%;
+            justify-content: center;
+        }
     }
 </style>
 @endpush
@@ -1262,11 +1379,14 @@
         <div class="container">
             <div class="hero-grid">
                 <div class="hero-main reveal">
-                    <span class="eyebrow">✨ {{ $hero['badge'] ?? 'Essai gratuit 24h' }}</span>
+                    <div class="hero-kicker-row">
+                        <span class="eyebrow">✨ {{ $hero['badge'] ?? 'Essai gratuit 24h' }}</span>
+                        <span class="hero-proof"><b>{{ $activeClassesCount > 0 ? $activeClassesCount : '12+' }}</b> classes déjà prêtes à explorer</span>
+                    </div>
 
                     <h1 class="hero-title">
                         {{ $hero['title'] ?? 'Réussissez avec une plateforme claire, moderne et efficace' }}
-                        <span class="accent">pour apprendre avec méthode.</span>
+                        <span class="accent">qui donne vraiment envie d’apprendre.</span>
                     </h1>
 
                     <p class="hero-subtitle">
@@ -1299,10 +1419,18 @@
                         @endforeach
                     </div>
 
+                    <div class="hero-mini-story">
+                        <strong>Une entrée plus claire dans la plateforme</strong>
+                        <p>
+                            Dès l’arrivée sur la page, l’élève, le parent ou l’enseignant doit comprendre :
+                            où cliquer, quoi attendre, et pourquoi TIMAH ACADEMY peut réellement aider à mieux progresser.
+                        </p>
+                    </div>
+
                     <div class="hero-strip">
                         <span class="chip">Secondaire général</span>
                         <span class="chip">Enseignement technique</span>
-                        <span class="chip">Progression visible</span>
+                        <span class="chip">Suivi de progression</span>
                         <span class="chip">Support réactif</span>
                     </div>
 
@@ -1325,92 +1453,97 @@
                 </div>
 
                 <div class="hero-side reveal">
-                    <div class="dashboard-card">
-                        <div class="dashboard-top">
-                            <div class="dashboard-dots">
-                                <span></span>
-                                <span></span>
-                                <span></span>
+                    <div class="dashboard-stack-shell">
+                        <div class="dashboard-glow"></div>
+
+                        <div class="dashboard-card">
+                            <div class="dashboard-top">
+                                <div class="dashboard-dots">
+                                    <span></span>
+                                    <span></span>
+                                    <span></span>
+                                </div>
+
+                                <strong>Dashboard élève</strong>
+                                <small class="muted">Activité récente</small>
                             </div>
 
-                            <strong>Dashboard élève</strong>
-                            <small class="muted">Activité récente</small>
-                        </div>
-
-                        <div class="dashboard-body">
-                            <div class="dashboard-summary">
-                                <article class="summary-box">
-                                    <small>Progression</small>
-                                    <strong>78%</strong>
-                                </article>
-
-                                <article class="summary-box">
-                                    <small>Quiz validés</small>
-                                    <strong>17/20</strong>
-                                </article>
-
-                                <article class="summary-box">
-                                    <small>TD terminés</small>
-                                    <strong>11</strong>
-                                </article>
-                            </div>
-
-                            <div class="dashboard-layout">
-                                <div class="dashboard-stack">
-                                    <article class="dashboard-box">
-                                        <div class="progress-head">
-                                            <strong>Objectif de la semaine</strong>
-                                            <span class="muted">82%</span>
-                                        </div>
-                                        <div class="progress-track">
-                                            <span style="width: 82%;"></span>
-                                        </div>
+                            <div class="dashboard-body">
+                                <div class="dashboard-summary">
+                                    <article class="summary-box">
+                                        <small>Progression</small>
+                                        <strong>78%</strong>
                                     </article>
 
+                                    <article class="summary-box">
+                                        <small>Quiz validés</small>
+                                        <strong>17/20</strong>
+                                    </article>
+
+                                    <article class="summary-box">
+                                        <small>TD terminés</small>
+                                        <strong>11</strong>
+                                    </article>
+                                </div>
+
+                                <div class="dashboard-layout">
+                                    <div class="dashboard-stack">
+                                        <article class="dashboard-box">
+                                            <div class="progress-head">
+                                                <strong>Objectif de la semaine</strong>
+                                                <span class="muted">82%</span>
+                                            </div>
+                                            <div class="progress-track">
+                                                <span style="width: 82%;"></span>
+                                            </div>
+                                        </article>
+
+                                        <article class="dashboard-box">
+                                            <small>Révisions par matière</small>
+
+                                            <div class="mini-list" style="margin-top: 10px;">
+                                                <div class="mini-row">
+                                                    <span>Mathématiques</span>
+                                                    <strong>Très bon rythme</strong>
+                                                </div>
+                                                <div class="mini-row">
+                                                    <span>Physique</span>
+                                                    <strong>À renforcer</strong>
+                                                </div>
+                                                <div class="mini-row">
+                                                    <span>Français</span>
+                                                    <strong>Bonne stabilité</strong>
+                                                </div>
+                                            </div>
+                                        </article>
+                                    </div>
+
                                     <article class="dashboard-box">
-                                        <small>Révisions par matière</small>
+                                        <small>À faire aujourd’hui</small>
 
                                         <div class="mini-list" style="margin-top: 10px;">
                                             <div class="mini-row">
-                                                <span>Mathématiques</span>
-                                                <strong>Très bon rythme</strong>
+                                                <span>Quiz de révision</span>
+                                                <strong>Commencer</strong>
                                             </div>
                                             <div class="mini-row">
-                                                <span>Physique</span>
-                                                <strong>À renforcer</strong>
+                                                <span>TD corrigé</span>
+                                                <strong>Disponible</strong>
                                             </div>
                                             <div class="mini-row">
-                                                <span>Français</span>
-                                                <strong>Bonne stabilité</strong>
+                                                <span>Suivi des scores</span>
+                                                <strong>En direct</strong>
                                             </div>
                                         </div>
                                     </article>
                                 </div>
-
-                                <article class="dashboard-box">
-                                    <small>À faire aujourd’hui</small>
-
-                                    <div class="mini-list" style="margin-top: 10px;">
-                                        <div class="mini-row">
-                                            <span>Quiz de révision</span>
-                                            <strong>Commencer</strong>
-                                        </div>
-                                        <div class="mini-row">
-                                            <span>TD corrigé</span>
-                                            <strong>Disponible</strong>
-                                        </div>
-                                        <div class="mini-row">
-                                            <span>Suivi des scores</span>
-                                            <strong>En direct</strong>
-                                        </div>
-                                    </div>
-                                </article>
                             </div>
                         </div>
-                    </div>
 
-                    <div class="floating-note floating-note--top">⚡ +3 quiz cette semaine</div>
-                    <div class="floating-note floating-note--bottom">🎯 Objectif du mois : 82%</div>
+                        <div class="floating-note floating-note--top">⚡ +3 quiz cette semaine</div>
+                        <div class="floating-note floating-note--mid">📚 cours + quiz + TD</div>
+                        <div class="floating-note floating-note--bottom">🎯 Objectif du mois : 82%</div>
+                    </div>
                 </div>
             </div>
         </div>
