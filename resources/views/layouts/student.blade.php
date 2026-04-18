@@ -6,6 +6,7 @@
     <title>@yield('title', 'Espace Élève') - TIMAH ACADEMY</title>
     <link rel="icon" type="image/svg+xml" href="{{ asset('assets/brand/timah-academy-favicon.svg') }}">
     <style>{!! file_get_contents(public_path('assets/css/app.css')) !!}</style>
+    @stack('styles')
 </head>
 <body>
 <div class="student-shell">
@@ -17,11 +18,26 @@
         </div>
 
         <nav class="student-nav">
-            <a href="{{ route('student.dashboard') }}" class="student-link {{ request()->routeIs('student.dashboard') ? 'is-active' : '' }}"><span>Tableau de bord</span></a>
-            <a href="{{ route('student.td.index') }}" class="student-link {{ request()->routeIs('student.td.*') ? 'is-active' : '' }}"><span>Mes TD</span></a>
-            <a href="{{ route('student.messages.index') }}" class="student-link {{ request()->routeIs('student.messages.*') ? 'is-active' : '' }}"><span>Messagerie</span></a>
-            <a href="{{ route('student.subscription.index') }}" class="student-link {{ request()->routeIs('student.subscription.*') ? 'is-active' : '' }}"><span>Abonnement</span></a>
-            <a href="{{ route('student.courses.index') }}" class="student-link {{ request()->routeIs('student.courses.*') ? 'is-active' : '' }}"><span>Mes cours</span></a>
+            <a href="{{ route('student.dashboard') }}" class="student-link {{ request()->routeIs('student.dashboard') ? 'is-active' : '' }}">
+                <span>Tableau de bord</span>
+            </a>
+
+            <a href="{{ route('student.td.index') }}" class="student-link {{ request()->routeIs('student.td.*') ? 'is-active' : '' }}">
+                <span>Mes TD</span>
+            </a>
+
+            <a href="{{ route('student.messages.index') }}" class="student-link {{ request()->routeIs('student.messages.*') ? 'is-active' : '' }}">
+                <span>Messagerie</span>
+            </a>
+
+            <a href="{{ route('student.subscription.index') }}" class="student-link {{ request()->routeIs('student.subscription.*') ? 'is-active' : '' }}">
+                <span>Abonnement</span>
+            </a>
+
+            <a href="{{ route('student.courses.index') }}" class="student-link {{ request()->routeIs('student.courses.*') ? 'is-active' : '' }}">
+                <span>Mes cours</span>
+            </a>
+
             <button type="button" class="student-link student-link--theme" data-theme-toggle>🌗 Thème</button>
         </nav>
 
@@ -38,6 +54,7 @@
             <a href="{{ route('home') }}" class="brand">
                 <img src="{{ asset('assets/brand/timah-academy-logo-horizontal-light.svg') }}" alt="TIMAH ACADEMY" style="height:34px; width:auto;">
             </a>
+
             <div class="student-topbar__actions">
                 <button type="button" class="btn btn--ghost theme-toggle" data-theme-toggle>🌗 Thème</button>
                 <a href="{{ route('student.subscription.index') }}" class="btn btn--ghost">Abonnement</a>
@@ -45,40 +62,63 @@
         </div>
 
         <main class="student-content">
-            @if(session('success'))<div class="alert" style="background:#ecfdf3; border:1px solid #bbf7d0; color:#166534; margin-bottom:18px;">{{ session('success') }}</div>@endif
-            @if(session('error'))<div class="alert alert--error" style="margin-bottom:18px;">{{ session('error') }}</div>@endif
+            @if(session('success'))
+                <div class="alert" style="background:#ecfdf3; border:1px solid #bbf7d0; color:#166534; margin-bottom:18px;">
+                    {{ session('success') }}
+                </div>
+            @endif
+
+            @if(session('error'))
+                <div class="alert alert--error" style="margin-bottom:18px;">
+                    {{ session('error') }}
+                </div>
+            @endif
+
             @yield('content')
         </main>
     </div>
 </div>
+
 <script>
 (() => {
     const root = document.documentElement;
     const storageKey = 'timah-theme';
     const media = window.matchMedia('(prefers-color-scheme: dark)');
+
     const prefersDark = () => media.matches;
     const getStoredTheme = () => localStorage.getItem(storageKey);
-    const applyTheme = (theme) => root.setAttribute('data-theme', theme || 'auto');
+
+    const applyTheme = (theme) => {
+        root.setAttribute('data-theme', theme || 'auto');
+    };
+
     const currentEffectiveTheme = () => {
         const active = root.getAttribute('data-theme') || 'auto';
         return active === 'auto' ? (prefersDark() ? 'dark' : 'light') : active;
     };
+
     const nextTheme = () => {
         const active = root.getAttribute('data-theme') || 'auto';
         if (active === 'auto') return prefersDark() ? 'light' : 'dark';
         return active === 'dark' ? 'light' : 'dark';
     };
+
     const updateToggleLabels = () => {
         const effective = currentEffectiveTheme();
         document.querySelectorAll('[data-theme-toggle]').forEach((button) => {
             button.textContent = effective === 'dark' ? '☀️ Clair' : '🌙 Sombre';
         });
     };
+
     applyTheme(getStoredTheme() || 'auto');
     updateToggleLabels();
+
     media.addEventListener('change', () => {
-        if ((root.getAttribute('data-theme') || 'auto') === 'auto') updateToggleLabels();
+        if ((root.getAttribute('data-theme') || 'auto') === 'auto') {
+            updateToggleLabels();
+        }
     });
+
     document.querySelectorAll('[data-theme-toggle]').forEach((button) => {
         button.addEventListener('click', () => {
             const value = nextTheme();
@@ -89,5 +129,7 @@
     });
 })();
 </script>
+
+@stack('scripts')
 </body>
 </html>
