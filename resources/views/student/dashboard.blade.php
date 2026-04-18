@@ -813,7 +813,52 @@
         }
 
         .student-dashboard-v4 .hero {
-            padding: 20px 16px;
+            padding: 18px 14px;
+        }
+
+        .student-dashboard-v4 .hero__left {
+            gap: 12px;
+        }
+
+        .student-dashboard-v4 .hero__right {
+            gap: 10px;
+            grid-template-columns: repeat(2, minmax(0, 1fr));
+            align-items: stretch;
+        }
+
+        .student-dashboard-v4 .hero-status {
+            grid-column: 1 / -1;
+            padding: 14px 16px;
+        }
+
+        .student-dashboard-v4 .hero-panel {
+            padding: 14px;
+        }
+
+        .student-dashboard-v4 .hero-panel strong {
+            margin-bottom: 6px;
+            font-size: .92rem;
+        }
+
+        .student-dashboard-v4 .hero-panel p {
+            font-size: .82rem;
+            line-height: 1.45;
+        }
+
+        .student-dashboard-v4 .hero-status__left span {
+            font-size: .8rem;
+        }
+
+        .student-dashboard-v4 .hero-status__left strong {
+            font-size: .96rem;
+        }
+
+        .student-dashboard-v4 .hero-status__badge {
+            width: 48px;
+            height: 48px;
+            border-radius: 16px;
+            flex-basis: 48px;
+            font-size: 1.15rem;
         }
 
         .student-dashboard-v4 .actions-grid,
@@ -823,8 +868,21 @@
         }
 
         .student-dashboard-v4 .hero-title {
-            max-width: none;
-            font-size: clamp(1.9rem, 10vw, 2.8rem);
+            max-width: 8ch;
+            font-size: clamp(1.7rem, 9vw, 2.45rem);
+            line-height: 1;
+        }
+
+        .student-dashboard-v4 .hero-text {
+            font-size: .9rem;
+            line-height: 1.6;
+        }
+
+        .student-dashboard-v4 .hero-badge,
+        .student-dashboard-v4 .hero-pill {
+            min-height: 32px;
+            font-size: .76rem;
+            padding: 0 10px;
         }
 
         .student-dashboard-v4 .panel__head,
@@ -843,15 +901,71 @@
         .student-dashboard-v4 .panel__item-left {
             width: 100%;
         }
-
-        .student-dashboard-v4 .hero-status {
-            align-items: flex-start;
-        }
     }
 
     @media (max-width: 480px) {
         .student-dashboard-v4 .hero {
-            padding: 18px 14px;
+            padding: 16px 12px;
+        }
+
+        .student-dashboard-v4 .hero__grid {
+            gap: 14px;
+        }
+
+        .student-dashboard-v4 .hero__right {
+            gap: 8px;
+        }
+
+        .student-dashboard-v4 .hero-title {
+            font-size: 1.62rem;
+            max-width: 8ch;
+        }
+
+        .student-dashboard-v4 .hero-text {
+            font-size: .86rem;
+            line-height: 1.55;
+        }
+
+        .student-dashboard-v4 .hero-badge {
+            min-height: 30px;
+            padding: 0 10px;
+            font-size: .72rem;
+        }
+
+        .student-dashboard-v4 .hero-pill {
+            min-height: 30px;
+            padding: 0 9px;
+            font-size: .72rem;
+        }
+
+        .student-dashboard-v4 .hero-panel,
+        .student-dashboard-v4 .hero-status {
+            border-radius: 18px;
+        }
+
+        .student-dashboard-v4 .hero-panel {
+            padding: 12px;
+        }
+
+        .student-dashboard-v4 .hero-panel strong {
+            font-size: .88rem;
+        }
+
+        .student-dashboard-v4 .hero-panel p {
+            font-size: .78rem;
+            line-height: 1.4;
+        }
+
+        .student-dashboard-v4 .hero-status {
+            padding: 12px 14px;
+        }
+
+        .student-dashboard-v4 .hero-status__badge {
+            width: 42px;
+            height: 42px;
+            border-radius: 14px;
+            flex-basis: 42px;
+            font-size: 1rem;
         }
 
         .student-dashboard-v4 .panel__head,
@@ -867,12 +981,6 @@
             padding: 16px;
         }
 
-        .student-dashboard-v4 .hero-badge,
-        .student-dashboard-v4 .hero-pill,
-        .student-dashboard-v4 .tag {
-            font-size: .78rem;
-        }
-
         .student-dashboard-v4 .subject-mark,
         .student-dashboard-v4 .shortcut-icon,
         .student-dashboard-v4 .stat-icon {
@@ -884,6 +992,16 @@
 
         .student-dashboard-v4 .stat-value {
             font-size: 1.8rem;
+        }
+    }
+
+    @media (max-width: 380px) {
+        .student-dashboard-v4 .hero__right {
+            grid-template-columns: 1fr;
+        }
+
+        .student-dashboard-v4 .hero-status {
+            grid-column: auto;
         }
     }
 </style>
@@ -923,19 +1041,13 @@
                 </div>
 
                 <article class="hero-panel">
-                    <strong>Votre espace de travail</strong>
-                    <p>
-                        Utilisez ce tableau de bord pour accéder rapidement à vos TD, consulter vos cours,
-                        poser une question et suivre votre rythme de travail.
-                    </p>
+                    <strong>Votre espace</strong>
+                    <p>TD, cours et messages accessibles rapidement.</p>
                 </article>
 
                 <article class="hero-panel">
-                    <strong>Objectif du moment</strong>
-                    <p>
-                        Garder un bon rythme sur vos TD récents et revenir régulièrement sur les matières
-                        où vous devez encore progresser.
-                    </p>
+                    <strong>Objectif</strong>
+                    <p>Continuer vos TD récents et garder le rythme.</p>
                 </article>
             </div>
         </div>
