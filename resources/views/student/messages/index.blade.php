@@ -11,30 +11,35 @@
             'soft' => 'rgba(37,99,235,.10)',
             'border' => 'rgba(37,99,235,.18)',
             'grad' => 'linear-gradient(135deg,#2563eb,#4f46e5)',
+            'chat' => 'linear-gradient(180deg,#f5f8ff,#eef5ff)',
         ],
         [
             'color' => '#16a34a',
             'soft' => 'rgba(22,163,74,.10)',
             'border' => 'rgba(22,163,74,.18)',
             'grad' => 'linear-gradient(135deg,#16a34a,#14b8a6)',
+            'chat' => 'linear-gradient(180deg,#f4fbf7,#edf9f2)',
         ],
         [
             'color' => '#f59e0b',
             'soft' => 'rgba(245,158,11,.12)',
             'border' => 'rgba(245,158,11,.20)',
             'grad' => 'linear-gradient(135deg,#f59e0b,#f97316)',
+            'chat' => 'linear-gradient(180deg,#fffaf3,#fff4e6)',
         ],
         [
             'color' => '#7c3aed',
             'soft' => 'rgba(124,58,237,.10)',
             'border' => 'rgba(124,58,237,.18)',
             'grad' => 'linear-gradient(135deg,#7c3aed,#a855f7)',
+            'chat' => 'linear-gradient(180deg,#faf7ff,#f3ecff)',
         ],
         [
             'color' => '#ec4899',
             'soft' => 'rgba(236,72,153,.10)',
             'border' => 'rgba(236,72,153,.18)',
             'grad' => 'linear-gradient(135deg,#ec4899,#f43f5e)',
+            'chat' => 'linear-gradient(180deg,#fff6fa,#ffeef6)',
         ],
     ];
 @endphp
@@ -47,7 +52,7 @@
     }
 
     .wa-student .btn {
-        min-height: 44px;
+        min-height: 46px;
         padding: 0 16px;
         border-radius: 14px;
         border: 1px solid var(--line);
@@ -73,9 +78,14 @@
     }
 
     .wa-student .btn--ghost {
-        background: var(--panel);
+        background: rgba(255,255,255,.72);
         color: var(--text);
         border-color: var(--line);
+        backdrop-filter: blur(8px);
+    }
+
+    html[data-theme='dark'] .wa-student .btn--ghost {
+        background: rgba(15,23,42,.58);
     }
 
     .wa-student .btn--ghost:hover {
@@ -114,14 +124,14 @@
         display: grid;
         grid-template-columns: 340px minmax(0, 1fr);
         gap: 16px;
-        min-height: 74vh;
+        min-height: 76vh;
+        align-items: stretch;
     }
 
     .wa-sidebar,
     .wa-chat {
         border: 1px solid var(--line);
         border-radius: 28px;
-        background: linear-gradient(180deg, var(--panel), var(--panel-soft));
         box-shadow: var(--shadow);
         overflow: hidden;
     }
@@ -129,6 +139,15 @@
     .wa-sidebar {
         display: grid;
         grid-template-rows: auto 1fr;
+        background:
+            radial-gradient(circle at top right, rgba(37,99,235,.08), transparent 24%),
+            linear-gradient(180deg, #f8fbff, #f2f7ff);
+    }
+
+    html[data-theme='dark'] .wa-sidebar {
+        background:
+            radial-gradient(circle at top right, rgba(255,255,255,.03), transparent 24%),
+            linear-gradient(180deg, #0f1c31, #13233d);
     }
 
     .wa-sidebar__head {
@@ -139,8 +158,13 @@
         justify-content: space-between;
         gap: 12px;
         background:
-            radial-gradient(circle at top right, rgba(37,99,235,.07), transparent 26%),
-            linear-gradient(180deg, rgba(37,99,235,.03), transparent);
+            linear-gradient(180deg, rgba(255,255,255,.58), rgba(255,255,255,.18));
+        backdrop-filter: blur(8px);
+    }
+
+    html[data-theme='dark'] .wa-sidebar__head {
+        background:
+            linear-gradient(180deg, rgba(15,23,42,.45), rgba(15,23,42,.18));
     }
 
     .wa-sidebar__head-text {
@@ -184,14 +208,14 @@
         background: rgba(15, 23, 42, 0.02);
     }
 
+    html[data-theme='dark'] .wa-thread:hover {
+        background: rgba(255,255,255,.03);
+    }
+
     .wa-thread.is-active {
         background:
             linear-gradient(180deg, var(--wa-tone-soft), rgba(255,255,255,0));
         box-shadow: inset 0 0 0 1px var(--wa-tone-border);
-    }
-
-    html[data-theme='dark'] .wa-thread:hover {
-        background: rgba(255,255,255,.03);
     }
 
     .wa-thread.is-active::before {
@@ -304,10 +328,14 @@
 
     .wa-chat {
         display: grid;
-        min-height: 74vh;
+        min-height: 76vh;
         background:
-            radial-gradient(circle at top right, rgba(37,99,235,.04), transparent 18%),
-            linear-gradient(180deg, var(--panel-soft), var(--panel));
+            linear-gradient(180deg, var(--wa-chat-bg-top), var(--wa-chat-bg-bottom));
+    }
+
+    html[data-theme='dark'] .wa-chat {
+        background:
+            linear-gradient(180deg, #101c31, #13233d);
     }
 
     .wa-pane {
@@ -329,13 +357,13 @@
         gap: 12px;
         flex-wrap: wrap;
         background:
-            linear-gradient(180deg, rgba(255,255,255,.56), rgba(255,255,255,.24));
+            linear-gradient(180deg, rgba(255,255,255,.70), rgba(255,255,255,.28));
         backdrop-filter: blur(10px);
     }
 
     html[data-theme='dark'] .wa-chat__head {
         background:
-            linear-gradient(180deg, rgba(15,23,42,.42), rgba(15,23,42,.18));
+            linear-gradient(180deg, rgba(15,23,42,.45), rgba(15,23,42,.18));
     }
 
     .wa-chat__head-left {
@@ -411,19 +439,19 @@
     }
 
     .wa-chat__body {
-        padding: 18px;
+        padding: 20px 18px;
         display: grid;
-        gap: 14px;
+        gap: 16px;
         overflow: auto;
         background:
-            linear-gradient(180deg, rgba(15, 23, 42, 0.01), rgba(15, 23, 42, 0.02)),
-            radial-gradient(circle at top right, var(--wa-tone-soft), transparent 22%);
+            radial-gradient(circle at top right, var(--wa-tone-soft), transparent 20%),
+            linear-gradient(180deg, rgba(255,255,255,.24), rgba(255,255,255,.06));
     }
 
     html[data-theme='dark'] .wa-chat__body {
         background:
-            linear-gradient(180deg, rgba(255,255,255,.01), rgba(255,255,255,.015)),
-            radial-gradient(circle at top right, rgba(255,255,255,.03), transparent 22%);
+            radial-gradient(circle at top right, rgba(255,255,255,.03), transparent 22%),
+            linear-gradient(180deg, rgba(255,255,255,.01), rgba(255,255,255,.015));
     }
 
     .wa-day {
@@ -432,19 +460,19 @@
         padding: 0 16px;
         border-radius: 999px;
         border: 1px solid var(--wa-tone-border);
-        background: linear-gradient(180deg, rgba(255,255,255,.9), rgba(255,255,255,.72));
+        background: linear-gradient(180deg, rgba(255,255,255,.94), rgba(255,255,255,.78));
         color: var(--wa-tone);
         font-size: .78rem;
         font-weight: 900;
         display: inline-flex;
         align-items: center;
         white-space: nowrap;
-        box-shadow: 0 8px 18px rgba(15, 23, 42, 0.06);
+        box-shadow: 0 10px 18px rgba(15, 23, 42, 0.05);
         letter-spacing: -0.01em;
     }
 
     html[data-theme='dark'] .wa-day {
-        background: linear-gradient(180deg, rgba(15,23,42,.8), rgba(15,23,42,.56));
+        background: linear-gradient(180deg, rgba(15,23,42,.82), rgba(15,23,42,.62));
         box-shadow: none;
     }
 
@@ -461,9 +489,9 @@
     }
 
     .wa-bubble {
-        max-width: min(760px, 84%);
+        max-width: min(780px, 84%);
         padding: 14px 15px;
-        border-radius: 20px;
+        border-radius: 22px;
         border: 1px solid var(--line);
         box-shadow: var(--shadow-xs);
         display: grid;
@@ -480,6 +508,10 @@
     }
 
     .wa-bubble--teacher {
+        background: linear-gradient(180deg, rgba(255,255,255,.96), rgba(255,255,255,.84));
+    }
+
+    html[data-theme='dark'] .wa-bubble--teacher {
         background: linear-gradient(180deg, var(--panel), var(--panel-soft));
     }
 
@@ -510,7 +542,7 @@
         padding: 12px;
         border-radius: 18px;
         border: 1px solid var(--line);
-        background: rgba(255,255,255,.62);
+        background: rgba(255,255,255,.70);
     }
 
     html[data-theme='dark'] .wa-attachment {
@@ -569,6 +601,11 @@
         font-size: .8rem;
     }
 
+    .wa-audio-player {
+        width: 100%;
+        border-radius: 14px;
+    }
+
     .wa-attachment__actions {
         display: flex;
         flex-wrap: wrap;
@@ -592,55 +629,109 @@
         padding: 14px 16px;
         border-top: 1px solid var(--line);
         display: flex;
-        align-items: center;
+        align-items: flex-end;
         gap: 10px;
         background:
-            linear-gradient(180deg, rgba(255,255,255,.74), rgba(255,255,255,.52));
+            linear-gradient(180deg, rgba(255,255,255,.78), rgba(255,255,255,.58));
         backdrop-filter: blur(10px);
     }
 
     html[data-theme='dark'] .wa-compose {
         background:
-            linear-gradient(180deg, rgba(15,23,42,.42), rgba(15,23,42,.18));
+            linear-gradient(180deg, rgba(15,23,42,.48), rgba(15,23,42,.24));
     }
 
-    .wa-compose__attach {
-        width: 46px;
-        height: 46px;
-        border-radius: 14px;
+    .wa-compose__left {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        flex: 1;
+        min-width: 0;
+    }
+
+    .wa-compose__attach,
+    .wa-compose__mic {
+        width: 48px;
+        height: 48px;
+        border-radius: 16px;
         border: 1px solid var(--line);
-        background: var(--panel);
+        background: rgba(255,255,255,.74);
         display: inline-flex;
         align-items: center;
         justify-content: center;
         cursor: pointer;
         font-size: 1.05rem;
-        flex: 0 0 46px;
+        flex: 0 0 48px;
+        transition: .2s ease;
+    }
+
+    html[data-theme='dark'] .wa-compose__attach,
+    html[data-theme='dark'] .wa-compose__mic {
+        background: rgba(15,23,42,.48);
+    }
+
+    .wa-compose__attach:hover,
+    .wa-compose__mic:hover {
+        transform: translateY(-1px);
+        border-color: var(--wa-tone-border);
+        box-shadow: 0 10px 20px rgba(15,23,42,.06);
     }
 
     .wa-compose__field {
         flex: 1;
         min-width: 0;
+        display: grid;
+        gap: 8px;
     }
 
     .wa-compose__field textarea {
         width: 100%;
-        min-height: 48px;
-        max-height: 120px;
+        min-height: 96px;
+        max-height: 180px;
         resize: vertical;
-        border-radius: 18px;
-        border: 1px solid var(--line);
-        background: var(--panel);
+        border-radius: 20px;
+        border: 1px solid var(--wa-tone-border);
+        background: rgba(255,255,255,.88);
         color: var(--text);
-        padding: 12px 14px;
+        padding: 16px 16px;
         outline: none;
         transition: .2s ease;
-        line-height: 1.55;
+        line-height: 1.6;
+        font-size: .95rem;
+    }
+
+    html[data-theme='dark'] .wa-compose__field textarea {
+        background: rgba(15,23,42,.58);
     }
 
     .wa-compose__field textarea:focus {
         border-color: var(--wa-tone);
         box-shadow: 0 0 0 4px var(--wa-tone-soft);
+    }
+
+    .wa-compose__selected {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        flex-wrap: wrap;
+        min-height: 20px;
+    }
+
+    .wa-file-pill {
+        display: none;
+        min-height: 28px;
+        padding: 0 10px;
+        border-radius: 999px;
+        background: var(--wa-tone-soft);
+        border: 1px solid var(--wa-tone-border);
+        color: var(--wa-tone);
+        font-size: .76rem;
+        font-weight: 800;
+    }
+
+    .wa-file-pill.is-visible {
+        display: inline-flex;
+        align-items: center;
     }
 
     .wa-compose__send {
@@ -755,6 +846,10 @@
         .wa-compose {
             padding: 12px 14px;
         }
+
+        .wa-compose__field textarea {
+            min-height: 84px;
+        }
     }
 
     @media (max-width: 480px) {
@@ -780,10 +875,17 @@
             max-height: 210px;
         }
 
-        .wa-compose__attach {
-            width: 42px;
-            height: 42px;
-            flex-basis: 42px;
+        .wa-compose__attach,
+        .wa-compose__mic {
+            width: 44px;
+            height: 44px;
+            flex-basis: 44px;
+            border-radius: 14px;
+        }
+
+        .wa-compose__field textarea {
+            min-height: 78px;
+            padding: 14px 14px;
         }
     }
 </style>
@@ -794,7 +896,7 @@
     <div class="wa-student__top">
         <div class="wa-student__top-left">
             <h1>Messagerie classe</h1>
-            <p>Choisissez un enseignant à gauche puis discutez avec lui dans une interface plus propre et plus moderne.</p>
+            <p>Choisissez un enseignant à gauche puis discutez avec lui dans une interface plus colorée, plus moderne et plus confortable.</p>
         </div>
 
         <a href="{{ route('student.messages.create') }}" class="btn btn--primary">Nouveau message</a>
@@ -828,7 +930,7 @@
                         type="button"
                         class="wa-thread {{ $isActive ? 'is-active' : '' }}"
                         data-thread-id="{{ $thread->assignment->id }}"
-                        style="--wa-tone: {{ $tone['color'] }}; --wa-tone-soft: {{ $tone['soft'] }}; --wa-tone-border: {{ $tone['border'] }}; --wa-tone-grad: {{ $tone['grad'] }};"
+                        style="--wa-tone: {{ $tone['color'] }}; --wa-tone-soft: {{ $tone['soft'] }}; --wa-tone-border: {{ $tone['border'] }}; --wa-tone-grad: {{ $tone['grad'] }}; --wa-chat-bg-top: {{ $tone['chat'] }}; --wa-chat-bg-bottom: #ffffff;"
                     >
                         <span class="wa-thread__avatar">{{ $avatar }}</span>
 
@@ -887,7 +989,7 @@
                     <div
                         class="wa-pane {{ $isActive ? 'is-active' : '' }}"
                         data-pane-id="{{ $thread->assignment->id }}"
-                        style="--wa-tone: {{ $tone['color'] }}; --wa-tone-soft: {{ $tone['soft'] }}; --wa-tone-border: {{ $tone['border'] }}; --wa-tone-grad: {{ $tone['grad'] }};"
+                        style="--wa-tone: {{ $tone['color'] }}; --wa-tone-soft: {{ $tone['soft'] }}; --wa-tone-border: {{ $tone['border'] }}; --wa-tone-grad: {{ $tone['grad'] }}; --wa-chat-bg-top: {{ $tone['chat'] }}; --wa-chat-bg-bottom: #ffffff;"
                     >
                         <div class="wa-chat__head">
                             <div class="wa-chat__head-left">
@@ -922,6 +1024,7 @@
                                         $attachmentDownloadUrl = $entry->attachment_path ? route('student.messages.attachment', ['message' => $entry->id, 'download' => 1]) : null;
                                         $attachmentName = $entry->attachment_name ?: basename((string) $entry->attachment_path);
                                         $isImage = method_exists($entry, 'isImageAttachment') ? $entry->isImageAttachment() : false;
+                                        $isAudio = method_exists($entry, 'isAudioAttachment') ? $entry->isAudioAttachment() : false;
                                     @endphp
 
                                     @if ($entryDateKey !== $currentDate)
@@ -941,6 +1044,11 @@
                                                         <a href="{{ $attachmentUrl }}" target="_blank" class="wa-attachment__image-link">
                                                             <img src="{{ $attachmentUrl }}" alt="Pièce jointe" class="wa-attachment__image">
                                                         </a>
+                                                    @elseif ($isAudio)
+                                                        <audio controls preload="none" class="wa-audio-player">
+                                                            <source src="{{ $attachmentUrl }}">
+                                                            Votre navigateur ne supporte pas l'audio.
+                                                        </audio>
                                                     @else
                                                         <div class="wa-file">
                                                             <span class="wa-file__icon">📎</span>
@@ -985,11 +1093,20 @@
                             <input type="hidden" name="teacher_assignment_id" value="{{ $thread->assignment->id }}">
                             <input type="hidden" name="title" value="Message à {{ $teacherName }} - {{ $subjectName }}">
 
-                            <label for="attachment_{{ $thread->assignment->id }}" class="wa-compose__attach">📎</label>
-                            <input id="attachment_{{ $thread->assignment->id }}" type="file" name="attachment" accept=".pdf,.doc,.docx,.jpg,.jpeg,.png,.webp" hidden>
+                            <div class="wa-compose__left">
+                                <label for="attachment_{{ $thread->assignment->id }}" class="wa-compose__attach" title="Joindre un fichier">📎</label>
+                                <input id="attachment_{{ $thread->assignment->id }}" type="file" name="attachment" accept=".pdf,.doc,.docx,.jpg,.jpeg,.png,.webp" hidden>
 
-                            <div class="wa-compose__field">
-                                <textarea name="message" placeholder="Écrire à {{ $teacherName }}..." required></textarea>
+                                <label for="voice_{{ $thread->assignment->id }}" class="wa-compose__mic" title="Envoyer un vocal">🎤</label>
+                                <input id="voice_{{ $thread->assignment->id }}" type="file" name="voice_note" accept="audio/*" capture hidden>
+
+                                <div class="wa-compose__field">
+                                    <textarea name="message" placeholder="Écrire à {{ $teacherName }}..."></textarea>
+
+                                    <div class="wa-compose__selected">
+                                        <span class="wa-file-pill" data-file-pill>Fichier sélectionné</span>
+                                    </div>
+                                </div>
                             </div>
 
                             <div class="wa-compose__send">
@@ -1053,6 +1170,42 @@
         window.addEventListener('resize', () => {
             if (window.innerWidth > 900) {
                 root.classList.remove('is-thread-open');
+            }
+        });
+
+        root.querySelectorAll('.wa-compose').forEach((form) => {
+            const attachInput = form.querySelector('input[name="attachment"]');
+            const voiceInput = form.querySelector('input[name="voice_note"]');
+            const pill = form.querySelector('[data-file-pill]');
+
+            const updatePill = (file) => {
+                if (!pill) return;
+
+                if (file) {
+                    pill.textContent = file.name;
+                    pill.classList.add('is-visible');
+                } else {
+                    pill.textContent = 'Fichier sélectionné';
+                    pill.classList.remove('is-visible');
+                }
+            };
+
+            if (attachInput) {
+                attachInput.addEventListener('change', () => {
+                    if (voiceInput) {
+                        voiceInput.value = '';
+                    }
+                    updatePill(attachInput.files[0] || null);
+                });
+            }
+
+            if (voiceInput) {
+                voiceInput.addEventListener('change', () => {
+                    if (attachInput) {
+                        attachInput.value = '';
+                    }
+                    updatePill(voiceInput.files[0] || null);
+                });
             }
         });
 
