@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Teacher;
 
 use App\Http\Controllers\Controller;
 use App\Models\Course;
+use App\Models\PlatformSetting;
 use App\Models\TdQuestionThread;
 use App\Models\TdSet;
 use App\Models\TeacherAssignment;
@@ -38,6 +39,7 @@ class DashboardController extends Controller
         return view('teacher.dashboard', [
             'teacher' => $teacher,
             'assignments' => $assignments,
+            'dashboardText' => PlatformSetting::group('dashboard_teacher'),
             'stats' => [
                 'classes' => $assignments->pluck('school_class_id')->unique()->count(),
                 'subjects' => $assignments->pluck('subject_id')->unique()->count(),
