@@ -94,4 +94,17 @@ class TeacherMessage extends Model
 
         return in_array($extension, ['mp3', 'wav', 'ogg', 'm4a', 'webm', 'aac', '3gp', 'amr', 'mp4'], true);
     }
+
+    public function isAnonymousAudioAttachment(): bool
+    {
+        if (!$this->isAudioAttachment()) {
+            return false;
+        }
+
+        $name = strtolower((string) ($this->attachment_name ?: ''));
+
+        return str_contains($name, 'voice-anonyme')
+            || str_contains($name, 'anonymous')
+            || str_contains($name, 'anonyme');
+    }
 }
