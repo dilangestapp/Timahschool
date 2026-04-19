@@ -26,10 +26,65 @@ class MessageController extends Controller
             ->orderBy('created_at')
             ->get();
 
-        $threads = $messages
-            ->groupBy(function (TeacherMessage $message) {
-                return $this->threadKey($message);
+        $grouped = $messages->groupBy(function (TeacherMessage $message) {
+            return $this->threadKey($message);
+        });
+
+        $sortedThreads = $grouped
+            ->map(function (Collection $conversation, string $threadKey) {
+                $conversation = $conversation->sortBy('created_at')->values();
+                $latest = $conversation->last();
+                $first = $conversation->first();
+
+                return (object) [
+                    'thread_key' => $threadKey,
+                    'student' => $first?->student,
+                    'subject' => $first?->subject,
+                    'schoolClass' => $first?->schoolClass,
+                    'messages' => $conversation,
+                    'latest_message' => $latest,
+                    'sort_timestamp' => $latest && $latest->created_at ? $latest->created_at->timestamp : 0,
+                ];
             })
+            ->sort(function ($a, $b) {
+                if ($a->sort_timestamp === $b->sort_timestamp) {
+                    $aName = strtolower((string) ($a->student->full_name ?? $a->student->name ?? $a->student->username ?? ''));
+                    $bName = strtolower((string) ($b->student->full_name ?? $b->student->name ?? $b->student->username ?? ''));
+
+                    return $aName <=> $bName;
+                }
+
+                return $b->sort_timestamp <=> $a->sort_timestamp;
+            })
+            ->values();
+
+        $requestedThreadKey = (string) $request->query('thread');
+        $selectedThreadKey = $sortedThreads->contains(fn ($thread) => $thread->thread_key === $requestedThreadKey)
+            ? $requestedThreadKey
+            : optional($sortedThreads->first())->thread_key;
+
+        if ($selectedThreadKey) {
+            $grouped
+                ->get($selectedThreadKey, collect())
+                ->filter(fn (TeacherMessage $message) => $message->status === TeacherMessage::STATUS_UNREAD)
+                ->each(function (TeacherMessage $message) {
+                    $message->status = TeacherMessage::STATUS_READ;
+                    $message->read_at = now();
+                    $message->save();
+                });
+
+            $messages = TeacherMessage::query()
+                ->with(['student.studentProfile.schoolClass', 'subject', 'schoolClass', 'teacher'])
+                ->where('teacher_id', auth()->id())
+                ->orderBy('created_at')
+                ->get();
+
+            $grouped = $messages->groupBy(function (TeacherMessage $message) {
+                return $this->threadKey($message);
+            });
+        }
+
+        $threads = $grouped
             ->map(function (Collection $conversation, string $threadKey) {
                 $conversation = $conversation->sortBy('created_at')->values();
                 $latest = $conversation->last();
@@ -63,11 +118,6 @@ class MessageController extends Controller
                 return $b->sort_timestamp <=> $a->sort_timestamp;
             })
             ->values();
-
-        $requestedThreadKey = (string) $request->query('thread');
-        $selectedThreadKey = $threads->contains(fn ($thread) => $thread->thread_key === $requestedThreadKey)
-            ? $requestedThreadKey
-            : optional($threads->first())->thread_key;
 
         return view('teacher.messages.index', [
             'threads' => $threads,
