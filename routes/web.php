@@ -6,6 +6,7 @@ use App\Http\Controllers\Admin\AdminDashboardController;
 use App\Http\Controllers\Admin\AdminHomepageController;
 use App\Http\Controllers\Admin\AdminPaymentController;
 use App\Http\Controllers\Admin\AdminPlanController;
+use App\Http\Controllers\Admin\AdminPlatformSettingsController;
 use App\Http\Controllers\Admin\AdminSubjectController;
 use App\Http\Controllers\Admin\AdminSubscriptionController;
 use App\Http\Controllers\Admin\AdminTdController;
@@ -90,35 +91,46 @@ Route::prefix($adminPath)->name('admin.')->group(function () {
 
     Route::middleware(['auth', 'no.cache', EnsureAdmin::class])->group(function () {
         Route::get('/dashboard', [AdminDashboardController::class, 'index'])->name('dashboard');
+
+        Route::get('/settings', [AdminPlatformSettingsController::class, 'edit'])->name('settings.edit');
+        Route::post('/settings', [AdminPlatformSettingsController::class, 'update'])->name('settings.update');
+
         Route::get('/homepage', [AdminHomepageController::class, 'edit'])->name('homepage.edit');
         Route::post('/homepage', [AdminHomepageController::class, 'update'])->name('homepage.update');
         Route::post('/homepage/messages', [AdminHomepageController::class, 'storeMessage'])->name('homepage.messages.store');
         Route::post('/homepage/messages/{message}/update', [AdminHomepageController::class, 'updateMessage'])->name('homepage.messages.update');
         Route::post('/homepage/messages/{message}/delete', [AdminHomepageController::class, 'deleteMessage'])->name('homepage.messages.delete');
+
         Route::get('/users', [AdminUserController::class, 'index'])->name('users.index');
         Route::post('/users', [AdminUserController::class, 'store'])->name('users.store');
         Route::post('/users/{id}/update', [AdminUserController::class, 'update'])->name('users.update');
         Route::post('/users/{id}/delete', [AdminUserController::class, 'delete'])->name('users.delete');
+
         Route::get('/teachers', [AdminTeacherController::class, 'index'])->name('teachers.index');
         Route::post('/teachers', [AdminTeacherController::class, 'store'])->name('teachers.store');
         Route::post('/teachers/{user}/toggle', [AdminTeacherController::class, 'toggle'])->name('teachers.toggle');
+
         Route::get('/assignments', [AdminTeacherAssignmentController::class, 'index'])->name('assignments.index');
         Route::post('/assignments', [AdminTeacherAssignmentController::class, 'store'])->name('assignments.store');
         Route::post('/assignments/{assignment}/toggle', [AdminTeacherAssignmentController::class, 'toggle'])->name('assignments.toggle');
         Route::post('/assignments/{assignment}/delete', [AdminTeacherAssignmentController::class, 'destroy'])->name('assignments.delete');
+
         Route::get('/classes', [AdminClassController::class, 'index'])->name('classes.index');
         Route::post('/classes', [AdminClassController::class, 'store'])->name('classes.store');
         Route::post('/classes/{id}/update', [AdminClassController::class, 'update'])->name('classes.update');
         Route::post('/classes/{id}/delete', [AdminClassController::class, 'delete'])->name('classes.delete');
+
         Route::get('/subjects', [AdminSubjectController::class, 'index'])->name('subjects.index');
         Route::post('/subjects', [AdminSubjectController::class, 'store'])->name('subjects.store');
         Route::post('/subjects/{id}/update', [AdminSubjectController::class, 'update'])->name('subjects.update');
         Route::post('/subjects/{id}/delete', [AdminSubjectController::class, 'delete'])->name('subjects.delete');
+
         Route::get('/courses', [AdminCourseController::class, 'index'])->name('courses.index');
         Route::post('/courses/{id}/publish', [AdminCourseController::class, 'publish'])->name('courses.publish');
         Route::post('/courses/{id}/archive', [AdminCourseController::class, 'archive'])->name('courses.archive');
         Route::post('/courses/{id}/update', [AdminCourseController::class, 'update'])->name('courses.update');
         Route::post('/courses/{id}/delete', [AdminCourseController::class, 'delete'])->name('courses.delete');
+
         Route::get('/td/sets', [AdminTdController::class, 'index'])->name('td.index');
         Route::get('/td/sets/create', [AdminTdController::class, 'create'])->name('td.create');
         Route::post('/td/sets', [AdminTdController::class, 'store'])->name('td.store');
@@ -127,16 +139,20 @@ Route::prefix($adminPath)->name('admin.')->group(function () {
         Route::post('/td/sets/{td}/publish', [AdminTdController::class, 'publish'])->name('td.publish');
         Route::post('/td/sets/{td}/archive', [AdminTdController::class, 'archive'])->name('td.archive');
         Route::post('/td/sets/{td}/delete', [AdminTdController::class, 'delete'])->name('td.delete');
+
         Route::get('/plans', [AdminPlanController::class, 'index'])->name('plans.index');
         Route::post('/plans', [AdminPlanController::class, 'store'])->name('plans.store');
         Route::post('/plans/{id}/update', [AdminPlanController::class, 'update'])->name('plans.update');
         Route::post('/plans/{id}/delete', [AdminPlanController::class, 'delete'])->name('plans.delete');
+
         Route::get('/subscriptions', [AdminSubscriptionController::class, 'index'])->name('subscriptions.index');
         Route::post('/subscriptions/{id}/update', [AdminSubscriptionController::class, 'update'])->name('subscriptions.update');
         Route::post('/subscriptions/{id}/delete', [AdminSubscriptionController::class, 'delete'])->name('subscriptions.delete');
+
         Route::get('/payments', [AdminPaymentController::class, 'index'])->name('payments.index');
         Route::post('/payments/{id}/update', [AdminPaymentController::class, 'update'])->name('payments.update');
         Route::post('/payments/{id}/delete', [AdminPaymentController::class, 'delete'])->name('payments.delete');
+
         Route::post('/logout', [AdminLoginController::class, 'logout'])->name('logout');
     });
 });
@@ -154,6 +170,7 @@ Route::middleware(['auth', 'no.cache', EnsureTeacher::class])->prefix('teacher')
     Route::post('/courses/{course}/delete', [TeacherCourseController::class, 'destroy'])->name('courses.delete');
     Route::get('/courses/{course}/document', [TeacherCourseController::class, 'document'])->name('courses.document');
     Route::get('/courses/{course}/document/download', [TeacherCourseController::class, 'downloadDocument'])->name('courses.document.download');
+
     Route::get('/td/sets', [TeacherTdSetController::class, 'index'])->name('td.sets.index');
     Route::get('/td/sets/create', [TeacherTdSetController::class, 'create'])->name('td.sets.create');
     Route::post('/td/sets', [TeacherTdSetController::class, 'store'])->name('td.sets.store');
@@ -164,10 +181,12 @@ Route::middleware(['auth', 'no.cache', EnsureTeacher::class])->prefix('teacher')
     Route::post('/td/sets/{td}/delete', [TeacherTdSetController::class, 'destroy'])->name('td.sets.delete');
     Route::get('/td/sets/{td}/document', [TeacherTdSetController::class, 'document'])->name('td.sets.document');
     Route::get('/td/sets/{td}/correction-document', [TeacherTdSetController::class, 'correctionDocument'])->name('td.sets.correction_document');
+
     Route::get('/td/questions', [TeacherTdQuestionController::class, 'index'])->name('td.questions.index');
     Route::get('/td/questions/{thread}', [TeacherTdQuestionController::class, 'show'])->name('td.questions.show');
     Route::post('/td/questions/{thread}/reply', [TeacherTdQuestionController::class, 'reply'])->name('td.questions.reply');
     Route::get('/td/messages/{message}/attachment', [TeacherTdQuestionController::class, 'attachment'])->name('td.questions.attachment');
+
     Route::get('/td/sources', [TeacherTdSourceController::class, 'index'])->name('td.sources.index');
     Route::get('/td/sources/create', [TeacherTdSourceController::class, 'create'])->name('td.sources.create');
     Route::post('/td/sources', [TeacherTdSourceController::class, 'store'])->name('td.sources.store');
@@ -175,6 +194,7 @@ Route::middleware(['auth', 'no.cache', EnsureTeacher::class])->prefix('teacher')
     Route::post('/td/sources/{tdSource}/analyze', [TeacherTdSourceController::class, 'analyze'])->name('td.sources.analyze');
     Route::post('/td/sources/{tdSource}/generate', [TeacherTdSourceController::class, 'generate'])->name('td.sources.generate');
     Route::get('/td/sources/{tdSource}/file', [TeacherTdSourceController::class, 'file'])->name('td.sources.file');
+
     Route::get('/messages', [TeacherMessageController::class, 'index'])->name('messages.index');
     Route::get('/messages/{message}', [TeacherMessageController::class, 'show'])->name('messages.show');
     Route::post('/messages/{message}/reply', [TeacherMessageController::class, 'reply'])->name('messages.reply');
@@ -183,6 +203,7 @@ Route::middleware(['auth', 'no.cache', EnsureTeacher::class])->prefix('teacher')
 
 Route::middleware(['auth', 'no.cache', EnsureStudent::class])->prefix('student')->name('student.')->group(function () {
     Route::get('/dashboard', [DashboardController::class, 'index'])->name('dashboard');
+
     Route::prefix('subscription')->name('subscription.')->group(function () {
         Route::get('/', [SubscriptionController::class, 'index'])->name('index');
         Route::get('/expired', [SubscriptionController::class, 'expired'])->name('expired');
