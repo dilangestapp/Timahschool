@@ -2,7 +2,7 @@
 
 @section('title', 'Messagerie enseignant')
 @section('page_title', 'Messagerie liée à vos classes')
-@section('page_subtitle', 'Discutez avec vos élèves dans une interface moderne, lisible et plus pratique.')
+@section('page_subtitle', 'Discutez avec vos élèves dans une interface moderne, lisible et praticable sur téléphone comme sur ordinateur.')
 
 @php
     $threadCollection = collect($threads ?? []);
@@ -48,61 +48,17 @@
 
 @push('styles')
 <style>
-    .wa-teacher {
+    .tm-chat {
         display: grid;
         gap: 16px;
     }
 
-    .wa-teacher .teacher-btn,
-    .wa-teacher .btn {
-        min-height: 46px;
-        padding: 0 16px;
-        border-radius: 14px;
-        border: 1px solid var(--line);
-        display: inline-flex;
-        align-items: center;
-        justify-content: center;
-        gap: 8px;
-        font-weight: 800;
-        transition: .2s ease;
-        cursor: pointer;
-        text-decoration: none;
+    .tm-chat__intro {
+        display: grid;
+        gap: 12px;
     }
 
-    .wa-teacher .teacher-btn--primary,
-    .wa-teacher .btn--primary {
-        background: linear-gradient(135deg, #2563eb, #4f86ff);
-        border-color: transparent;
-        color: #fff;
-        box-shadow: 0 14px 28px rgba(37,99,235,.22);
-    }
-
-    .wa-teacher .teacher-btn--primary:hover,
-    .wa-teacher .btn--primary:hover {
-        transform: translateY(-1px);
-        box-shadow: 0 18px 34px rgba(37,99,235,.26);
-    }
-
-    .wa-teacher .teacher-btn--ghost,
-    .wa-teacher .btn--ghost {
-        background: rgba(255,255,255,.72);
-        color: var(--text);
-        border-color: var(--line);
-        backdrop-filter: blur(8px);
-    }
-
-    html[data-theme='dark'] .wa-teacher .teacher-btn--ghost,
-    html[data-theme='dark'] .wa-teacher .btn--ghost {
-        background: rgba(15,23,42,.58);
-    }
-
-    .wa-teacher .teacher-btn--ghost:hover,
-    .wa-teacher .btn--ghost:hover {
-        background: var(--primary-soft);
-        border-color: var(--line-strong);
-    }
-
-    .wa-teacher__top {
+    .tm-chat__intro-top {
         display: flex;
         align-items: center;
         justify-content: space-between;
@@ -110,45 +66,45 @@
         flex-wrap: wrap;
     }
 
-    .wa-teacher__top-left {
+    .tm-chat__intro-left {
         display: grid;
         gap: 4px;
     }
 
-    .wa-teacher__top-left h1 {
+    .tm-chat__intro-left h2 {
         margin: 0;
-        font-size: clamp(1.55rem, 2.7vw, 2.15rem);
+        font-size: clamp(1.45rem, 2.7vw, 2rem);
         line-height: 1.05;
         letter-spacing: -0.04em;
     }
 
-    .wa-teacher__top-left p {
+    .tm-chat__intro-left p {
         margin: 0;
-        color: var(--muted);
+        color: var(--teacher-muted);
         line-height: 1.6;
         font-size: .92rem;
     }
 
-    .wa-teacher__top-stats {
+    .tm-chat__intro-stats {
         display: flex;
         gap: 10px;
         flex-wrap: wrap;
     }
 
-    .wa-top-pill {
+    .tm-pill {
+        display: inline-flex;
+        align-items: center;
         min-height: 34px;
         padding: 0 12px;
         border-radius: 999px;
         background: rgba(37,99,235,.08);
         border: 1px solid rgba(37,99,235,.14);
-        color: var(--primary);
+        color: #2563eb;
         font-size: .8rem;
         font-weight: 900;
-        display: inline-flex;
-        align-items: center;
     }
 
-    .wa-teacher__shell {
+    .tm-shell {
         display: grid;
         grid-template-columns: 360px minmax(0, 1fr);
         gap: 16px;
@@ -156,15 +112,15 @@
         align-items: stretch;
     }
 
-    .wa-teacher__sidebar,
-    .wa-teacher__chat {
-        border: 1px solid var(--line);
+    .tm-list,
+    .tm-pane-wrap {
+        border: 1px solid var(--teacher-border);
         border-radius: 30px;
-        box-shadow: var(--shadow);
         overflow: hidden;
+        box-shadow: 0 16px 36px rgba(15,23,42,.06);
     }
 
-    .wa-teacher__sidebar {
+    .tm-list {
         display: grid;
         grid-template-rows: auto 1fr;
         background:
@@ -172,15 +128,15 @@
             linear-gradient(180deg, #f8fbff, #f2f7ff);
     }
 
-    html[data-theme='dark'] .wa-teacher__sidebar {
+    html[data-theme='dark'] .tm-list {
         background:
             radial-gradient(circle at top right, rgba(255,255,255,.03), transparent 24%),
             linear-gradient(180deg, #0f1c31, #13233d);
     }
 
-    .wa-teacher__sidebar-head {
+    .tm-list__head {
         padding: 18px 18px 16px;
-        border-bottom: 1px solid var(--line);
+        border-bottom: 1px solid var(--teacher-border);
         display: flex;
         align-items: center;
         justify-content: space-between;
@@ -189,55 +145,55 @@
         backdrop-filter: blur(8px);
     }
 
-    html[data-theme='dark'] .wa-teacher__sidebar-head {
+    html[data-theme='dark'] .tm-list__head {
         background: linear-gradient(180deg, rgba(15,23,42,.45), rgba(15,23,42,.18));
     }
 
-    .wa-teacher__sidebar-head strong {
+    .tm-list__head strong {
         font-size: 1rem;
         letter-spacing: -0.02em;
     }
 
-    .wa-teacher__sidebar-head span {
-        color: var(--muted);
+    .tm-list__head span {
+        color: var(--teacher-muted);
         font-size: .82rem;
     }
 
-    .wa-teacher__thread-list {
+    .tm-list__body {
         display: grid;
         overflow: auto;
         max-height: 100%;
     }
 
-    .wa-teacher__thread {
+    .tm-thread {
         width: 100%;
         display: flex;
         align-items: flex-start;
         gap: 12px;
         padding: 16px 18px;
         border: 0;
-        border-bottom: 1px solid var(--line);
+        border-bottom: 1px solid var(--teacher-border);
         background: transparent;
         text-align: left;
         cursor: pointer;
-        transition: .2s ease;
         position: relative;
+        transition: .2s ease;
     }
 
-    .wa-teacher__thread:hover {
+    .tm-thread:hover {
         background: rgba(15, 23, 42, 0.02);
     }
 
-    html[data-theme='dark'] .wa-teacher__thread:hover {
+    html[data-theme='dark'] .tm-thread:hover {
         background: rgba(255,255,255,.03);
     }
 
-    .wa-teacher__thread.is-active {
-        background: linear-gradient(180deg, var(--wa-tone-soft), rgba(255,255,255,0));
-        box-shadow: inset 0 0 0 1px var(--wa-tone-border);
+    .tm-thread.is-active {
+        background: linear-gradient(180deg, var(--tm-tone-soft), rgba(255,255,255,0));
+        box-shadow: inset 0 0 0 1px var(--tm-tone-border);
     }
 
-    .wa-teacher__thread.is-active::before {
+    .tm-thread.is-active::before {
         content: "";
         position: absolute;
         left: 0;
@@ -245,10 +201,10 @@
         bottom: 12px;
         width: 4px;
         border-radius: 999px;
-        background: var(--wa-tone-grad);
+        background: var(--tm-tone-grad);
     }
 
-    .wa-teacher__avatar {
+    .tm-thread__avatar {
         width: 50px;
         height: 50px;
         flex: 0 0 50px;
@@ -256,52 +212,51 @@
         display: inline-flex;
         align-items: center;
         justify-content: center;
-        background: var(--wa-tone-grad);
+        background: var(--tm-tone-grad);
         color: #fff;
         font-weight: 900;
-        font-size: .95rem;
-        letter-spacing: -0.02em;
-        box-shadow: var(--shadow-xs);
+        font-size: .96rem;
+        box-shadow: 0 10px 22px rgba(15,23,42,.08);
     }
 
-    .wa-teacher__thread-content {
-        min-width: 0;
+    .tm-thread__body {
         flex: 1;
+        min-width: 0;
         display: grid;
         gap: 6px;
     }
 
-    .wa-teacher__thread-row {
+    .tm-thread__top {
         display: flex;
         align-items: flex-start;
         justify-content: space-between;
         gap: 10px;
     }
 
-    .wa-teacher__thread-name {
+    .tm-thread__name {
         font-size: 1rem;
         font-weight: 900;
-        line-height: 1.25;
+        line-height: 1.2;
         letter-spacing: -0.02em;
-        color: var(--text);
+        color: var(--teacher-ink);
     }
 
-    .wa-teacher__thread-time {
-        color: var(--muted);
+    .tm-thread__time {
+        color: var(--teacher-muted);
         font-size: .78rem;
         font-weight: 700;
         white-space: nowrap;
     }
 
-    .wa-teacher__thread-meta {
-        color: var(--muted);
-        font-size: .81rem;
+    .tm-thread__meta {
+        color: var(--teacher-muted);
+        font-size: .82rem;
         line-height: 1.45;
     }
 
-    .wa-teacher__thread-snippet {
-        color: var(--muted);
-        font-size: .87rem;
+    .tm-thread__snippet {
+        color: var(--teacher-muted);
+        font-size: .88rem;
         line-height: 1.45;
         display: -webkit-box;
         -webkit-line-clamp: 2;
@@ -309,60 +264,60 @@
         overflow: hidden;
     }
 
-    .wa-teacher__badges {
+    .tm-thread__badges {
         display: flex;
         align-items: center;
         gap: 8px;
         flex-wrap: wrap;
     }
 
-    .wa-mini-badge {
+    .tm-mini-badge {
         display: inline-flex;
         align-items: center;
         min-height: 26px;
         padding: 0 9px;
         border-radius: 999px;
-        border: 1px solid var(--line);
+        border: 1px solid var(--teacher-border);
         font-size: .72rem;
         font-weight: 900;
         white-space: nowrap;
     }
 
-    .wa-mini-badge--unread {
-        background: var(--wa-tone-soft);
-        color: var(--wa-tone);
-        border-color: var(--wa-tone-border);
+    .tm-mini-badge--unread {
+        background: var(--tm-tone-soft);
+        color: var(--tm-tone);
+        border-color: var(--tm-tone-border);
     }
 
-    .wa-mini-badge--attachment {
-        background: rgba(124, 58, 237, 0.10);
+    .tm-mini-badge--attachment {
+        background: rgba(124,58,237,.10);
         color: #7c3aed;
-        border-color: rgba(124, 58, 237, 0.18);
+        border-color: rgba(124,58,237,.18);
     }
 
-    .wa-teacher__chat {
-        display: grid;
+    .tm-pane-wrap {
+        background: linear-gradient(180deg, var(--tm-chat-bg-top), var(--tm-chat-bg-bottom));
         min-height: 78vh;
-        background: linear-gradient(180deg, var(--wa-chat-bg-top), var(--wa-chat-bg-bottom));
+        display: grid;
     }
 
-    html[data-theme='dark'] .wa-teacher__chat {
+    html[data-theme='dark'] .tm-pane-wrap {
         background: linear-gradient(180deg, #101c31, #13233d);
     }
 
-    .wa-teacher__pane {
+    .tm-pane {
         display: none;
         grid-template-rows: auto 1fr auto;
         min-height: 100%;
     }
 
-    .wa-teacher__pane.is-active {
+    .tm-pane.is-active {
         display: grid;
     }
 
-    .wa-teacher__chat-head {
+    .tm-pane__head {
         padding: 16px 18px;
-        border-bottom: 1px solid var(--line);
+        border-bottom: 1px solid var(--teacher-border);
         display: flex;
         align-items: center;
         justify-content: space-between;
@@ -372,30 +327,35 @@
         backdrop-filter: blur(10px);
     }
 
-    html[data-theme='dark'] .wa-teacher__chat-head {
+    html[data-theme='dark'] .tm-pane__head {
         background: linear-gradient(180deg, rgba(15,23,42,.45), rgba(15,23,42,.18));
     }
 
-    .wa-teacher__chat-head-left {
+    .tm-pane__head-left {
         display: flex;
         align-items: center;
         gap: 12px;
         min-width: 0;
     }
 
-    .wa-teacher__back {
+    .tm-back {
         display: none;
         min-height: 40px;
         padding: 0 12px;
         border-radius: 12px;
-        border: 1px solid var(--line);
-        background: var(--panel);
-        color: var(--text);
+        border: 1px solid var(--teacher-border);
+        background: rgba(255,255,255,.7);
+        color: var(--teacher-ink);
         font-weight: 800;
         cursor: pointer;
     }
 
-    .wa-teacher__chat-avatar {
+    html[data-theme='dark'] .tm-back {
+        background: rgba(15,23,42,.58);
+        color: #fff;
+    }
+
+    .tm-pane__avatar {
         width: 48px;
         height: 48px;
         flex: 0 0 48px;
@@ -403,184 +363,183 @@
         display: inline-flex;
         align-items: center;
         justify-content: center;
-        background: var(--wa-tone-grad);
+        background: var(--tm-tone-grad);
         color: #fff;
         font-weight: 900;
-        font-size: .95rem;
-        letter-spacing: -0.02em;
+        font-size: .96rem;
     }
 
-    .wa-teacher__chat-title {
+    .tm-pane__title {
         min-width: 0;
         display: grid;
         gap: 4px;
     }
 
-    .wa-teacher__chat-title strong {
+    .tm-pane__title strong {
         font-size: 1rem;
-        line-height: 1.25;
+        line-height: 1.2;
         letter-spacing: -0.02em;
     }
 
-    .wa-teacher__chat-title span {
-        color: var(--muted);
+    .tm-pane__title span {
+        color: var(--teacher-muted);
         font-size: .82rem;
         line-height: 1.45;
     }
 
-    .wa-teacher__chat-tools {
+    .tm-pane__head-tools {
         display: flex;
         align-items: center;
         gap: 10px;
         flex-wrap: wrap;
     }
 
-    .wa-subject-chip {
+    .tm-subject-chip {
         display: inline-flex;
         align-items: center;
         min-height: 30px;
         padding: 0 12px;
         border-radius: 999px;
-        background: var(--wa-tone-soft);
-        color: var(--wa-tone);
-        border: 1px solid var(--wa-tone-border);
+        background: var(--tm-tone-soft);
+        color: var(--tm-tone);
+        border: 1px solid var(--tm-tone-border);
         font-size: .76rem;
         font-weight: 900;
     }
 
-    .wa-teacher__chat-body {
+    .tm-pane__body {
         padding: 22px 20px;
         display: grid;
         gap: 18px;
         overflow: auto;
         background:
-            radial-gradient(circle at top right, var(--wa-tone-soft), transparent 20%),
+            radial-gradient(circle at top right, var(--tm-tone-soft), transparent 20%),
             linear-gradient(180deg, rgba(255,255,255,.24), rgba(255,255,255,.06));
     }
 
-    html[data-theme='dark'] .wa-teacher__chat-body {
+    html[data-theme='dark'] .tm-pane__body {
         background:
             radial-gradient(circle at top right, rgba(255,255,255,.03), transparent 22%),
             linear-gradient(180deg, rgba(255,255,255,.01), rgba(255,255,255,.015));
     }
 
-    .wa-day {
+    .tm-day {
         justify-self: center;
         min-height: 34px;
         padding: 0 16px;
         border-radius: 999px;
-        border: 1px solid var(--wa-tone-border);
+        border: 1px solid var(--tm-tone-border);
         background: linear-gradient(180deg, rgba(255,255,255,.94), rgba(255,255,255,.78));
-        color: var(--wa-tone);
+        color: var(--tm-tone);
         font-size: .78rem;
         font-weight: 900;
         display: inline-flex;
         align-items: center;
         white-space: nowrap;
-        box-shadow: 0 10px 18px rgba(15, 23, 42, 0.05);
+        box-shadow: 0 10px 18px rgba(15,23,42,.05);
         letter-spacing: -0.01em;
     }
 
-    html[data-theme='dark'] .wa-day {
+    html[data-theme='dark'] .tm-day {
         background: linear-gradient(180deg, rgba(15,23,42,.82), rgba(15,23,42,.62));
         box-shadow: none;
     }
 
-    .wa-bubble-row {
+    .tm-row {
         display: flex;
     }
 
-    .wa-bubble-row--student {
+    .tm-row--student {
         justify-content: flex-start;
     }
 
-    .wa-bubble-row--teacher {
+    .tm-row--teacher {
         justify-content: flex-end;
     }
 
-    .wa-bubble {
-        max-width: min(780px, 84%);
-        padding: 16px 16px;
+    .tm-bubble {
+        max-width: min(760px, 88%);
+        padding: 16px;
         border-radius: 22px;
-        border: 1px solid var(--line);
-        box-shadow: var(--shadow-xs);
+        border: 1px solid var(--teacher-border);
+        box-shadow: 0 10px 24px rgba(15,23,42,.05);
         display: grid;
         gap: 10px;
     }
 
-    .wa-bubble--student {
-        background: linear-gradient(180deg, var(--wa-tone-soft), rgba(255,255,255,.96));
-        border-color: var(--wa-tone-border);
+    .tm-bubble--student {
+        background: linear-gradient(180deg, var(--tm-tone-soft), rgba(255,255,255,.96));
+        border-color: var(--tm-tone-border);
     }
 
-    html[data-theme='dark'] .wa-bubble--student {
+    .tm-bubble--teacher {
+        background: linear-gradient(180deg, rgba(255,255,255,.98), rgba(255,255,255,.88));
+    }
+
+    html[data-theme='dark'] .tm-bubble--student {
         background: linear-gradient(180deg, rgba(255,255,255,.05), rgba(255,255,255,.02));
     }
 
-    .wa-bubble--teacher {
-        background: linear-gradient(180deg, rgba(255,255,255,.96), rgba(255,255,255,.84));
+    html[data-theme='dark'] .tm-bubble--teacher {
+        background: linear-gradient(180deg, rgba(255,255,255,.04), rgba(255,255,255,.02));
     }
 
-    html[data-theme='dark'] .wa-bubble--teacher {
-        background: linear-gradient(180deg, var(--panel), var(--panel-soft));
-    }
-
-    .wa-bubble__meta {
-        color: var(--muted);
+    .tm-bubble__meta {
+        color: var(--teacher-muted);
         font-size: .76rem;
         font-weight: 700;
         line-height: 1.4;
     }
 
-    .wa-bubble__title {
+    .tm-bubble__title {
         font-size: .96rem;
         font-weight: 900;
         letter-spacing: -0.02em;
-        color: var(--text);
+        color: var(--teacher-ink);
     }
 
-    .wa-bubble__text {
-        color: var(--text);
+    .tm-bubble__text {
+        color: var(--teacher-ink);
         line-height: 1.7;
         font-size: .93rem;
         word-break: break-word;
     }
 
-    .wa-attachment {
+    .tm-attachment {
         display: grid;
         gap: 10px;
         padding: 12px;
         border-radius: 18px;
-        border: 1px solid var(--line);
-        background: rgba(255,255,255,.70);
+        border: 1px solid var(--teacher-border);
+        background: rgba(255,255,255,.72);
     }
 
-    html[data-theme='dark'] .wa-attachment {
-        background: rgba(15, 23, 42, 0.22);
+    html[data-theme='dark'] .tm-attachment {
+        background: rgba(15,23,42,.3);
     }
 
-    .wa-attachment__image-link {
+    .tm-attachment__image-link {
         display: block;
         border-radius: 18px;
         overflow: hidden;
-        border: 1px solid var(--line);
-        background: var(--panel);
+        border: 1px solid var(--teacher-border);
+        background: #fff;
     }
 
-    .wa-attachment__image {
+    .tm-attachment__image {
         width: 100%;
         max-height: 260px;
         object-fit: cover;
         display: block;
     }
 
-    .wa-file {
+    .tm-file {
         display: flex;
         align-items: flex-start;
         gap: 12px;
     }
 
-    .wa-file__icon {
+    .tm-file__icon {
         width: 42px;
         height: 42px;
         border-radius: 14px;
@@ -588,113 +547,137 @@
         display: inline-flex;
         align-items: center;
         justify-content: center;
-        background: rgba(124, 58, 237, 0.10);
+        background: rgba(124,58,237,.10);
         color: #7c3aed;
         font-size: 1rem;
         font-weight: 900;
     }
 
-    .wa-file__text {
+    .tm-file__text {
         min-width: 0;
         display: grid;
         gap: 4px;
     }
 
-    .wa-file__text strong {
+    .tm-file__text strong {
         font-size: .9rem;
         line-height: 1.35;
         word-break: break-word;
     }
 
-    .wa-file__text span {
-        color: var(--muted);
+    .tm-file__text span {
+        color: var(--teacher-muted);
         font-size: .8rem;
     }
 
-    .wa-audio-player {
+    .tm-audio {
+        display: grid;
+        gap: 8px;
+    }
+
+    .tm-audio audio {
         width: 100%;
         border-radius: 14px;
     }
 
-    .wa-attachment__actions {
+    .tm-audio__badge {
+        display: inline-flex;
+        align-items: center;
+        min-height: 26px;
+        padding: 0 10px;
+        border-radius: 999px;
+        background: rgba(16,185,129,.10);
+        color: #047857;
+        border: 1px solid rgba(16,185,129,.18);
+        font-size: .72rem;
+        font-weight: 900;
+        width: fit-content;
+    }
+
+    .tm-attachment__actions {
         display: flex;
         flex-wrap: wrap;
         gap: 10px;
     }
 
-    .wa-attachment__actions a {
+    .tm-attachment__actions a {
         min-height: 32px;
         padding: 0 11px;
         border-radius: 999px;
-        border: 1px solid var(--line);
-        background: var(--panel);
-        color: var(--wa-tone);
+        border: 1px solid var(--teacher-border);
+        background: rgba(255,255,255,.9);
+        color: var(--tm-tone);
         font-size: .8rem;
         font-weight: 800;
         display: inline-flex;
         align-items: center;
     }
 
-    .wa-teacher__compose {
-        padding: 16px 18px;
-        border-top: 1px solid var(--line);
-        display: flex;
-        align-items: flex-end;
-        gap: 12px;
-        background: linear-gradient(180deg, rgba(255,255,255,.78), rgba(255,255,255,.58));
-        backdrop-filter: blur(10px);
+    html[data-theme='dark'] .tm-attachment__actions a {
+        background: rgba(15,23,42,.65);
     }
 
-    html[data-theme='dark'] .wa-teacher__compose {
+    .tm-compose {
+        padding: 16px 18px;
+        border-top: 1px solid var(--teacher-border);
+        background: linear-gradient(180deg, rgba(255,255,255,.78), rgba(255,255,255,.58));
+        backdrop-filter: blur(10px);
+        position: sticky;
+        bottom: 0;
+    }
+
+    html[data-theme='dark'] .tm-compose {
         background: linear-gradient(180deg, rgba(15,23,42,.48), rgba(15,23,42,.24));
     }
 
-    .wa-teacher__compose-field {
-        flex: 1;
-        min-width: 0;
+    .tm-compose__form {
+        display: grid;
+        grid-template-columns: minmax(0, 1fr) auto;
+        gap: 12px;
+        align-items: end;
     }
 
-    .wa-teacher__compose-field textarea {
+    .tm-compose textarea {
         width: 100%;
         min-height: 110px;
         max-height: 190px;
         resize: vertical;
         border-radius: 20px;
-        border: 1px solid var(--wa-tone-border);
-        background: rgba(255,255,255,.88);
-        color: var(--text);
-        padding: 16px 16px;
+        border: 1px solid var(--tm-tone-border);
+        background: rgba(255,255,255,.92);
+        color: var(--teacher-ink);
+        padding: 16px;
         outline: none;
         transition: .2s ease;
         line-height: 1.6;
         font-size: .95rem;
     }
 
-    html[data-theme='dark'] .wa-teacher__compose-field textarea {
+    html[data-theme='dark'] .tm-compose textarea {
         background: rgba(15,23,42,.58);
     }
 
-    .wa-teacher__compose-field textarea:focus {
-        border-color: var(--wa-tone);
-        box-shadow: 0 0 0 4px var(--wa-tone-soft);
+    .tm-compose textarea:focus {
+        border-color: var(--tm-tone);
+        box-shadow: 0 0 0 4px var(--tm-tone-soft);
     }
 
-    .wa-empty {
+    .tm-empty {
         min-height: 100%;
         display: grid;
         place-items: center;
         padding: 28px;
         text-align: center;
-        color: var(--muted);
+        color: var(--teacher-muted);
     }
 
-    .wa-empty__box {
+    .tm-empty__box {
         max-width: 420px;
         display: grid;
         gap: 12px;
     }
 
-    .wa-empty__icon {
+    .tm-empty__icon {
         width: 72px;
         height: 72px;
         border-radius: 22px;
@@ -708,85 +691,86 @@
         font-weight: 900;
     }
 
-    @media (max-width: 1180px) {
-        .wa-teacher__shell {
-            grid-template-columns: 320px minmax(0, 1fr);
+    @media (max-width: 1100px) {
+        .tm-shell {
+            grid-template-columns: 330px minmax(0, 1fr);
         }
     }
 
-    @media (max-width: 900px) {
-        .wa-teacher__shell {
+    @media (max-width: 980px) {
+        .tm-shell {
             grid-template-columns: 1fr;
             min-height: auto;
         }
 
-        .wa-teacher__sidebar,
-        .wa-teacher__chat {
+        .tm-list,
+        .tm-pane-wrap {
             min-height: auto;
         }
 
-        .wa-teacher__chat {
+        .tm-pane-wrap {
             display: none;
         }
 
-        .wa-teacher.is-thread-open .wa-teacher__sidebar {
+        .tm-chat.is-thread-open .tm-list {
             display: none;
         }
 
-        .wa-teacher.is-thread-open .wa-teacher__chat {
+        .tm-chat.is-thread-open .tm-pane-wrap {
             display: grid;
         }
 
-        .wa-teacher__back {
+        .tm-back {
             display: inline-flex;
             align-items: center;
             justify-content: center;
         }
+
+        .tm-compose__form {
+            grid-template-columns: 1fr;
+        }
+
+        .tm-compose .teacher-btn,
+        .tm-compose .btn {
+            width: 100%;
+        }
     }
 
     @media (max-width: 720px) {
-        .wa-teacher__top-left h1 {
-            font-size: 1.45rem;
-        }
-
-        .wa-teacher__sidebar,
-        .wa-teacher__chat {
+        .tm-list,
+        .tm-pane-wrap {
             border-radius: 22px;
         }
 
-        .wa-bubble {
+        .tm-bubble {
             max-width: 100%;
         }
 
-        .wa-teacher__compose {
-            padding: 12px 14px;
+        .tm-pane__head,
+        .tm-pane__body,
+        .tm-compose,
+        .tm-list__head,
+        .tm-thread {
+            padding-left: 14px;
+            padding-right: 14px;
         }
 
-        .wa-teacher__compose-field textarea {
+        .tm-compose textarea {
             min-height: 88px;
         }
     }
 
     @media (max-width: 480px) {
-        .wa-teacher__thread,
-        .wa-teacher__sidebar-head,
-        .wa-teacher__chat-head,
-        .wa-teacher__chat-body,
-        .wa-teacher__compose {
-            padding-left: 12px;
-            padding-right: 12px;
-        }
-
-        .wa-teacher__avatar,
-        .wa-teacher__chat-avatar {
-            width: 42px;
-            height: 42px;
-            flex-basis: 42px;
+        .tm-thread__avatar,
+        .tm-pane__avatar {
+            width: 44px;
+            height: 44px;
+            flex-basis: 44px;
             border-radius: 14px;
             font-size: .88rem;
         }
 
-        .wa-attachment__image {
+        .tm-attachment__image {
             max-height: 210px;
         }
     }
@@ -794,27 +778,29 @@
 @endpush
 
 @section('content')
-<section class="wa-teacher" id="waTeacher">
-    <div class="wa-teacher__top">
-        <div class="wa-teacher__top-left">
-            <h1>Messagerie enseignants</h1>
-            <p>Choisissez un élève à gauche puis répondez directement dans une interface moderne, propre et proche de la version élève.</p>
-        </div>
+<section class="tm-chat" id="tmTeacherChat">
+    <div class="tm-chat__intro">
+        <div class="tm-chat__intro-top">
+            <div class="tm-chat__intro-left">
+                <h2>Messagerie enseignants</h2>
+                <p>Version mobile-first, plus proche de l’expérience élève, avec une vraie séparation entre la liste et la conversation.</p>
+            </div>
 
-        <div class="wa-teacher__top-stats">
-            <span class="wa-top-pill">{{ $threadCollection->count() }} discussion(s)</span>
-            <span class="wa-top-pill">{{ $threadCollection->sum('unread_count') }} non lue(s)</span>
+            <div class="tm-chat__intro-stats">
+                <span class="tm-pill">{{ $threadCollection->count() }} discussion(s)</span>
+                <span class="tm-pill">{{ $threadCollection->sum('unread_count') }} non lue(s)</span>
+            </div>
         </div>
     </div>
 
-    <div class="wa-teacher__shell">
-        <aside class="wa-teacher__sidebar">
-            <div class="wa-teacher__sidebar-head">
+    <div class="tm-shell">
+        <aside class="tm-list">
+            <div class="tm-list__head">
                 <strong>Élèves</strong>
                 <span>{{ $threadCollection->count() }} conversation(s)</span>
             </div>
 
-            <div class="wa-teacher__thread-list">
+            <div class="tm-list__body">
                 @forelse ($threadCollection as $thread)
                     @php
                         $tone = $threadPalette[$loop->index % count($threadPalette)];
@@ -831,39 +817,39 @@
 
                     <button
                         type="button"
-                        class="wa-teacher__thread {{ $isActive ? 'is-active' : '' }}"
+                        class="tm-thread {{ $isActive ? 'is-active' : '' }}"
                         data-thread-key="{{ $thread->thread_key }}"
-                        style="--wa-tone: {{ $tone['color'] }}; --wa-tone-soft: {{ $tone['soft'] }}; --wa-tone-border: {{ $tone['border'] }}; --wa-tone-grad: {{ $tone['grad'] }}; --wa-chat-bg-top: {{ $tone['chat'] }}; --wa-chat-bg-bottom: #ffffff;"
+                        style="--tm-tone: {{ $tone['color'] }}; --tm-tone-soft: {{ $tone['soft'] }}; --tm-tone-border: {{ $tone['border'] }}; --tm-tone-grad: {{ $tone['grad'] }}; --tm-chat-bg-top: {{ $tone['chat'] }}; --tm-chat-bg-bottom: #ffffff;"
                     >
-                        <span class="wa-teacher__avatar">{{ $avatar }}</span>
+                        <span class="tm-thread__avatar">{{ $avatar }}</span>
 
-                        <span class="wa-teacher__thread-content">
-                            <span class="wa-teacher__thread-row">
-                                <span class="wa-teacher__thread-name">{{ $studentName }}</span>
+                        <span class="tm-thread__body">
+                            <span class="tm-thread__top">
+                                <span class="tm-thread__name">{{ $studentName }}</span>
                                 @if ($time !== '')
-                                    <span class="wa-teacher__thread-time">{{ $time }}</span>
+                                    <span class="tm-thread__time">{{ $time }}</span>
                                 @endif
                             </span>
 
-                            <span class="wa-teacher__thread-meta">{{ $subjectName }} · {{ $className }}</span>
+                            <span class="tm-thread__meta">{{ $subjectName }} · {{ $className }}</span>
 
-                            <span class="wa-teacher__thread-snippet">{{ \Illuminate\Support\Str::limit(strip_tags($snippet), 72) }}</span>
+                            <span class="tm-thread__snippet">{{ \Illuminate\Support\Str::limit(strip_tags($snippet), 72) }}</span>
 
-                            <span class="wa-teacher__badges">
+                            <span class="tm-thread__badges">
                                 @if ($thread->unread_count > 0)
-                                    <span class="wa-mini-badge wa-mini-badge--unread">{{ $thread->unread_count }} non lu{{ $thread->unread_count > 1 ? 's' : '' }}</span>
+                                    <span class="tm-mini-badge tm-mini-badge--unread">{{ $thread->unread_count }} non lu{{ $thread->unread_count > 1 ? 's' : '' }}</span>
                                 @endif
 
                                 @if ($thread->attachment_count > 0)
-                                    <span class="wa-mini-badge wa-mini-badge--attachment">Pièce jointe</span>
+                                    <span class="tm-mini-badge tm-mini-badge--attachment">Pièce jointe</span>
                                 @endif
                             </span>
                         </span>
                     </button>
                 @empty
-                    <div class="wa-empty">
-                        <div class="wa-empty__box">
-                            <div class="wa-empty__icon">💬</div>
+                    <div class="tm-empty">
+                        <div class="tm-empty__box">
+                            <div class="tm-empty__icon">💬</div>
                             <strong>Aucun message pour le moment</strong>
                             <span>Les messages des élèves apparaîtront ici automatiquement.</span>
                         </div>
@@ -872,7 +858,7 @@
             </div>
         </aside>
 
-        <section class="wa-teacher__chat">
+        <section class="tm-pane-wrap">
             @if ($threadCollection->isNotEmpty())
                 @foreach ($threadCollection as $thread)
                     @php
@@ -886,27 +872,27 @@
                     @endphp
 
                     <div
-                        class="wa-teacher__pane {{ $isActive ? 'is-active' : '' }}"
+                        class="tm-pane {{ $isActive ? 'is-active' : '' }}"
                         data-pane-key="{{ $thread->thread_key }}"
-                        style="--wa-tone: {{ $tone['color'] }}; --wa-tone-soft: {{ $tone['soft'] }}; --wa-tone-border: {{ $tone['border'] }}; --wa-tone-grad: {{ $tone['grad'] }}; --wa-chat-bg-top: {{ $tone['chat'] }}; --wa-chat-bg-bottom: #ffffff;"
+                        style="--tm-tone: {{ $tone['color'] }}; --tm-tone-soft: {{ $tone['soft'] }}; --tm-tone-border: {{ $tone['border'] }}; --tm-tone-grad: {{ $tone['grad'] }}; --tm-chat-bg-top: {{ $tone['chat'] }}; --tm-chat-bg-bottom: #ffffff;"
                     >
-                        <div class="wa-teacher__chat-head">
-                            <div class="wa-teacher__chat-head-left">
-                                <button type="button" class="wa-teacher__back" data-wa-teacher-back>← Retour</button>
-                                <span class="wa-teacher__chat-avatar">{{ $avatar }}</span>
+                        <div class="tm-pane__head">
+                            <div class="tm-pane__head-left">
+                                <button type="button" class="tm-back" data-tm-back>← Retour</button>
+                                <span class="tm-pane__avatar">{{ $avatar }}</span>
 
-                                <div class="wa-teacher__chat-title">
+                                <div class="tm-pane__title">
                                     <strong>{{ $studentName }}</strong>
                                     <span>{{ $subjectName }} · {{ $className }}</span>
                                 </div>
                             </div>
 
-                            <div class="wa-teacher__chat-tools">
-                                <span class="wa-subject-chip">{{ strtoupper($subjectName) }}</span>
+                            <div class="tm-pane__head-tools">
+                                <span class="tm-subject-chip">{{ strtoupper($subjectName) }}</span>
                             </div>
                         </div>
 
-                        <div class="wa-teacher__chat-body">
+                        <div class="tm-pane__body">
                             @php
                                 $currentDate = null;
                             @endphp
@@ -922,41 +908,48 @@
                                     $attachmentName = $entry->attachment_name ?: basename((string) $entry->attachment_path);
                                     $isImage = method_exists($entry, 'isImageAttachment') ? $entry->isImageAttachment() : false;
                                     $isAudio = method_exists($entry, 'isAudioAttachment') ? $entry->isAudioAttachment() : false;
+                                    $isAnonymousAudio = method_exists($entry, 'isAnonymousAudioAttachment') ? $entry->isAnonymousAudioAttachment() : false;
                                 @endphp
 
                                 @if ($entryDateKey !== $currentDate)
                                     @php $currentDate = $entryDateKey; @endphp
-                                    <div class="wa-day">{{ $entryDateLabel }}</div>
+                                    <div class="tm-day">{{ $entryDateLabel }}</div>
                                 @endif
 
-                                <div class="wa-bubble-row wa-bubble-row--student">
-                                    <div class="wa-bubble wa-bubble--student">
-                                        <div class="wa-bubble__meta">{{ $studentName }} · {{ optional($entry->created_at)->format('H:i') }}</div>
-                                        <div class="wa-bubble__title">{{ $entry->display_title ?? $entry->title ?? 'Message' }}</div>
-                                        <div class="wa-bubble__text">{!! nl2br(e($entry->message)) !!}</div>
+                                <div class="tm-row tm-row--student">
+                                    <div class="tm-bubble tm-bubble--student">
+                                        <div class="tm-bubble__meta">{{ $studentName }} · {{ optional($entry->created_at)->format('H:i') }}</div>
+                                        <div class="tm-bubble__title">{{ $entry->display_title ?? $entry->title ?? 'Message' }}</div>
+                                        <div class="tm-bubble__text">{!! nl2br(e($entry->message)) !!}</div>
 
                                         @if ($attachmentUrl)
-                                            <div class="wa-attachment">
+                                            <div class="tm-attachment">
                                                 @if ($isImage)
-                                                    <a href="{{ $attachmentUrl }}" target="_blank" class="wa-attachment__image-link">
-                                                        <img src="{{ $attachmentUrl }}" alt="Pièce jointe" class="wa-attachment__image">
+                                                    <a href="{{ $attachmentUrl }}" target="_blank" class="tm-attachment__image-link">
+                                                        <img src="{{ $attachmentUrl }}" alt="Pièce jointe" class="tm-attachment__image">
                                                     </a>
                                                 @elseif ($isAudio)
-                                                    <audio controls preload="none" class="wa-audio-player">
-                                                        <source src="{{ $attachmentUrl }}">
-                                                        Votre navigateur ne supporte pas l'audio.
-                                                    </audio>
+                                                    <div class="tm-audio">
+                                                        @if ($isAnonymousAudio)
+                                                            <span class="tm-audio__badge">Vocal anonymisé</span>
+                                                        @endif
+
+                                                        <audio controls preload="metadata">
+                                                            <source src="{{ $attachmentUrl }}">
+                                                            Votre navigateur ne supporte pas l'audio.
+                                                        </audio>
+                                                    </div>
                                                 @else
-                                                    <div class="wa-file">
-                                                        <span class="wa-file__icon">📎</span>
-                                                        <div class="wa-file__text">
+                                                    <div class="tm-file">
+                                                        <span class="tm-file__icon">📎</span>
+                                                        <div class="tm-file__text">
                                                             <strong>{{ $attachmentName }}</strong>
                                                             <span>Fichier joint</span>
                                                         </div>
                                                     </div>
                                                 @endif
 
-                                                <div class="wa-attachment__actions">
+                                                <div class="tm-attachment__actions">
                                                     <a href="{{ $attachmentUrl }}" target="_blank">Ouvrir</a>
                                                     <a href="{{ $attachmentDownloadUrl }}">Télécharger</a>
                                                 </div>
@@ -966,10 +959,10 @@
                                 </div>
 
                                 @if (!empty($entry->reply_message))
-                                    <div class="wa-bubble-row wa-bubble-row--teacher">
-                                        <div class="wa-bubble wa-bubble--teacher">
-                                            <div class="wa-bubble__meta">Vous · {{ optional($entry->replied_at)->format('H:i') ?: 'Réponse' }}</div>
-                                            <div class="wa-bubble__text">{!! nl2br(e($entry->reply_message)) !!}</div>
+                                    <div class="tm-row tm-row--teacher">
+                                        <div class="tm-bubble tm-bubble--teacher">
+                                            <div class="tm-bubble__meta">Vous · {{ optional($entry->replied_at)->format('H:i') ?: 'Réponse' }}</div>
+                                            <div class="tm-bubble__text">{!! nl2br(e($entry->reply_message)) !!}</div>
                                         </div>
                                     </div>
                                 @endif
@@ -977,24 +970,20 @@
                         </div>
 
                         @if ($thread->reply_target)
-                            <form method="POST" action="{{ route('teacher.messages.reply', $thread->reply_target) }}" class="wa-teacher__compose">
-                                @csrf
-
-                                <div class="wa-teacher__compose-field">
+                            <div class="tm-compose">
+                                <form method="POST" action="{{ route('teacher.messages.reply', $thread->reply_target) }}" class="tm-compose__form">
+                                    @csrf
                                     <textarea name="reply_message" placeholder="Répondre à {{ $studentName }}..." required></textarea>
-                                </div>
-
-                                <div>
                                     <button type="submit" class="teacher-btn teacher-btn--primary">Répondre</button>
-                                </div>
-                            </form>
+                                </form>
+                            </div>
                         @endif
                     </div>
                 @endforeach
             @else
-                <div class="wa-empty">
-                    <div class="wa-empty__box">
-                        <div class="wa-empty__icon">✉️</div>
+                <div class="tm-empty">
+                    <div class="tm-empty__box">
+                        <div class="tm-empty__icon">✉️</div>
                         <strong>Aucune conversation disponible</strong>
                         <span>Les nouveaux messages des élèves apparaîtront ici.</span>
                     </div>
@@ -1008,12 +997,12 @@
 @push('scripts')
 <script>
     (function () {
-        const root = document.getElementById('waTeacher');
+        const root = document.getElementById('tmTeacherChat');
         if (!root) return;
 
-        const threadButtons = Array.from(root.querySelectorAll('.wa-teacher__thread'));
-        const panes = Array.from(root.querySelectorAll('.wa-teacher__pane'));
-        const backButtons = Array.from(root.querySelectorAll('[data-wa-teacher-back]'));
+        const threadButtons = Array.from(root.querySelectorAll('.tm-thread'));
+        const panes = Array.from(root.querySelectorAll('.tm-pane'));
+        const backButtons = Array.from(root.querySelectorAll('[data-tm-back]'));
 
         const activateThread = (threadKey) => {
             threadButtons.forEach((button) => {
@@ -1024,7 +1013,7 @@
                 pane.classList.toggle('is-active', pane.dataset.paneKey === String(threadKey));
             });
 
-            if (window.innerWidth <= 900) {
+            if (window.innerWidth <= 980) {
                 root.classList.add('is-thread-open');
             }
         };
@@ -1040,7 +1029,7 @@
         });
 
         window.addEventListener('resize', () => {
-            if (window.innerWidth > 900) {
+            if (window.innerWidth > 980) {
                 root.classList.remove('is-thread-open');
             }
         });
