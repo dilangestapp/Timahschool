@@ -3,277 +3,102 @@
 @section('title', 'Messagerie')
 
 @php
-    $threads = collect($messages ?? [])->values();
-    $threadCount = $threads->count();
-    $unreadCount = $threads->filter(fn ($message) => ($message->status ?? '') === 'unread')->count();
-    $attachmentCount = $threads->filter(fn ($message) => !empty($message->attachment_path))->count();
-    $repliedCount = $threads->filter(fn ($message) => !empty($message->reply_message))->count();
-
-    $statusMap = [
-        'unread' => ['label' => 'Non lu', 'class' => 'unread'],
-        'read' => ['label' => 'Lu', 'class' => 'read'],
-        'answered' => ['label' => 'Répondu', 'class' => 'answered'],
-        'closed' => ['label' => 'Fermé', 'class' => 'closed'],
-        'pending' => ['label' => 'En attente', 'class' => 'pending'],
-    ];
-
-    $firstThread = $threads->first();
-    $firstThreadId = $firstThread->id ?? null;
+    $threadCollection = collect($threads ?? []);
 @endphp
 
 @push('styles')
 <style>
-    .student-messaging-x {
+    .wa-student {
         display: grid;
-        gap: 18px;
+        gap: 16px;
     }
 
-    .student-messaging-x .page-hero {
-        position: relative;
-        overflow: hidden;
-        border-radius: 30px;
-        border: 1px solid rgba(255,255,255,.08);
-        background:
-            radial-gradient(circle at top right, rgba(110, 161, 255, 0.18), transparent 28%),
-            radial-gradient(circle at 18% 100%, rgba(56, 189, 248, 0.12), transparent 30%),
-            linear-gradient(135deg, #0f172a 0%, #172554 46%, #1d4ed8 100%);
-        color: #fff;
-        padding: 22px;
-        box-shadow: var(--shadow-lg);
-    }
-
-    .student-messaging-x .page-hero::before {
-        content: "";
-        position: absolute;
-        width: 220px;
-        height: 220px;
-        border-radius: 999px;
-        background: rgba(255,255,255,.05);
-        top: -90px;
-        right: -55px;
-    }
-
-    .student-messaging-x .page-hero__grid {
-        position: relative;
-        z-index: 1;
-        display: grid;
-        grid-template-columns: 1.02fr .98fr;
-        gap: 18px;
-        align-items: center;
-    }
-
-    .student-messaging-x .page-hero__left,
-    .student-messaging-x .page-hero__right {
-        display: grid;
-        gap: 12px;
-    }
-
-    .student-messaging-x .hero-badge {
-        display: inline-flex;
-        align-items: center;
-        gap: 8px;
-        width: fit-content;
-        min-height: 34px;
-        padding: 0 12px;
-        border-radius: 999px;
-        border: 1px solid rgba(255,255,255,.16);
-        background: rgba(255,255,255,.10);
-        font-size: .82rem;
-        font-weight: 900;
-        letter-spacing: -0.01em;
-    }
-
-    .student-messaging-x .page-hero h1 {
-        margin: 0;
-        font-size: clamp(1.8rem, 3vw, 3rem);
-        line-height: 1.02;
-        letter-spacing: -0.05em;
-        max-width: 11ch;
-    }
-
-    .student-messaging-x .page-hero p {
-        margin: 0;
-        color: rgba(255,255,255,.84);
-        line-height: 1.72;
-        font-size: .95rem;
-        max-width: 62ch;
-    }
-
-    .student-messaging-x .hero-quick {
+    .wa-student__top {
         display: flex;
-        flex-wrap: wrap;
-        gap: 10px;
-    }
-
-    .student-messaging-x .hero-pill {
-        display: inline-flex;
         align-items: center;
-        min-height: 34px;
-        padding: 0 12px;
-        border-radius: 999px;
-        border: 1px solid rgba(255,255,255,.14);
-        background: rgba(255,255,255,.08);
-        color: #eef6ff;
-        font-size: .8rem;
-        font-weight: 800;
+        justify-content: space-between;
+        gap: 14px;
+        flex-wrap: wrap;
     }
 
-    .student-messaging-x .hero-right-top {
-        display: grid;
-        grid-template-columns: repeat(4, minmax(0, 1fr));
-        gap: 10px;
-    }
-
-    .student-messaging-x .hero-stat {
-        padding: 14px;
-        border-radius: 20px;
-        border: 1px solid rgba(255,255,255,.14);
-        background: rgba(255,255,255,.08);
-        backdrop-filter: blur(10px);
+    .wa-student__top-left {
         display: grid;
         gap: 4px;
     }
 
-    .student-messaging-x .hero-stat strong {
-        font-size: 1.28rem;
-        line-height: 1;
+    .wa-student__top-left h1 {
+        margin: 0;
+        font-size: clamp(1.5rem, 2.6vw, 2.1rem);
+        line-height: 1.05;
         letter-spacing: -0.04em;
     }
 
-    .student-messaging-x .hero-stat span {
-        color: rgba(255,255,255,.76);
-        font-size: .8rem;
-        font-weight: 700;
+    .wa-student__top-left p {
+        margin: 0;
+        color: var(--muted);
+        line-height: 1.6;
+        font-size: .92rem;
     }
 
-    .student-messaging-x .hero-right-bottom {
-        display: flex;
-        justify-content: flex-end;
-        gap: 12px;
-        flex-wrap: wrap;
-    }
-
-    .student-messaging-x .chat-shell {
+    .wa-shell {
         display: grid;
-        grid-template-columns: 360px minmax(0, 1fr);
-        gap: 18px;
-        min-height: 740px;
-        align-items: start;
+        grid-template-columns: 340px minmax(0, 1fr);
+        gap: 16px;
+        min-height: 74vh;
     }
 
-    .student-messaging-x .thread-list-card,
-    .student-messaging-x .chat-pane-card {
+    .wa-sidebar,
+    .wa-chat {
         border: 1px solid var(--line);
-        border-radius: 30px;
+        border-radius: 28px;
         background: linear-gradient(180deg, var(--panel), var(--panel-soft));
         box-shadow: var(--shadow);
         overflow: hidden;
     }
 
-    .student-messaging-x .thread-list-card {
-        position: sticky;
-        top: 94px;
+    .wa-sidebar {
+        display: grid;
+        grid-template-rows: auto 1fr;
     }
 
-    .student-messaging-x .thread-list-head,
-    .student-messaging-x .chat-pane-head {
-        padding: 18px 18px 16px;
+    .wa-sidebar__head {
+        padding: 16px 16px 14px;
         border-bottom: 1px solid var(--line);
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 12px;
         background: rgba(37, 99, 235, 0.03);
     }
 
-    .student-messaging-x .thread-list-head h2,
-    .student-messaging-x .chat-pane-head h2 {
-        margin: 0;
-        font-size: 1.14rem;
-        letter-spacing: -0.03em;
-    }
-
-    .student-messaging-x .thread-list-head p,
-    .student-messaging-x .chat-pane-head p {
-        margin: 6px 0 0;
-        color: var(--muted);
-        font-size: .9rem;
-        line-height: 1.6;
-    }
-
-    .student-messaging-x .thread-toolbar {
-        padding: 14px 18px;
+    .wa-sidebar__head-text {
         display: grid;
-        gap: 12px;
-        border-bottom: 1px solid var(--line);
-        background: linear-gradient(180deg, rgba(37,99,235,.02), transparent);
+        gap: 3px;
     }
 
-    .student-messaging-x .search-wrap {
-        position: relative;
+    .wa-sidebar__head-text strong {
+        font-size: 1rem;
+        letter-spacing: -0.02em;
     }
 
-    .student-messaging-x .search-wrap input {
-        width: 100%;
-        height: 48px;
-        border-radius: 16px;
-        border: 1px solid var(--line);
-        background: var(--panel);
-        color: var(--text);
-        padding: 0 14px 0 42px;
-        outline: none;
-        transition: .2s ease;
-    }
-
-    .student-messaging-x .search-wrap input:focus {
-        border-color: var(--primary);
-        box-shadow: 0 0 0 4px rgba(37, 99, 235, 0.10);
-    }
-
-    .student-messaging-x .search-wrap svg {
-        position: absolute;
-        left: 14px;
-        top: 50%;
-        transform: translateY(-50%);
-        width: 18px;
-        height: 18px;
+    .wa-sidebar__head-text span {
         color: var(--muted);
-        pointer-events: none;
+        font-size: .82rem;
+        line-height: 1.4;
     }
 
-    .student-messaging-x .thread-filters {
-        display: flex;
-        flex-wrap: wrap;
-        gap: 10px;
-    }
-
-    .student-messaging-x .thread-filter {
-        min-height: 34px;
-        padding: 0 12px;
-        border-radius: 999px;
-        border: 1px solid var(--line);
-        background: var(--panel);
-        color: var(--muted);
-        font-size: .8rem;
-        font-weight: 800;
-        cursor: pointer;
-        transition: .2s ease;
-    }
-
-    .student-messaging-x .thread-filter.is-active {
-        color: #fff;
-        border-color: transparent;
-        background: linear-gradient(135deg, var(--primary), #4f86ff);
-        box-shadow: 0 10px 24px rgba(37,99,235,.20);
-    }
-
-    .student-messaging-x .thread-list {
+    .wa-thread-list {
         display: grid;
-        max-height: 600px;
         overflow: auto;
+        max-height: 100%;
     }
 
-    .student-messaging-x .thread-item {
+    .wa-thread {
         width: 100%;
-        display: grid;
-        gap: 10px;
-        padding: 16px 18px;
+        display: flex;
+        align-items: flex-start;
+        gap: 12px;
+        padding: 14px 16px;
         border: 0;
         border-bottom: 1px solid var(--line);
         background: transparent;
@@ -283,47 +108,29 @@
         position: relative;
     }
 
-    .student-messaging-x .thread-item:hover {
+    .wa-thread:hover {
         background: rgba(37, 99, 235, 0.04);
     }
 
-    .student-messaging-x .thread-item.is-active {
+    .wa-thread.is-active {
         background: rgba(37, 99, 235, 0.08);
     }
 
-    .student-messaging-x .thread-item.is-active::before {
+    .wa-thread.is-active::before {
         content: "";
         position: absolute;
         left: 0;
-        top: 12px;
-        bottom: 12px;
+        top: 10px;
+        bottom: 10px;
         width: 4px;
         border-radius: 999px;
         background: linear-gradient(180deg, var(--primary), #4f86ff);
     }
 
-    .student-messaging-x .thread-item.is-hidden {
-        display: none;
-    }
-
-    .student-messaging-x .thread-item__top {
-        display: flex;
-        align-items: flex-start;
-        justify-content: space-between;
-        gap: 12px;
-    }
-
-    .student-messaging-x .thread-item__main {
-        display: flex;
-        align-items: flex-start;
-        gap: 12px;
-        min-width: 0;
-    }
-
-    .student-messaging-x .avatar {
-        width: 46px;
-        height: 46px;
-        flex: 0 0 46px;
+    .wa-thread__avatar {
+        width: 48px;
+        height: 48px;
+        flex: 0 0 48px;
         border-radius: 16px;
         display: inline-flex;
         align-items: center;
@@ -331,450 +138,126 @@
         background: linear-gradient(135deg, var(--primary), #4f86ff);
         color: #fff;
         font-weight: 900;
-        font-size: .96rem;
+        font-size: .95rem;
         letter-spacing: -0.02em;
         box-shadow: var(--shadow-xs);
     }
 
-    .student-messaging-x .thread-item__text {
+    .wa-thread__content {
         min-width: 0;
+        flex: 1;
         display: grid;
-        gap: 3px;
+        gap: 6px;
     }
 
-    .student-messaging-x .thread-item__text strong {
+    .wa-thread__row {
+        display: flex;
+        align-items: flex-start;
+        justify-content: space-between;
+        gap: 10px;
+    }
+
+    .wa-thread__name {
         font-size: .98rem;
+        font-weight: 900;
         line-height: 1.25;
         letter-spacing: -0.02em;
         color: var(--text);
     }
 
-    .student-messaging-x .thread-item__meta {
-        color: var(--muted);
-        font-size: .82rem;
-        line-height: 1.45;
-    }
-
-    .student-messaging-x .thread-item__time {
+    .wa-thread__time {
         color: var(--muted);
         font-size: .78rem;
         font-weight: 700;
         white-space: nowrap;
     }
 
-    .student-messaging-x .thread-item__subject {
-        display: flex;
-        align-items: center;
-        gap: 8px;
-        flex-wrap: wrap;
+    .wa-thread__meta {
+        color: var(--muted);
+        font-size: .8rem;
+        line-height: 1.4;
     }
 
-    .student-messaging-x .thread-snippet {
+    .wa-thread__snippet {
         color: var(--muted);
         font-size: .86rem;
-        line-height: 1.5;
+        line-height: 1.45;
         display: -webkit-box;
         -webkit-line-clamp: 2;
         -webkit-box-orient: vertical;
         overflow: hidden;
     }
 
-    .student-messaging-x .badge {
+    .wa-thread__badges {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        flex-wrap: wrap;
+    }
+
+    .wa-mini-badge {
         display: inline-flex;
         align-items: center;
-        min-height: 30px;
-        padding: 0 10px;
+        min-height: 26px;
+        padding: 0 9px;
         border-radius: 999px;
         border: 1px solid var(--line);
-        font-size: .76rem;
+        font-size: .72rem;
         font-weight: 900;
         white-space: nowrap;
     }
 
-    .student-messaging-x .badge--unread {
-        background: rgba(37,99,235,.10);
+    .wa-mini-badge--unread {
+        background: rgba(37, 99, 235, 0.10);
         color: var(--primary);
-        border-color: rgba(37,99,235,.16);
+        border-color: rgba(37, 99, 235, 0.16);
     }
 
-    .student-messaging-x .badge--answered {
-        background: rgba(22,163,74,.10);
-        color: #15803d;
-        border-color: rgba(22,163,74,.18);
-    }
-
-    .student-messaging-x .badge--pending {
-        background: rgba(245,158,11,.12);
-        color: #d97706;
-        border-color: rgba(245,158,11,.18);
-    }
-
-    .student-messaging-x .badge--closed {
-        background: rgba(100,116,139,.12);
-        color: var(--muted);
-        border-color: var(--line);
-    }
-
-    .student-messaging-x .badge--read {
-        background: rgba(100,116,139,.10);
-        color: var(--muted);
-        border-color: var(--line);
-    }
-
-    .student-messaging-x .badge--attachment {
-        background: rgba(124,58,237,.10);
+    .wa-mini-badge--attachment {
+        background: rgba(124, 58, 237, 0.10);
         color: #7c3aed;
-        border-color: rgba(124,58,237,.18);
+        border-color: rgba(124, 58, 237, 0.18);
     }
 
-    .student-messaging-x .chat-pane {
+    .wa-mini-badge--empty {
+        background: rgba(100, 116, 139, 0.10);
+        color: var(--muted);
+    }
+
+    .wa-chat {
+        display: grid;
+        min-height: 74vh;
+    }
+
+    .wa-pane {
         display: none;
         grid-template-rows: auto 1fr auto;
-        min-height: 740px;
-    }
-
-    .student-messaging-x .chat-pane.is-active {
-        display: grid;
-    }
-
-    .student-messaging-x .chat-pane-head {
-        display: flex;
-        align-items: center;
-        justify-content: space-between;
-        gap: 14px;
-        flex-wrap: wrap;
-    }
-
-    .student-messaging-x .chat-pane-head__left {
-        display: flex;
-        align-items: center;
-        gap: 12px;
-        min-width: 0;
-    }
-
-    .student-messaging-x .chat-pane-head__text {
-        min-width: 0;
-        display: grid;
-        gap: 3px;
-    }
-
-    .student-messaging-x .chat-pane-head__text strong {
-        font-size: 1rem;
-        line-height: 1.25;
-        letter-spacing: -0.02em;
-    }
-
-    .student-messaging-x .chat-pane-head__text span {
-        color: var(--muted);
-        font-size: .84rem;
-        line-height: 1.45;
-    }
-
-    .student-messaging-x .chat-pane-meta {
-        display: flex;
-        flex-wrap: wrap;
-        gap: 8px;
-        margin-top: 6px;
-    }
-
-    .student-messaging-x .meta-chip {
-        min-height: 28px;
-        padding: 0 10px;
-        border-radius: 999px;
-        border: 1px solid var(--line);
-        background: var(--panel);
-        color: var(--muted);
-        font-size: .76rem;
-        font-weight: 800;
-        display: inline-flex;
-        align-items: center;
-    }
-
-    .student-messaging-x .chat-pane-actions {
-        display: flex;
-        flex-wrap: wrap;
-        gap: 10px;
-    }
-
-    .student-messaging-x .chat-scroll {
-        padding: 18px;
-        display: grid;
-        gap: 14px;
-        min-height: 430px;
-        max-height: 580px;
-        overflow: auto;
-        background:
-            radial-gradient(circle at top right, rgba(37,99,235,.03), transparent 24%),
-            linear-gradient(180deg, rgba(37,99,235,.01), transparent 18%);
-    }
-
-    .student-messaging-x .message-group {
-        display: grid;
-        gap: 12px;
-    }
-
-    .student-messaging-x .message-date {
-        justify-self: center;
-        min-height: 30px;
-        padding: 0 12px;
-        border-radius: 999px;
-        border: 1px solid var(--line);
-        background: var(--panel);
-        color: var(--muted);
-        font-size: .76rem;
-        font-weight: 800;
-        display: inline-flex;
-        align-items: center;
-    }
-
-    .student-messaging-x .bubble-row {
-        display: flex;
-    }
-
-    .student-messaging-x .bubble-row--me {
-        justify-content: flex-end;
-    }
-
-    .student-messaging-x .bubble-row--teacher {
-        justify-content: flex-start;
-    }
-
-    .student-messaging-x .bubble {
-        max-width: min(740px, 88%);
-        padding: 16px;
-        border-radius: 22px;
-        border: 1px solid var(--line);
-        box-shadow: var(--shadow-xs);
-        display: grid;
-        gap: 10px;
-        position: relative;
-    }
-
-    .student-messaging-x .bubble--me {
-        background: linear-gradient(180deg, #eef5ff, #f7faff);
-        border-color: #d8e6fb;
-    }
-
-    .student-messaging-x .bubble--teacher {
-        background: linear-gradient(180deg, var(--panel), var(--panel-soft));
-    }
-
-    html[data-theme='dark'] .student-messaging-x .bubble--me {
-        background: linear-gradient(180deg, #10203a, #142a46);
-        border-color: rgba(110,161,255,.18);
-    }
-
-    .student-messaging-x .bubble__meta {
-        color: var(--muted);
-        font-size: .78rem;
-        font-weight: 700;
-        line-height: 1.4;
-    }
-
-    .student-messaging-x .bubble__title {
-        font-size: 1rem;
-        font-weight: 900;
-        letter-spacing: -0.02em;
-        color: var(--text);
-    }
-
-    .student-messaging-x .bubble__text {
-        color: var(--text);
-        line-height: 1.72;
-        font-size: .94rem;
-        word-break: break-word;
-    }
-
-    .student-messaging-x .attachment-box {
-        display: grid;
-        gap: 10px;
-        padding: 12px;
-        border-radius: 18px;
-        border: 1px solid var(--line);
-        background: rgba(255,255,255,.56);
-    }
-
-    html[data-theme='dark'] .student-messaging-x .attachment-box {
-        background: rgba(15, 23, 42, 0.22);
-    }
-
-    .student-messaging-x .attachment-file {
-        display: flex;
-        align-items: flex-start;
-        gap: 12px;
-    }
-
-    .student-messaging-x .attachment-file__icon {
-        width: 42px;
-        height: 42px;
-        border-radius: 14px;
-        flex: 0 0 42px;
-        display: inline-flex;
-        align-items: center;
-        justify-content: center;
-        background: rgba(124,58,237,.10);
-        color: #7c3aed;
-        font-size: 1rem;
-        font-weight: 900;
-    }
-
-    .student-messaging-x .attachment-file__text {
-        min-width: 0;
-        display: grid;
-        gap: 4px;
-    }
-
-    .student-messaging-x .attachment-file__text strong {
-        font-size: .92rem;
-        line-height: 1.35;
-        word-break: break-word;
-    }
-
-    .student-messaging-x .attachment-file__text span {
-        color: var(--muted);
-        font-size: .8rem;
-    }
-
-    .student-messaging-x .attachment-image-link {
-        display: block;
-        border-radius: 18px;
-        overflow: hidden;
-        border: 1px solid var(--line);
-        background: var(--panel);
-    }
-
-    .student-messaging-x .attachment-image {
-        width: 100%;
-        max-height: 280px;
-        object-fit: cover;
-        display: block;
-    }
-
-    .student-messaging-x .attachment-actions {
-        display: flex;
-        flex-wrap: wrap;
-        gap: 10px;
-    }
-
-    .student-messaging-x .attachment-actions a {
-        min-height: 34px;
-        padding: 0 12px;
-        border-radius: 999px;
-        border: 1px solid var(--line);
-        background: var(--panel);
-        color: var(--primary);
-        font-size: .82rem;
-        font-weight: 800;
-        display: inline-flex;
-        align-items: center;
-    }
-
-    .student-messaging-x .chat-pane-footer {
-        padding: 16px 18px;
-        border-top: 1px solid var(--line);
-        background: linear-gradient(180deg, rgba(37,99,235,.02), transparent);
-        display: grid;
-        gap: 12px;
-    }
-
-    .student-messaging-x .reply-card {
-        display: grid;
-        gap: 12px;
-        padding: 16px;
-        border-radius: 22px;
-        border: 1px solid var(--line);
-        background:
-            radial-gradient(circle at top right, rgba(37,99,235,.08), transparent 28%),
-            linear-gradient(180deg, var(--panel), var(--panel-soft));
-    }
-
-    .student-messaging-x .reply-card__top {
-        display: flex;
-        align-items: flex-start;
-        justify-content: space-between;
-        gap: 12px;
-        flex-wrap: wrap;
-    }
-
-    .student-messaging-x .reply-card__top strong {
-        font-size: 1rem;
-        letter-spacing: -0.02em;
-    }
-
-    .student-messaging-x .reply-card__top span {
-        color: var(--muted);
-        font-size: .84rem;
-        line-height: 1.5;
-    }
-
-    .student-messaging-x .reply-preview {
-        min-height: 88px;
-        border-radius: 18px;
-        border: 1px dashed var(--line);
-        background: rgba(37,99,235,.03);
-        padding: 14px;
-        color: var(--muted);
-        font-size: .9rem;
-        line-height: 1.65;
-    }
-
-    .student-messaging-x .reply-actions {
-        display: flex;
-        justify-content: space-between;
-        gap: 12px;
-        flex-wrap: wrap;
-        align-items: center;
-    }
-
-    .student-messaging-x .reply-tools {
-        display: flex;
-        gap: 10px;
-        flex-wrap: wrap;
-    }
-
-    .student-messaging-x .tool-pill {
-        min-height: 34px;
-        padding: 0 12px;
-        border-radius: 999px;
-        border: 1px solid var(--line);
-        background: var(--panel);
-        color: var(--muted);
-        font-size: .8rem;
-        font-weight: 800;
-        display: inline-flex;
-        align-items: center;
-    }
-
-    .student-messaging-x .chat-empty {
         min-height: 100%;
-        display: grid;
-        place-items: center;
-        padding: 28px;
-        text-align: center;
-        color: var(--muted);
     }
 
-    .student-messaging-x .chat-empty__box {
-        max-width: 420px;
+    .wa-pane.is-active {
         display: grid;
-        gap: 12px;
     }
 
-    .student-messaging-x .chat-empty__icon {
-        width: 74px;
-        height: 74px;
-        border-radius: 22px;
-        margin: 0 auto;
-        display: inline-flex;
+    .wa-chat__head {
+        padding: 14px 16px;
+        border-bottom: 1px solid var(--line);
+        display: flex;
         align-items: center;
-        justify-content: center;
-        background: rgba(37,99,235,.10);
-        color: var(--primary);
-        font-size: 1.9rem;
-        font-weight: 900;
+        justify-content: space-between;
+        gap: 12px;
+        flex-wrap: wrap;
+        background: rgba(37, 99, 235, 0.03);
     }
 
-    .student-messaging-x .mobile-back {
+    .wa-chat__head-left {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+        min-width: 0;
+    }
+
+    .wa-back {
         display: none;
         min-height: 40px;
         padding: 0 12px;
@@ -786,7 +269,293 @@
         cursor: pointer;
     }
 
-    .student-messaging-x .mobile-compose {
+    .wa-chat__head-avatar {
+        width: 46px;
+        height: 46px;
+        flex: 0 0 46px;
+        border-radius: 16px;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        background: linear-gradient(135deg, var(--primary), #4f86ff);
+        color: #fff;
+        font-weight: 900;
+        font-size: .95rem;
+        letter-spacing: -0.02em;
+    }
+
+    .wa-chat__head-text {
+        min-width: 0;
+        display: grid;
+        gap: 4px;
+    }
+
+    .wa-chat__head-text strong {
+        font-size: 1rem;
+        line-height: 1.25;
+        letter-spacing: -0.02em;
+    }
+
+    .wa-chat__head-text span {
+        color: var(--muted);
+        font-size: .82rem;
+        line-height: 1.45;
+    }
+
+    .wa-chat__head-tools {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        flex-wrap: wrap;
+    }
+
+    .wa-chat__body {
+        padding: 18px;
+        display: grid;
+        gap: 14px;
+        overflow: auto;
+        background:
+            radial-gradient(circle at top right, rgba(37, 99, 235, 0.03), transparent 24%),
+            linear-gradient(180deg, rgba(37, 99, 235, 0.015), transparent 18%);
+    }
+
+    .wa-day {
+        justify-self: center;
+        min-height: 30px;
+        padding: 0 12px;
+        border-radius: 999px;
+        border: 1px solid var(--line);
+        background: var(--panel);
+        color: var(--muted);
+        font-size: .74rem;
+        font-weight: 800;
+        display: inline-flex;
+        align-items: center;
+    }
+
+    .wa-bubble-row {
+        display: flex;
+    }
+
+    .wa-bubble-row--me {
+        justify-content: flex-end;
+    }
+
+    .wa-bubble-row--teacher {
+        justify-content: flex-start;
+    }
+
+    .wa-bubble {
+        max-width: min(760px, 84%);
+        padding: 14px 15px;
+        border-radius: 20px;
+        border: 1px solid var(--line);
+        box-shadow: var(--shadow-xs);
+        display: grid;
+        gap: 10px;
+    }
+
+    .wa-bubble--me {
+        background: linear-gradient(180deg, #ecf4ff, #f7fbff);
+        border-color: #d9e7fb;
+    }
+
+    .wa-bubble--teacher {
+        background: linear-gradient(180deg, var(--panel), var(--panel-soft));
+    }
+
+    html[data-theme='dark'] .wa-bubble--me {
+        background: linear-gradient(180deg, #10203a, #142a46);
+        border-color: rgba(110, 161, 255, 0.18);
+    }
+
+    .wa-bubble__meta {
+        color: var(--muted);
+        font-size: .76rem;
+        font-weight: 700;
+        line-height: 1.4;
+    }
+
+    .wa-bubble__title {
+        font-size: .96rem;
+        font-weight: 900;
+        letter-spacing: -0.02em;
+        color: var(--text);
+    }
+
+    .wa-bubble__text {
+        color: var(--text);
+        line-height: 1.7;
+        font-size: .93rem;
+        word-break: break-word;
+    }
+
+    .wa-attachment {
+        display: grid;
+        gap: 10px;
+        padding: 12px;
+        border-radius: 18px;
+        border: 1px solid var(--line);
+        background: rgba(255,255,255,.56);
+    }
+
+    html[data-theme='dark'] .wa-attachment {
+        background: rgba(15, 23, 42, 0.22);
+    }
+
+    .wa-attachment__image-link {
+        display: block;
+        border-radius: 18px;
+        overflow: hidden;
+        border: 1px solid var(--line);
+        background: var(--panel);
+    }
+
+    .wa-attachment__image {
+        width: 100%;
+        max-height: 260px;
+        object-fit: cover;
+        display: block;
+    }
+
+    .wa-file {
+        display: flex;
+        align-items: flex-start;
+        gap: 12px;
+    }
+
+    .wa-file__icon {
+        width: 42px;
+        height: 42px;
+        border-radius: 14px;
+        flex: 0 0 42px;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        background: rgba(124, 58, 237, 0.10);
+        color: #7c3aed;
+        font-size: 1rem;
+        font-weight: 900;
+    }
+
+    .wa-file__text {
+        min-width: 0;
+        display: grid;
+        gap: 4px;
+    }
+
+    .wa-file__text strong {
+        font-size: .9rem;
+        line-height: 1.35;
+        word-break: break-word;
+    }
+
+    .wa-file__text span {
+        color: var(--muted);
+        font-size: .8rem;
+    }
+
+    .wa-attachment__actions {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 10px;
+    }
+
+    .wa-attachment__actions a {
+        min-height: 32px;
+        padding: 0 11px;
+        border-radius: 999px;
+        border: 1px solid var(--line);
+        background: var(--panel);
+        color: var(--primary);
+        font-size: .8rem;
+        font-weight: 800;
+        display: inline-flex;
+        align-items: center;
+    }
+
+    .wa-compose {
+        padding: 14px 16px;
+        border-top: 1px solid var(--line);
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        background: linear-gradient(180deg, rgba(37,99,235,.02), transparent);
+    }
+
+    .wa-compose__attach {
+        width: 46px;
+        height: 46px;
+        border-radius: 14px;
+        border: 1px solid var(--line);
+        background: var(--panel);
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        cursor: pointer;
+        font-size: 1.05rem;
+        flex: 0 0 46px;
+    }
+
+    .wa-compose__field {
+        flex: 1;
+        min-width: 0;
+    }
+
+    .wa-compose__field textarea {
+        width: 100%;
+        min-height: 48px;
+        max-height: 120px;
+        resize: vertical;
+        border-radius: 18px;
+        border: 1px solid var(--line);
+        background: var(--panel);
+        color: var(--text);
+        padding: 12px 14px;
+        outline: none;
+        transition: .2s ease;
+        line-height: 1.55;
+    }
+
+    .wa-compose__field textarea:focus {
+        border-color: var(--primary);
+        box-shadow: 0 0 0 4px rgba(37,99,235,.10);
+    }
+
+    .wa-compose__send {
+        flex: 0 0 auto;
+    }
+
+    .wa-empty {
+        min-height: 100%;
+        display: grid;
+        place-items: center;
+        padding: 28px;
+        text-align: center;
+        color: var(--muted);
+    }
+
+    .wa-empty__box {
+        max-width: 420px;
+        display: grid;
+        gap: 12px;
+    }
+
+    .wa-empty__icon {
+        width: 72px;
+        height: 72px;
+        border-radius: 22px;
+        margin: 0 auto;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        background: rgba(37,99,235,.10);
+        color: var(--primary);
+        font-size: 1.8rem;
+        font-weight: 900;
+    }
+
+    .wa-mobile-new {
         display: none;
         position: fixed;
         right: 16px;
@@ -803,409 +572,311 @@
     }
 
     @media (max-width: 1180px) {
-        .student-messaging-x .page-hero__grid,
-        .student-messaging-x .chat-shell {
+        .wa-shell {
+            grid-template-columns: 320px minmax(0, 1fr);
+        }
+    }
+
+    @media (max-width: 900px) {
+        .wa-shell {
             grid-template-columns: 1fr;
-        }
-
-        .student-messaging-x .hero-right-top {
-            grid-template-columns: repeat(2, minmax(0, 1fr));
-        }
-
-        .student-messaging-x .thread-list-card {
-            position: static;
-        }
-
-        .student-messaging-x .thread-list,
-        .student-messaging-x .chat-scroll {
-            max-height: none;
-        }
-
-        .student-messaging-x .chat-pane {
             min-height: auto;
+        }
+
+        .wa-sidebar,
+        .wa-chat {
+            min-height: auto;
+        }
+
+        .wa-chat {
+            display: none;
+        }
+
+        .wa-student.is-thread-open .wa-sidebar {
+            display: none;
+        }
+
+        .wa-student.is-thread-open .wa-chat {
+            display: grid;
+        }
+
+        .wa-back {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .wa-mobile-new {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .wa-student.is-thread-open .wa-mobile-new {
+            display: none;
         }
     }
 
     @media (max-width: 720px) {
-        .student-messaging-x {
-            gap: 16px;
+        .wa-student__top-left h1 {
+            font-size: 1.45rem;
         }
 
-        .student-messaging-x .page-hero,
-        .student-messaging-x .thread-list-card,
-        .student-messaging-x .chat-pane-card {
+        .wa-sidebar,
+        .wa-chat {
             border-radius: 22px;
         }
 
-        .student-messaging-x .page-hero {
-            padding: 18px 14px;
-        }
-
-        .student-messaging-x .page-hero h1 {
-            max-width: none;
-            font-size: clamp(1.55rem, 8vw, 2.25rem);
-        }
-
-        .student-messaging-x .page-hero p {
-            font-size: .9rem;
-            line-height: 1.6;
-        }
-
-        .student-messaging-x .hero-right-top {
-            grid-template-columns: 1fr 1fr;
-        }
-
-        .student-messaging-x .hero-right-bottom {
-            justify-content: flex-start;
-        }
-
-        .student-messaging-x .chat-shell {
-            min-height: auto;
-        }
-
-        .student-messaging-x .chat-pane-card {
-            display: none;
-        }
-
-        .student-messaging-x.is-thread-open .thread-list-card {
-            display: none;
-        }
-
-        .student-messaging-x.is-thread-open .chat-pane-card {
-            display: block;
-        }
-
-        .student-messaging-x .mobile-back {
-            display: inline-flex;
-            align-items: center;
-            justify-content: center;
-        }
-
-        .student-messaging-x .mobile-compose {
-            display: inline-flex;
-            align-items: center;
-            justify-content: center;
-        }
-
-        .student-messaging-x.is-thread-open .mobile-compose {
-            display: none;
-        }
-
-        .student-messaging-x .thread-list-head,
-        .student-messaging-x .thread-toolbar,
-        .student-messaging-x .chat-pane-head,
-        .student-messaging-x .chat-scroll,
-        .student-messaging-x .chat-pane-footer {
-            padding-left: 14px;
-            padding-right: 14px;
-        }
-
-        .student-messaging-x .bubble {
+        .wa-bubble {
             max-width: 100%;
         }
 
-        .student-messaging-x .reply-actions {
-            align-items: stretch;
-        }
-
-        .student-messaging-x .reply-actions .btn {
-            width: 100%;
-            justify-content: center;
-        }
-
-        .student-messaging-x .reply-tools {
-            width: 100%;
+        .wa-compose {
+            padding: 12px 14px;
         }
     }
 
     @media (max-width: 480px) {
-        .student-messaging-x .hero-right-top {
-            grid-template-columns: 1fr;
-        }
-
-        .student-messaging-x .thread-item,
-        .student-messaging-x .chat-scroll,
-        .student-messaging-x .chat-pane-footer {
+        .wa-thread,
+        .wa-sidebar__head,
+        .wa-chat__head,
+        .wa-chat__body,
+        .wa-compose {
             padding-left: 12px;
             padding-right: 12px;
         }
 
-        .student-messaging-x .thread-item__main {
-            gap: 10px;
-        }
-
-        .student-messaging-x .avatar {
+        .wa-thread__avatar,
+        .wa-chat__head-avatar {
             width: 42px;
             height: 42px;
             flex-basis: 42px;
             border-radius: 14px;
-            font-size: .9rem;
+            font-size: .88rem;
         }
 
-        .student-messaging-x .attachment-image {
+        .wa-attachment__image {
             max-height: 210px;
+        }
+
+        .wa-compose__attach {
+            width: 42px;
+            height: 42px;
+            flex-basis: 42px;
         }
     }
 </style>
 @endpush
 
 @section('content')
-<section class="student-messaging-x" id="studentMessagingX">
-    <div class="page-hero">
-        <div class="page-hero__grid">
-            <div class="page-hero__left">
-                <span class="hero-badge">💬 Messagerie élève</span>
-                <h1>Mes échanges avec les enseignants</h1>
-                <p>Retrouvez vos conversations, les réponses et les pièces jointes dans une interface plus moderne, plus rapide et plus pratique au quotidien.</p>
-
-                <div class="hero-quick">
-                    <span class="hero-pill">Lecture rapide</span>
-                    <span class="hero-pill">Pièces jointes intégrées</span>
-                    <span class="hero-pill">Vue conversation</span>
-                </div>
-            </div>
-
-            <div class="page-hero__right">
-                <div class="hero-right-top">
-                    <div class="hero-stat">
-                        <strong>{{ $threadCount }}</strong>
-                        <span>conversations</span>
-                    </div>
-                    <div class="hero-stat">
-                        <strong>{{ $unreadCount }}</strong>
-                        <span>non lues</span>
-                    </div>
-                    <div class="hero-stat">
-                        <strong>{{ $repliedCount }}</strong>
-                        <span>réponses</span>
-                    </div>
-                    <div class="hero-stat">
-                        <strong>{{ $attachmentCount }}</strong>
-                        <span>pièces jointes</span>
-                    </div>
-                </div>
-
-                <div class="hero-right-bottom">
-                    <a href="{{ route('student.messages.create') }}" class="btn btn--primary">Nouveau message</a>
-                </div>
-            </div>
+<section class="wa-student" id="waStudent">
+    <div class="wa-student__top">
+        <div class="wa-student__top-left">
+            <h1>Messagerie classe</h1>
+            <p>Choisissez un enseignant de votre classe à gauche puis discutez directement avec lui comme dans une messagerie moderne.</p>
         </div>
+
+        <a href="{{ route('student.messages.create') }}" class="btn btn--primary">Nouveau message</a>
     </div>
 
-    <div class="chat-shell">
-        <section class="thread-list-card">
-            <div class="thread-list-head">
-                <h2>Conversations</h2>
-                <p>Retrouvez vite le bon enseignant, la bonne matière et le bon échange.</p>
-            </div>
-
-            <div class="thread-toolbar">
-                <div class="search-wrap">
-                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                        <circle cx="11" cy="11" r="8"></circle>
-                        <path d="m21 21-4.35-4.35"></path>
-                    </svg>
-                    <input type="text" id="threadSearch" placeholder="Rechercher un enseignant, une matière, un message...">
-                </div>
-
-                <div class="thread-filters">
-                    <button type="button" class="thread-filter is-active" data-filter="all">Toutes</button>
-                    <button type="button" class="thread-filter" data-filter="unread">Non lues</button>
-                    <button type="button" class="thread-filter" data-filter="answered">Répondues</button>
-                    <button type="button" class="thread-filter" data-filter="attachment">Pièces jointes</button>
+    <div class="wa-shell">
+        <aside class="wa-sidebar">
+            <div class="wa-sidebar__head">
+                <div class="wa-sidebar__head-text">
+                    <strong>Enseignants de ma classe</strong>
+                    <span>{{ $threadCollection->count() }} contact(s)</span>
                 </div>
             </div>
 
-            <div class="thread-list" id="threadList">
-                @forelse ($threads as $message)
+            <div class="wa-thread-list">
+                @forelse ($threadCollection as $thread)
                     @php
-                        $teacherName = $message->teacher->full_name ?? $message->teacher->name ?? 'Enseignant';
-                        $classLabel = $message->schoolClass->name ?? 'Classe inconnue';
-                        $subjectLabel = $message->subject->name ?? 'Matière inconnue';
-                        $title = $message->title ?: ($message->topic ?? 'Sans objet');
-                        $attachmentUrl = $message->attachment_path ? asset('storage/' . $message->attachment_path) : null;
-                        $statusUi = $statusMap[$message->status ?? 'read'] ?? ['label' => ucfirst((string) $message->status), 'class' => 'read'];
-                        $snippet = $message->reply_message ?: $message->message;
+                        $teacherName = $thread->teacher->full_name ?? $thread->teacher->name ?? $thread->teacher->username ?? 'Enseignant';
+                        $subjectName = $thread->subject->name ?? 'Matière';
+                        $className = $thread->schoolClass->name ?? 'Classe';
+                        $latestMessage = $thread->latest_message;
+                        $snippet = $latestMessage ? ($latestMessage->reply_message ?: $latestMessage->message) : 'Commencer la conversation avec cet enseignant.';
+                        $time = $latestMessage && $latestMessage->created_at ? $latestMessage->created_at->format('H:i') : '';
                         $avatar = collect(explode(' ', trim($teacherName)))->filter()->map(fn ($part) => mb_strtoupper(mb_substr($part, 0, 1)))->take(2)->implode('');
                         $avatar = $avatar !== '' ? $avatar : 'PR';
+                        $isActive = (int) $thread->assignment->id === (int) $selectedThreadId;
                     @endphp
 
-                    <button
-                        type="button"
-                        class="thread-item {{ ($message->id ?? null) === $firstThreadId ? 'is-active' : '' }}"
-                        data-thread-id="{{ $message->id }}"
-                        data-status="{{ $statusUi['class'] }}"
-                        data-has-attachment="{{ $attachmentUrl ? 'yes' : 'no' }}"
-                        data-search="{{ strtolower($teacherName . ' ' . $classLabel . ' ' . $subjectLabel . ' ' . $title . ' ' . strip_tags($snippet)) }}"
-                    >
-                        <div class="thread-item__top">
-                            <div class="thread-item__main">
-                                <span class="avatar">{{ $avatar }}</span>
+                    <button type="button" class="wa-thread {{ $isActive ? 'is-active' : '' }}" data-thread-id="{{ $thread->assignment->id }}">
+                        <span class="wa-thread__avatar">{{ $avatar }}</span>
 
-                                <div class="thread-item__text">
-                                    <strong>{{ $teacherName }}</strong>
-                                    <div class="thread-item__meta">{{ $subjectLabel }} · {{ $classLabel }}</div>
-                                </div>
-                            </div>
+                        <span class="wa-thread__content">
+                            <span class="wa-thread__row">
+                                <span class="wa-thread__name">{{ $teacherName }}</span>
+                                @if ($time !== '')
+                                    <span class="wa-thread__time">{{ $time }}</span>
+                                @endif
+                            </span>
 
-                            <span class="thread-item__time">{{ optional($message->created_at)->format('H:i') }}</span>
-                        </div>
+                            <span class="wa-thread__meta">{{ $subjectName }} · {{ $className }}</span>
 
-                        <div class="thread-item__subject">
-                            <span class="badge badge--{{ $statusUi['class'] }}">{{ $statusUi['label'] }}</span>
-                            @if ($attachmentUrl)
-                                <span class="badge badge--attachment">Pièce jointe</span>
-                            @endif
-                        </div>
+                            <span class="wa-thread__snippet">{{ \Illuminate\Support\Str::limit(strip_tags($snippet), 72) }}</span>
 
-                        <div class="thread-snippet">
-                            {{ $title }} — {{ \Illuminate\Support\Str::limit(strip_tags($snippet), 85) }}
-                        </div>
+                            <span class="wa-thread__badges">
+                                @if ($thread->unread_count > 0)
+                                    <span class="wa-mini-badge wa-mini-badge--unread">{{ $thread->unread_count }} non lu{{ $thread->unread_count > 1 ? 's' : '' }}</span>
+                                @endif
+
+                                @if ($thread->attachment_count > 0)
+                                    <span class="wa-mini-badge wa-mini-badge--attachment">Pièce jointe</span>
+                                @endif
+
+                                @if (!$thread->has_messages)
+                                    <span class="wa-mini-badge wa-mini-badge--empty">Nouveau</span>
+                                @endif
+                            </span>
+                        </span>
                     </button>
                 @empty
-                    <div class="chat-empty">
-                        <div class="chat-empty__box">
-                            <div class="chat-empty__icon">💬</div>
-                            <strong>Aucune conversation pour le moment</strong>
-                            <span>Commencez une première discussion avec un enseignant.</span>
-                            <a href="{{ route('student.messages.create') }}" class="btn btn--primary">Nouveau message</a>
+                    <div class="wa-empty">
+                        <div class="wa-empty__box">
+                            <div class="wa-empty__icon">👨‍🏫</div>
+                            <strong>Aucun enseignant disponible</strong>
+                            <span>Aucun enseignant actif n’est encore affecté à votre classe.</span>
                         </div>
                     </div>
                 @endforelse
             </div>
-        </section>
+        </aside>
 
-        <section class="chat-pane-card">
-            @if ($threadCount > 0)
-                @foreach ($threads as $message)
+        <section class="wa-chat">
+            @if ($threadCollection->isNotEmpty())
+                @foreach ($threadCollection as $thread)
                     @php
-                        $teacherName = $message->teacher->full_name ?? $message->teacher->name ?? 'Enseignant';
-                        $classLabel = $message->schoolClass->name ?? 'Classe inconnue';
-                        $subjectLabel = $message->subject->name ?? 'Matière inconnue';
-                        $title = $message->title ?: ($message->topic ?? 'Sans objet');
-                        $attachmentUrl = $message->attachment_path ? asset('storage/' . $message->attachment_path) : null;
-                        $attachmentName = $message->attachment_name ?: basename((string) $message->attachment_path);
-                        $extension = strtolower(pathinfo((string) $attachmentName, PATHINFO_EXTENSION));
-                        $isImage = in_array($extension, ['jpg', 'jpeg', 'png', 'gif', 'webp', 'bmp']);
-                        $statusUi = $statusMap[$message->status ?? 'read'] ?? ['label' => ucfirst((string) $message->status), 'class' => 'read'];
+                        $teacherName = $thread->teacher->full_name ?? $thread->teacher->name ?? $thread->teacher->username ?? 'Enseignant';
+                        $subjectName = $thread->subject->name ?? 'Matière';
+                        $className = $thread->schoolClass->name ?? 'Classe';
                         $avatar = collect(explode(' ', trim($teacherName)))->filter()->map(fn ($part) => mb_strtoupper(mb_substr($part, 0, 1)))->take(2)->implode('');
                         $avatar = $avatar !== '' ? $avatar : 'PR';
+                        $isActive = (int) $thread->assignment->id === (int) $selectedThreadId;
                     @endphp
 
-                    <div class="chat-pane {{ ($message->id ?? null) === $firstThreadId ? 'is-active' : '' }}" data-pane-id="{{ $message->id }}">
-                        <div class="chat-pane-head">
-                            <div class="chat-pane-head__left">
-                                <button type="button" class="mobile-back" data-mobile-back>← Retour</button>
+                    <div class="wa-pane {{ $isActive ? 'is-active' : '' }}" data-pane-id="{{ $thread->assignment->id }}">
+                        <div class="wa-chat__head">
+                            <div class="wa-chat__head-left">
+                                <button type="button" class="wa-back" data-wa-back>← Retour</button>
+                                <span class="wa-chat__head-avatar">{{ $avatar }}</span>
 
-                                <span class="avatar">{{ $avatar }}</span>
-
-                                <div class="chat-pane-head__text">
+                                <div class="wa-chat__head-text">
                                     <strong>{{ $teacherName }}</strong>
-                                    <span>{{ $subjectLabel }} · {{ $classLabel }}</span>
-
-                                    <div class="chat-pane-meta">
-                                        <span class="meta-chip">{{ $classLabel }}</span>
-                                        <span class="meta-chip">{{ $subjectLabel }}</span>
-                                        <span class="badge badge--{{ $statusUi['class'] }}">{{ $statusUi['label'] }}</span>
-                                    </div>
+                                    <span>{{ $subjectName }} · {{ $className }}</span>
                                 </div>
                             </div>
 
-                            <div class="chat-pane-actions">
-                                <a href="{{ route('student.messages.create') }}" class="btn btn--ghost">Nouveau message</a>
+                            <div class="wa-chat__head-tools">
+                                <span class="wa-mini-badge wa-mini-badge--empty">{{ $subjectName }}</span>
+                                <a href="{{ route('student.messages.create', ['teacher_assignment_id' => $thread->assignment->id]) }}" class="btn btn--ghost">Nouveau message</a>
                             </div>
                         </div>
 
-                        <div class="chat-scroll">
-                            <div class="message-group">
-                                <div class="message-date">
-                                    {{ optional($message->created_at)->format('d/m/Y') }}
-                                </div>
+                        <div class="wa-chat__body">
+                            @if ($thread->has_messages)
+                                @php
+                                    $currentDate = null;
+                                @endphp
 
-                                <div class="bubble-row bubble-row--me">
-                                    <div class="bubble bubble--me">
-                                        <div class="bubble__meta">Vous · {{ optional($message->created_at)->format('d/m/Y H:i') }}</div>
-                                        <div class="bubble__title">{{ $title }}</div>
-                                        <div class="bubble__text">{!! nl2br(e($message->message)) !!}</div>
+                                @foreach ($thread->messages as $entry)
+                                    @php
+                                        $entryDate = optional($entry->created_at)->format('d/m/Y');
+                                        $attachmentUrl = $entry->attachment_path ? route('student.messages.attachment', $entry) : null;
+                                        $attachmentDownloadUrl = $entry->attachment_path ? route('student.messages.attachment', ['message' => $entry->id, 'download' => 1]) : null;
+                                        $attachmentName = $entry->attachment_name ?: basename((string) $entry->attachment_path);
+                                        $isImage = method_exists($entry, 'isImageAttachment') ? $entry->isImageAttachment() : false;
+                                    @endphp
 
-                                        @if ($attachmentUrl)
-                                            <div class="attachment-box">
-                                                @if ($isImage)
-                                                    <a href="{{ $attachmentUrl }}" target="_blank" class="attachment-image-link">
-                                                        <img src="{{ $attachmentUrl }}" alt="Pièce jointe" class="attachment-image">
-                                                    </a>
-                                                @else
-                                                    <div class="attachment-file">
-                                                        <span class="attachment-file__icon">📎</span>
-                                                        <div class="attachment-file__text">
-                                                            <strong>{{ $attachmentName }}</strong>
-                                                            <span>Fichier joint</span>
+                                    @if ($entryDate !== $currentDate)
+                                        @php $currentDate = $entryDate; @endphp
+                                        <div class="wa-day">{{ $entryDate }}</div>
+                                    @endif
+
+                                    <div class="wa-bubble-row wa-bubble-row--me">
+                                        <div class="wa-bubble wa-bubble--me">
+                                            <div class="wa-bubble__meta">Vous · {{ optional($entry->created_at)->format('H:i') }}</div>
+                                            <div class="wa-bubble__title">{{ $entry->display_title ?? $entry->title ?? 'Message' }}</div>
+                                            <div class="wa-bubble__text">{!! nl2br(e($entry->message)) !!}</div>
+
+                                            @if ($attachmentUrl)
+                                                <div class="wa-attachment">
+                                                    @if ($isImage)
+                                                        <a href="{{ $attachmentUrl }}" target="_blank" class="wa-attachment__image-link">
+                                                            <img src="{{ $attachmentUrl }}" alt="Pièce jointe" class="wa-attachment__image">
+                                                        </a>
+                                                    @else
+                                                        <div class="wa-file">
+                                                            <span class="wa-file__icon">📎</span>
+                                                            <div class="wa-file__text">
+                                                                <strong>{{ $attachmentName }}</strong>
+                                                                <span>Fichier joint</span>
+                                                            </div>
                                                         </div>
+                                                    @endif
+
+                                                    <div class="wa-attachment__actions">
+                                                        <a href="{{ $attachmentUrl }}" target="_blank">Ouvrir</a>
+                                                        <a href="{{ $attachmentDownloadUrl }}">Télécharger</a>
                                                     </div>
-                                                @endif
-
-                                                <div class="attachment-actions">
-                                                    <a href="{{ $attachmentUrl }}" target="_blank">Ouvrir</a>
-                                                    <a href="{{ $attachmentUrl }}" download>Télécharger</a>
                                                 </div>
-                                            </div>
-                                        @endif
-                                    </div>
-                                </div>
-
-                                @if (!empty($message->reply_message))
-                                    <div class="bubble-row bubble-row--teacher">
-                                        <div class="bubble bubble--teacher">
-                                            <div class="bubble__meta">{{ $teacherName }} · {{ optional($message->replied_at)->format('d/m/Y H:i') ?: 'Réponse reçue' }}</div>
-                                            <div class="bubble__text">{!! nl2br(e($message->reply_message)) !!}</div>
+                                            @endif
                                         </div>
                                     </div>
-                                @endif
-                            </div>
-                        </div>
 
-                        <div class="chat-pane-footer">
-                            <div class="reply-card">
-                                <div class="reply-card__top">
-                                    <div>
-                                        <strong>Continuer cet échange</strong>
-                                        <span>Préparez votre prochaine demande ou relancez proprement la discussion.</span>
+                                    @if (!empty($entry->reply_message))
+                                        <div class="wa-bubble-row wa-bubble-row--teacher">
+                                            <div class="wa-bubble wa-bubble--teacher">
+                                                <div class="wa-bubble__meta">{{ $teacherName }} · {{ optional($entry->replied_at)->format('H:i') ?: 'Réponse' }}</div>
+                                                <div class="wa-bubble__text">{!! nl2br(e($entry->reply_message)) !!}</div>
+                                            </div>
+                                        </div>
+                                    @endif
+                                @endforeach
+                            @else
+                                <div class="wa-empty">
+                                    <div class="wa-empty__box">
+                                        <div class="wa-empty__icon">💬</div>
+                                        <strong>Aucun message avec {{ $teacherName }}</strong>
+                                        <span>Commencez cette conversation directement depuis la zone d’envoi ci-dessous.</span>
                                     </div>
                                 </div>
-
-                                <div class="reply-preview">
-                                    Écrivez ici votre prochaine idée, votre question ou votre précision. Pour l’envoi réel,
-                                    utilisez le bouton « Nouveau message » ci-dessous afin de conserver le flux actuel du système.
-                                </div>
-
-                                <div class="reply-actions">
-                                    <div class="reply-tools">
-                                        <span class="tool-pill">Texte</span>
-                                        <span class="tool-pill">Pièce jointe</span>
-                                        <span class="tool-pill">Question claire</span>
-                                    </div>
-
-                                    <a href="{{ route('student.messages.create') }}" class="btn btn--primary">Nouveau message</a>
-                                </div>
-                            </div>
+                            @endif
                         </div>
+
+                        <form method="POST" action="{{ route('student.messages.store') }}" enctype="multipart/form-data" class="wa-compose">
+                            @csrf
+                            <input type="hidden" name="teacher_assignment_id" value="{{ $thread->assignment->id }}">
+                            <input type="hidden" name="title" value="Message à {{ $teacherName }} - {{ $subjectName }}">
+
+                            <label for="attachment_{{ $thread->assignment->id }}" class="wa-compose__attach">📎</label>
+                            <input id="attachment_{{ $thread->assignment->id }}" type="file" name="attachment" accept=".pdf,.doc,.docx,.jpg,.jpeg,.png,.webp" hidden>
+
+                            <div class="wa-compose__field">
+                                <textarea name="message" placeholder="Écrire à {{ $teacherName }}..." required></textarea>
+                            </div>
+
+                            <div class="wa-compose__send">
+                                <button type="submit" class="btn btn--primary">Envoyer</button>
+                            </div>
+                        </form>
                     </div>
                 @endforeach
             @else
-                <div class="chat-empty">
-                    <div class="chat-empty__box">
-                        <div class="chat-empty__icon">✉️</div>
-                        <strong>Aucune conversation sélectionnée</strong>
-                        <span>Choisissez une conversation ou démarrez un nouveau message.</span>
-                        <a href="{{ route('student.messages.create') }}" class="btn btn--primary">Nouveau message</a>
+                <div class="wa-empty">
+                    <div class="wa-empty__box">
+                        <div class="wa-empty__icon">✉️</div>
+                        <strong>Aucune conversation disponible</strong>
+                        <span>Quand des enseignants seront affectés à votre classe, ils apparaîtront ici.</span>
                     </div>
                 </div>
             @endif
         </section>
     </div>
 
-    @if ($threadCount > 0)
-        <a href="{{ route('student.messages.create') }}" class="mobile-compose">+ Nouveau message</a>
+    @if ($threadCollection->isNotEmpty())
+        <a href="{{ route('student.messages.create') }}" class="wa-mobile-new">+ Nouveau</a>
     @endif
 </section>
 @endsection
@@ -1213,85 +884,46 @@
 @push('scripts')
 <script>
     (function () {
-        const root = document.getElementById('studentMessagingX');
+        const root = document.getElementById('waStudent');
         if (!root) return;
 
-        const items = Array.from(root.querySelectorAll('.thread-item'));
-        const panes = Array.from(root.querySelectorAll('.chat-pane'));
-        const searchInput = root.querySelector('#threadSearch');
-        const filterButtons = Array.from(root.querySelectorAll('.thread-filter'));
-        const mobileBackButtons = Array.from(root.querySelectorAll('[data-mobile-back]'));
-
-        let currentFilter = 'all';
+        const threadButtons = Array.from(root.querySelectorAll('.wa-thread'));
+        const panes = Array.from(root.querySelectorAll('.wa-pane'));
+        const backButtons = Array.from(root.querySelectorAll('[data-wa-back]'));
 
         const activateThread = (threadId) => {
-            items.forEach((item) => {
-                item.classList.toggle('is-active', item.dataset.threadId === String(threadId));
+            threadButtons.forEach((button) => {
+                button.classList.toggle('is-active', button.dataset.threadId === String(threadId));
             });
 
             panes.forEach((pane) => {
                 pane.classList.toggle('is-active', pane.dataset.paneId === String(threadId));
             });
 
-            if (window.innerWidth <= 720) {
+            if (window.innerWidth <= 900) {
                 root.classList.add('is-thread-open');
             }
         };
 
-        const applyFilters = () => {
-            const term = (searchInput?.value || '').trim().toLowerCase();
-
-            items.forEach((item) => {
-                const matchesSearch = !term || item.dataset.search.includes(term);
-                const matchesFilter =
-                    currentFilter === 'all' ||
-                    (currentFilter === 'attachment' && item.dataset.hasAttachment === 'yes') ||
-                    item.dataset.status === currentFilter;
-
-                const visible = matchesSearch && matchesFilter;
-                item.classList.toggle('is-hidden', !visible);
-            });
-
-            const visibleItems = items.filter((item) => !item.classList.contains('is-hidden'));
-            const activeVisible = visibleItems.find((item) => item.classList.contains('is-active'));
-
-            if (!activeVisible && visibleItems.length > 0) {
-                activateThread(visibleItems[0].dataset.threadId);
-            }
-        };
-
-        items.forEach((item) => {
-            item.addEventListener('click', () => activateThread(item.dataset.threadId));
+        threadButtons.forEach((button) => {
+            button.addEventListener('click', () => activateThread(button.dataset.threadId));
         });
 
-        filterButtons.forEach((button) => {
-            button.addEventListener('click', () => {
-                filterButtons.forEach((btn) => btn.classList.remove('is-active'));
-                button.classList.add('is-active');
-                currentFilter = button.dataset.filter || 'all';
-                applyFilters();
-            });
-        });
-
-        if (searchInput) {
-            searchInput.addEventListener('input', applyFilters);
-        }
-
-        mobileBackButtons.forEach((button) => {
+        backButtons.forEach((button) => {
             button.addEventListener('click', () => {
                 root.classList.remove('is-thread-open');
             });
         });
 
         window.addEventListener('resize', () => {
-            if (window.innerWidth > 720) {
+            if (window.innerWidth > 900) {
                 root.classList.remove('is-thread-open');
             }
         });
 
-        const firstVisible = items.find((item) => !item.classList.contains('is-hidden'));
-        if (firstVisible) {
-            activateThread(firstVisible.dataset.threadId);
+        const firstActive = threadButtons.find((button) => button.classList.contains('is-active'));
+        if (!firstActive && threadButtons.length > 0) {
+            activateThread(threadButtons[0].dataset.threadId);
         }
     })();
 </script>
