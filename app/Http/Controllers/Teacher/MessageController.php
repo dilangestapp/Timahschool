@@ -15,32 +15,63 @@ class MessageController extends Controller
     {
         if (!Schema::hasTable('teacher_messages')) {
             return view('teacher.messages.index', [
-                'messages' => collect(),
-                'paginator' => null,
-                'filters' => $request->only('status'),
+                'threads' => collect(),
+                'selectedThreadKey' => null,
             ]);
         }
 
-        $query = TeacherMessage::query()
-            ->with(['student.studentProfile.schoolClass', 'subject', 'schoolClass'])
-            ->where('teacher_id', auth()->id());
+        $messages = TeacherMessage::query()
+            ->with(['student.studentProfile.schoolClass', 'subject', 'schoolClass', 'teacher'])
+            ->where('teacher_id', auth()->id())
+            ->orderBy('created_at')
+            ->get();
 
-        if ($request->filled('status')) {
-            if ($request->status === TeacherMessage::STATUS_UNREAD) {
-                $query->where('status', TeacherMessage::STATUS_UNREAD);
-            } elseif ($request->status === TeacherMessage::STATUS_REPLIED) {
-                $query->where('status', TeacherMessage::STATUS_REPLIED);
-            } elseif ($request->status === TeacherMessage::STATUS_READ) {
-                $query->where('status', TeacherMessage::STATUS_READ);
-            }
-        }
+        $threads = $messages
+            ->groupBy(function (TeacherMessage $message) {
+                return $this->threadKey($message);
+            })
+            ->map(function (Collection $conversation, string $threadKey) {
+                $conversation = $conversation->sortBy('created_at')->values();
+                $latest = $conversation->last();
+                $first = $conversation->first();
 
-        $paginator = $query->latest()->paginate(12)->withQueryString();
+                $replyTarget = $conversation
+                    ->reverse()
+                    ->first(fn (TeacherMessage $message) => empty($message->reply_message)) ?? $latest;
+
+                return (object) [
+                    'thread_key' => $threadKey,
+                    'student' => $first?->student,
+                    'subject' => $first?->subject,
+                    'schoolClass' => $first?->schoolClass,
+                    'messages' => $conversation,
+                    'latest_message' => $latest,
+                    'reply_target' => $replyTarget,
+                    'unread_count' => $conversation->where('status', TeacherMessage::STATUS_UNREAD)->count(),
+                    'attachment_count' => $conversation->filter(fn (TeacherMessage $message) => !empty($message->attachment_path))->count(),
+                    'sort_timestamp' => $latest && $latest->created_at ? $latest->created_at->timestamp : 0,
+                ];
+            })
+            ->sort(function ($a, $b) {
+                if ($a->sort_timestamp === $b->sort_timestamp) {
+                    $aName = strtolower((string) ($a->student->full_name ?? $a->student->name ?? $a->student->username ?? ''));
+                    $bName = strtolower((string) ($b->student->full_name ?? $b->student->name ?? $b->student->username ?? ''));
+
+                    return $aName <=> $bName;
+                }
+
+                return $b->sort_timestamp <=> $a->sort_timestamp;
+            })
+            ->values();
+
+        $requestedThreadKey = (string) $request->query('thread');
+        $selectedThreadKey = $threads->contains(fn ($thread) => $thread->thread_key === $requestedThreadKey)
+            ? $requestedThreadKey
+            : optional($threads->first())->thread_key;
 
         return view('teacher.messages.index', [
-            'messages' => collect($paginator->items()),
-            'paginator' => $paginator,
-            'filters' => $request->only('status'),
+            'threads' => $threads,
+            'selectedThreadKey' => $selectedThreadKey,
         ]);
     }
 
@@ -55,9 +86,9 @@ class MessageController extends Controller
             ]);
         }
 
-        $message->load(['student.studentProfile.schoolClass', 'subject', 'schoolClass', 'teacher']);
-
-        return view('teacher.messages.show', compact('message'));
+        return redirect()->route('teacher.messages.index', [
+            'thread' => $this->threadKey($message),
+        ]);
     }
 
     public function reply(Request $request, TeacherMessage $message)
@@ -75,12 +106,15 @@ class MessageController extends Controller
             'read_at' => $message->read_at ?? now(),
         ]);
 
-        return redirect()->route('teacher.messages.show', $message)->with('success', 'Réponse envoyée avec succès.');
+        return redirect()->route('teacher.messages.index', [
+            'thread' => $this->threadKey($message),
+        ])->with('success', 'Réponse envoyée avec succès.');
     }
 
     public function attachment(Request $request, TeacherMessage $message)
     {
         $this->authorizeMessage($message);
+
         abort_unless($message->attachment_path && Storage::disk('local')->exists($message->attachment_path), 404);
 
         $absolutePath = Storage::disk('local')->path($message->attachment_path);
@@ -90,7 +124,7 @@ class MessageController extends Controller
             return response()->download($absolutePath, $downloadName);
         }
 
-        if ($message->isImageAttachment()) {
+        if ($message->isImageAttachment() || $message->isAudioAttachment()) {
             return response()->file($absolutePath);
         }
 
@@ -100,5 +134,10 @@ class MessageController extends Controller
     protected function authorizeMessage(TeacherMessage $message): void
     {
         abort_unless((int) $message->teacher_id === (int) auth()->id(), 403);
+    }
+
+    protected function threadKey(TeacherMessage $message): string
+    {
+        return (string) $message->teacher_assignment_id . '-' . (string) $message->student_id;
     }
 }
