@@ -11,20 +11,7 @@ use Illuminate\Support\Facades\Storage;
 
 class MessageController extends Controller
 {
-    public function index()
-    {
-        $messages = Schema::hasTable('teacher_messages')
-            ? TeacherMessage::query()
-                ->with(['teacher', 'subject', 'schoolClass'])
-                ->where('student_id', auth()->id())
-                ->latest()
-                ->get()
-            : collect();
-
-        return view('student.messages.index', compact('messages'));
-    }
-
-    public function create()
+    public function index(Request $request)
     {
         $student = auth()->user();
         $studentProfile = $student->studentProfile;
@@ -39,7 +26,94 @@ class MessageController extends Controller
                 ->get()
             : collect();
 
-        return view('student.messages.create', compact('assignments', 'studentProfile'));
+        $messages = Schema::hasTable('teacher_messages')
+            ? TeacherMessage::query()
+                ->with(['teacher', 'subject', 'schoolClass', 'assignment.teacher', 'assignment.subject', 'assignment.schoolClass'])
+                ->where('student_id', $student->id)
+                ->where('school_class_id', $studentProfile->school_class_id)
+                ->orderBy('created_at')
+                ->get()
+            : collect();
+
+        $assignmentMap = $assignments->keyBy('id');
+
+        $messages->pluck('assignment')
+            ->filter()
+            ->each(function ($assignment) use ($assignmentMap, $studentProfile) {
+                if ((int) $assignment->school_class_id === (int) $studentProfile->school_class_id && !$assignmentMap->has($assignment->id)) {
+                    $assignmentMap->put($assignment->id, $assignment);
+                }
+            });
+
+        $threads = $assignmentMap
+            ->values()
+            ->map(function ($assignment) use ($messages) {
+                $conversation = $messages
+                    ->where('teacher_assignment_id', $assignment->id)
+                    ->sortBy('created_at')
+                    ->values();
+
+                $latest = $conversation->last();
+                $unreadCount = $conversation->where('status', TeacherMessage::STATUS_UNREAD)->count();
+                $attachmentCount = $conversation->filter(fn ($message) => !empty($message->attachment_path))->count();
+                $sortTimestamp = $latest && $latest->created_at ? $latest->created_at->timestamp : 0;
+
+                return (object) [
+                    'assignment' => $assignment,
+                    'teacher' => $assignment->teacher,
+                    'subject' => $assignment->subject,
+                    'schoolClass' => $assignment->schoolClass,
+                    'messages' => $conversation,
+                    'latest_message' => $latest,
+                    'has_messages' => $conversation->isNotEmpty(),
+                    'unread_count' => $unreadCount,
+                    'attachment_count' => $attachmentCount,
+                    'sort_timestamp' => $sortTimestamp,
+                ];
+            })
+            ->sort(function ($a, $b) {
+                if ($a->sort_timestamp === $b->sort_timestamp) {
+                    $aName = strtolower((string) ($a->teacher->full_name ?? $a->teacher->name ?? $a->teacher->username ?? ''));
+                    $bName = strtolower((string) ($b->teacher->full_name ?? $b->teacher->name ?? $b->teacher->username ?? ''));
+
+                    return $aName <=> $bName;
+                }
+
+                return $b->sort_timestamp <=> $a->sort_timestamp;
+            })
+            ->values();
+
+        $requestedThreadId = (int) $request->query('thread');
+        $selectedThreadId = $threads->contains(fn ($thread) => (int) $thread->assignment->id === $requestedThreadId)
+            ? $requestedThreadId
+            : optional($threads->first())->assignment->id;
+
+        return view('student.messages.index', [
+            'threads' => $threads,
+            'selectedThreadId' => $selectedThreadId,
+            'studentProfile' => $studentProfile,
+        ]);
+    }
+
+    public function create(Request $request)
+    {
+        $student = auth()->user();
+        $studentProfile = $student->studentProfile;
+
+        abort_unless($studentProfile && $studentProfile->school_class_id, 403, 'Aucune classe élève trouvée.');
+
+        $assignments = Schema::hasTable('teacher_assignments')
+            ? TeacherAssignment::query()
+                ->with(['teacher', 'subject', 'schoolClass'])
+                ->where('school_class_id', $studentProfile->school_class_id)
+                ->where('is_active', true)
+                ->get()
+            : collect();
+
+        $selectedAssignmentId = (int) $request->query('teacher_assignment_id');
+        $selectedAssignment = $assignments->firstWhere('id', $selectedAssignmentId);
+
+        return view('student.messages.create', compact('assignments', 'studentProfile', 'selectedAssignmentId', 'selectedAssignment'));
     }
 
     public function store(Request $request)
@@ -89,7 +163,9 @@ class MessageController extends Controller
 
         TeacherMessage::query()->create($payload);
 
-        return redirect()->route('student.messages.index')->with('success', 'Message envoyé à l\'enseignant.');
+        return redirect()
+            ->route('student.messages.index', ['thread' => $assignment->id])
+            ->with('success', 'Message envoyé à l\'enseignant.');
     }
 
     public function attachment(Request $request, TeacherMessage $message)
