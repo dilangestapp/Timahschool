@@ -466,9 +466,10 @@
         }
     </style>
 
+    <style>{!! file_get_contents(public_path('assets/css/ui-groups.css')) !!}</style>
     @stack('styles')
 </head>
-<body>
+<body data-ui-group="@yield('ui_group', 'public')" data-ui-role="public">
 <div class="public-shell">
     <header class="public-header" id="publicHeader">
         <div class="container public-header__inner">
