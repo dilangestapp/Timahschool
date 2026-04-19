@@ -4,6 +4,39 @@
 
 @php
     $threadCollection = collect($threads ?? []);
+
+    $threadPalette = [
+        [
+            'color' => '#2563eb',
+            'soft' => 'rgba(37,99,235,.10)',
+            'border' => 'rgba(37,99,235,.18)',
+            'grad' => 'linear-gradient(135deg,#2563eb,#4f46e5)',
+        ],
+        [
+            'color' => '#16a34a',
+            'soft' => 'rgba(22,163,74,.10)',
+            'border' => 'rgba(22,163,74,.18)',
+            'grad' => 'linear-gradient(135deg,#16a34a,#14b8a6)',
+        ],
+        [
+            'color' => '#f59e0b',
+            'soft' => 'rgba(245,158,11,.12)',
+            'border' => 'rgba(245,158,11,.20)',
+            'grad' => 'linear-gradient(135deg,#f59e0b,#f97316)',
+        ],
+        [
+            'color' => '#7c3aed',
+            'soft' => 'rgba(124,58,237,.10)',
+            'border' => 'rgba(124,58,237,.18)',
+            'grad' => 'linear-gradient(135deg,#7c3aed,#a855f7)',
+        ],
+        [
+            'color' => '#ec4899',
+            'soft' => 'rgba(236,72,153,.10)',
+            'border' => 'rgba(236,72,153,.18)',
+            'grad' => 'linear-gradient(135deg,#ec4899,#f43f5e)',
+        ],
+    ];
 @endphp
 
 @push('styles')
@@ -11,6 +44,43 @@
     .wa-student {
         display: grid;
         gap: 16px;
+    }
+
+    .wa-student .btn {
+        min-height: 44px;
+        padding: 0 16px;
+        border-radius: 14px;
+        border: 1px solid var(--line);
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        gap: 8px;
+        font-weight: 800;
+        transition: .2s ease;
+        cursor: pointer;
+    }
+
+    .wa-student .btn--primary {
+        background: linear-gradient(135deg, var(--primary), #4f86ff);
+        border-color: transparent;
+        color: #fff;
+        box-shadow: 0 14px 28px rgba(37,99,235,.22);
+    }
+
+    .wa-student .btn--primary:hover {
+        transform: translateY(-1px);
+        box-shadow: 0 18px 34px rgba(37,99,235,.26);
+    }
+
+    .wa-student .btn--ghost {
+        background: var(--panel);
+        color: var(--text);
+        border-color: var(--line);
+    }
+
+    .wa-student .btn--ghost:hover {
+        background: var(--primary-soft);
+        border-color: var(--line-strong);
     }
 
     .wa-student__top {
@@ -68,7 +138,9 @@
         align-items: center;
         justify-content: space-between;
         gap: 12px;
-        background: rgba(37, 99, 235, 0.03);
+        background:
+            radial-gradient(circle at top right, rgba(37,99,235,.07), transparent 26%),
+            linear-gradient(180deg, rgba(37,99,235,.03), transparent);
     }
 
     .wa-sidebar__head-text {
@@ -109,11 +181,17 @@
     }
 
     .wa-thread:hover {
-        background: rgba(37, 99, 235, 0.04);
+        background: rgba(15, 23, 42, 0.02);
     }
 
     .wa-thread.is-active {
-        background: rgba(37, 99, 235, 0.08);
+        background:
+            linear-gradient(180deg, var(--wa-tone-soft), rgba(255,255,255,0));
+        box-shadow: inset 0 0 0 1px var(--wa-tone-border);
+    }
+
+    html[data-theme='dark'] .wa-thread:hover {
+        background: rgba(255,255,255,.03);
     }
 
     .wa-thread.is-active::before {
@@ -124,7 +202,7 @@
         bottom: 10px;
         width: 4px;
         border-radius: 999px;
-        background: linear-gradient(180deg, var(--primary), #4f86ff);
+        background: var(--wa-tone-grad);
     }
 
     .wa-thread__avatar {
@@ -135,7 +213,7 @@
         display: inline-flex;
         align-items: center;
         justify-content: center;
-        background: linear-gradient(135deg, var(--primary), #4f86ff);
+        background: var(--wa-tone-grad);
         color: #fff;
         font-weight: 900;
         font-size: .95rem;
@@ -208,9 +286,9 @@
     }
 
     .wa-mini-badge--unread {
-        background: rgba(37, 99, 235, 0.10);
-        color: var(--primary);
-        border-color: rgba(37, 99, 235, 0.16);
+        background: var(--wa-tone-soft);
+        color: var(--wa-tone);
+        border-color: var(--wa-tone-border);
     }
 
     .wa-mini-badge--attachment {
@@ -227,6 +305,9 @@
     .wa-chat {
         display: grid;
         min-height: 74vh;
+        background:
+            radial-gradient(circle at top right, rgba(37,99,235,.04), transparent 18%),
+            linear-gradient(180deg, var(--panel-soft), var(--panel));
     }
 
     .wa-pane {
@@ -247,7 +328,14 @@
         justify-content: space-between;
         gap: 12px;
         flex-wrap: wrap;
-        background: rgba(37, 99, 235, 0.03);
+        background:
+            linear-gradient(180deg, rgba(255,255,255,.56), rgba(255,255,255,.24));
+        backdrop-filter: blur(10px);
+    }
+
+    html[data-theme='dark'] .wa-chat__head {
+        background:
+            linear-gradient(180deg, rgba(15,23,42,.42), rgba(15,23,42,.18));
     }
 
     .wa-chat__head-left {
@@ -277,7 +365,7 @@
         display: inline-flex;
         align-items: center;
         justify-content: center;
-        background: linear-gradient(135deg, var(--primary), #4f86ff);
+        background: var(--wa-tone-grad);
         color: #fff;
         font-weight: 900;
         font-size: .95rem;
@@ -309,28 +397,55 @@
         flex-wrap: wrap;
     }
 
+    .wa-subject-chip {
+        display: inline-flex;
+        align-items: center;
+        min-height: 30px;
+        padding: 0 12px;
+        border-radius: 999px;
+        background: var(--wa-tone-soft);
+        color: var(--wa-tone);
+        border: 1px solid var(--wa-tone-border);
+        font-size: .76rem;
+        font-weight: 900;
+    }
+
     .wa-chat__body {
         padding: 18px;
         display: grid;
         gap: 14px;
         overflow: auto;
         background:
-            radial-gradient(circle at top right, rgba(37, 99, 235, 0.03), transparent 24%),
-            linear-gradient(180deg, rgba(37, 99, 235, 0.015), transparent 18%);
+            linear-gradient(180deg, rgba(15, 23, 42, 0.01), rgba(15, 23, 42, 0.02)),
+            radial-gradient(circle at top right, var(--wa-tone-soft), transparent 22%);
+    }
+
+    html[data-theme='dark'] .wa-chat__body {
+        background:
+            linear-gradient(180deg, rgba(255,255,255,.01), rgba(255,255,255,.015)),
+            radial-gradient(circle at top right, rgba(255,255,255,.03), transparent 22%);
     }
 
     .wa-day {
         justify-self: center;
-        min-height: 30px;
-        padding: 0 12px;
+        min-height: 34px;
+        padding: 0 16px;
         border-radius: 999px;
-        border: 1px solid var(--line);
-        background: var(--panel);
-        color: var(--muted);
-        font-size: .74rem;
-        font-weight: 800;
+        border: 1px solid var(--wa-tone-border);
+        background: linear-gradient(180deg, rgba(255,255,255,.9), rgba(255,255,255,.72));
+        color: var(--wa-tone);
+        font-size: .78rem;
+        font-weight: 900;
         display: inline-flex;
         align-items: center;
+        white-space: nowrap;
+        box-shadow: 0 8px 18px rgba(15, 23, 42, 0.06);
+        letter-spacing: -0.01em;
+    }
+
+    html[data-theme='dark'] .wa-day {
+        background: linear-gradient(180deg, rgba(15,23,42,.8), rgba(15,23,42,.56));
+        box-shadow: none;
     }
 
     .wa-bubble-row {
@@ -356,17 +471,16 @@
     }
 
     .wa-bubble--me {
-        background: linear-gradient(180deg, #ecf4ff, #f7fbff);
-        border-color: #d9e7fb;
+        background: linear-gradient(180deg, var(--wa-tone-soft), rgba(255,255,255,.96));
+        border-color: var(--wa-tone-border);
+    }
+
+    html[data-theme='dark'] .wa-bubble--me {
+        background: linear-gradient(180deg, rgba(255,255,255,.05), rgba(255,255,255,.02));
     }
 
     .wa-bubble--teacher {
         background: linear-gradient(180deg, var(--panel), var(--panel-soft));
-    }
-
-    html[data-theme='dark'] .wa-bubble--me {
-        background: linear-gradient(180deg, #10203a, #142a46);
-        border-color: rgba(110, 161, 255, 0.18);
     }
 
     .wa-bubble__meta {
@@ -396,7 +510,7 @@
         padding: 12px;
         border-radius: 18px;
         border: 1px solid var(--line);
-        background: rgba(255,255,255,.56);
+        background: rgba(255,255,255,.62);
     }
 
     html[data-theme='dark'] .wa-attachment {
@@ -467,7 +581,7 @@
         border-radius: 999px;
         border: 1px solid var(--line);
         background: var(--panel);
-        color: var(--primary);
+        color: var(--wa-tone);
         font-size: .8rem;
         font-weight: 800;
         display: inline-flex;
@@ -480,7 +594,14 @@
         display: flex;
         align-items: center;
         gap: 10px;
-        background: linear-gradient(180deg, rgba(37,99,235,.02), transparent);
+        background:
+            linear-gradient(180deg, rgba(255,255,255,.74), rgba(255,255,255,.52));
+        backdrop-filter: blur(10px);
+    }
+
+    html[data-theme='dark'] .wa-compose {
+        background:
+            linear-gradient(180deg, rgba(15,23,42,.42), rgba(15,23,42,.18));
     }
 
     .wa-compose__attach {
@@ -518,8 +639,8 @@
     }
 
     .wa-compose__field textarea:focus {
-        border-color: var(--primary);
-        box-shadow: 0 0 0 4px rgba(37,99,235,.10);
+        border-color: var(--wa-tone);
+        box-shadow: 0 0 0 4px var(--wa-tone-soft);
     }
 
     .wa-compose__send {
@@ -673,7 +794,7 @@
     <div class="wa-student__top">
         <div class="wa-student__top-left">
             <h1>Messagerie classe</h1>
-            <p>Choisissez un enseignant de votre classe à gauche puis discutez directement avec lui comme dans une messagerie moderne.</p>
+            <p>Choisissez un enseignant à gauche puis discutez avec lui dans une interface plus propre et plus moderne.</p>
         </div>
 
         <a href="{{ route('student.messages.create') }}" class="btn btn--primary">Nouveau message</a>
@@ -691,6 +812,7 @@
             <div class="wa-thread-list">
                 @forelse ($threadCollection as $thread)
                     @php
+                        $tone = $threadPalette[$loop->index % count($threadPalette)];
                         $teacherName = $thread->teacher->full_name ?? $thread->teacher->name ?? $thread->teacher->username ?? 'Enseignant';
                         $subjectName = $thread->subject->name ?? 'Matière';
                         $className = $thread->schoolClass->name ?? 'Classe';
@@ -702,7 +824,12 @@
                         $isActive = (int) $thread->assignment->id === (int) $selectedThreadId;
                     @endphp
 
-                    <button type="button" class="wa-thread {{ $isActive ? 'is-active' : '' }}" data-thread-id="{{ $thread->assignment->id }}">
+                    <button
+                        type="button"
+                        class="wa-thread {{ $isActive ? 'is-active' : '' }}"
+                        data-thread-id="{{ $thread->assignment->id }}"
+                        style="--wa-tone: {{ $tone['color'] }}; --wa-tone-soft: {{ $tone['soft'] }}; --wa-tone-border: {{ $tone['border'] }}; --wa-tone-grad: {{ $tone['grad'] }};"
+                    >
                         <span class="wa-thread__avatar">{{ $avatar }}</span>
 
                         <span class="wa-thread__content">
@@ -748,6 +875,7 @@
             @if ($threadCollection->isNotEmpty())
                 @foreach ($threadCollection as $thread)
                     @php
+                        $tone = $threadPalette[$loop->index % count($threadPalette)];
                         $teacherName = $thread->teacher->full_name ?? $thread->teacher->name ?? $thread->teacher->username ?? 'Enseignant';
                         $subjectName = $thread->subject->name ?? 'Matière';
                         $className = $thread->schoolClass->name ?? 'Classe';
@@ -756,7 +884,11 @@
                         $isActive = (int) $thread->assignment->id === (int) $selectedThreadId;
                     @endphp
 
-                    <div class="wa-pane {{ $isActive ? 'is-active' : '' }}" data-pane-id="{{ $thread->assignment->id }}">
+                    <div
+                        class="wa-pane {{ $isActive ? 'is-active' : '' }}"
+                        data-pane-id="{{ $thread->assignment->id }}"
+                        style="--wa-tone: {{ $tone['color'] }}; --wa-tone-soft: {{ $tone['soft'] }}; --wa-tone-border: {{ $tone['border'] }}; --wa-tone-grad: {{ $tone['grad'] }};"
+                    >
                         <div class="wa-chat__head">
                             <div class="wa-chat__head-left">
                                 <button type="button" class="wa-back" data-wa-back>← Retour</button>
@@ -769,7 +901,7 @@
                             </div>
 
                             <div class="wa-chat__head-tools">
-                                <span class="wa-mini-badge wa-mini-badge--empty">{{ $subjectName }}</span>
+                                <span class="wa-subject-chip">{{ strtoupper($subjectName) }}</span>
                                 <a href="{{ route('student.messages.create', ['teacher_assignment_id' => $thread->assignment->id]) }}" class="btn btn--ghost">Nouveau message</a>
                             </div>
                         </div>
@@ -782,16 +914,19 @@
 
                                 @foreach ($thread->messages as $entry)
                                     @php
-                                        $entryDate = optional($entry->created_at)->format('d/m/Y');
+                                        $entryDateKey = optional($entry->created_at)->format('Y-m-d');
+                                        $entryDateLabel = $entry->created_at
+                                            ? mb_convert_case($entry->created_at->locale('fr')->translatedFormat('D d M Y'), MB_CASE_TITLE, 'UTF-8')
+                                            : '';
                                         $attachmentUrl = $entry->attachment_path ? route('student.messages.attachment', $entry) : null;
                                         $attachmentDownloadUrl = $entry->attachment_path ? route('student.messages.attachment', ['message' => $entry->id, 'download' => 1]) : null;
                                         $attachmentName = $entry->attachment_name ?: basename((string) $entry->attachment_path);
                                         $isImage = method_exists($entry, 'isImageAttachment') ? $entry->isImageAttachment() : false;
                                     @endphp
 
-                                    @if ($entryDate !== $currentDate)
-                                        @php $currentDate = $entryDate; @endphp
-                                        <div class="wa-day">{{ $entryDate }}</div>
+                                    @if ($entryDateKey !== $currentDate)
+                                        @php $currentDate = $entryDateKey; @endphp
+                                        <div class="wa-day">{{ $entryDateLabel }}</div>
                                     @endif
 
                                     <div class="wa-bubble-row wa-bubble-row--me">
