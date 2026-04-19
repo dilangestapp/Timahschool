@@ -13,17 +13,29 @@
     .student-message-create .compose-card {
         border: 1px solid var(--line);
         border-radius: 28px;
-        background: linear-gradient(180deg, var(--panel), var(--panel-soft));
+        background:
+            radial-gradient(circle at top right, rgba(37,99,235,.08), transparent 24%),
+            linear-gradient(180deg, #f8fbff, #f3f8ff);
         box-shadow: var(--shadow);
         overflow: hidden;
+    }
+
+    html[data-theme='dark'] .student-message-create .compose-card {
+        background:
+            radial-gradient(circle at top right, rgba(255,255,255,.03), transparent 24%),
+            linear-gradient(180deg, #0f1c31, #13233d);
     }
 
     .student-message-create .compose-head {
         padding: 18px 18px 16px;
         border-bottom: 1px solid var(--line);
-        background: rgba(37, 99, 235, 0.03);
+        background: rgba(255,255,255,.42);
         display: grid;
         gap: 6px;
+    }
+
+    html[data-theme='dark'] .student-message-create .compose-head {
+        background: rgba(15,23,42,.24);
     }
 
     .student-message-create .compose-head h1 {
@@ -52,10 +64,16 @@
         border: 1px solid var(--line);
         background:
             radial-gradient(circle at top right, rgba(37,99,235,.08), transparent 28%),
-            linear-gradient(180deg, var(--panel), var(--panel-soft));
+            linear-gradient(180deg, rgba(255,255,255,.86), rgba(255,255,255,.68));
         display: flex;
         align-items: flex-start;
         gap: 12px;
+    }
+
+    html[data-theme='dark'] .student-message-create .target-card {
+        background:
+            radial-gradient(circle at top right, rgba(255,255,255,.03), transparent 28%),
+            linear-gradient(180deg, rgba(15,23,42,.54), rgba(15,23,42,.34));
     }
 
     .student-message-create .target-avatar {
@@ -113,11 +131,17 @@
         width: 100%;
         border-radius: 18px;
         border: 1px solid var(--line);
-        background: var(--panel);
+        background: rgba(255,255,255,.82);
         color: var(--text);
         outline: none;
         transition: .2s ease;
         box-sizing: border-box;
+    }
+
+    html[data-theme='dark'] .student-message-create .form-input,
+    html[data-theme='dark'] .student-message-create .form-select,
+    html[data-theme='dark'] .student-message-create .form-textarea {
+        background: rgba(15,23,42,.52);
     }
 
     .student-message-create .form-input,
@@ -127,7 +151,7 @@
     }
 
     .student-message-create .form-textarea {
-        min-height: 180px;
+        min-height: 190px;
         padding: 14px;
         resize: vertical;
         line-height: 1.65;
@@ -140,14 +164,36 @@
         box-shadow: 0 0 0 4px rgba(37,99,235,.10);
     }
 
-    .student-message-create .file-wrap {
-        display: flex;
-        flex-wrap: wrap;
+    .student-message-create .file-grid {
+        display: grid;
+        grid-template-columns: repeat(2, minmax(0, 1fr));
         gap: 12px;
-        align-items: center;
     }
 
-    .student-message-create .file-wrap input[type="file"] {
+    .student-message-create .file-card {
+        padding: 14px;
+        border-radius: 20px;
+        border: 1px solid var(--line);
+        background: rgba(255,255,255,.64);
+        display: grid;
+        gap: 8px;
+    }
+
+    html[data-theme='dark'] .student-message-create .file-card {
+        background: rgba(15,23,42,.34);
+    }
+
+    .student-message-create .file-card strong {
+        font-size: .92rem;
+    }
+
+    .student-message-create .file-card span {
+        color: var(--muted);
+        font-size: .82rem;
+        line-height: 1.5;
+    }
+
+    .student-message-create .file-card input[type="file"] {
         width: 100%;
     }
 
@@ -172,6 +218,10 @@
             padding-right: 14px;
         }
 
+        .student-message-create .file-grid {
+            grid-template-columns: 1fr;
+        }
+
         .student-message-create .compose-actions {
             align-items: stretch;
         }
@@ -189,7 +239,7 @@
     <div class="compose-card">
         <div class="compose-head">
             <h1>Nouveau message</h1>
-            <p>Envoyez rapidement une question à un enseignant de votre classe dans une interface plus simple.</p>
+            <p>Envoyez un texte, un fichier ou un vocal à un enseignant de votre classe.</p>
         </div>
 
         <div class="compose-body">
@@ -240,19 +290,25 @@
 
                     <div class="form-group">
                         <label for="message">Message</label>
-                        <textarea id="message" name="message" class="form-textarea" required>{{ old('message') }}</textarea>
+                        <textarea id="message" name="message" class="form-textarea">{{ old('message') }}</textarea>
                     </div>
 
-                    <div class="form-group">
-                        <label for="attachment">Pièce jointe</label>
-                        <div class="file-wrap">
+                    <div class="file-grid">
+                        <div class="file-card">
+                            <strong>Joindre un fichier</strong>
+                            <span>PDF, Word ou image.</span>
                             <input id="attachment" type="file" name="attachment" accept=".pdf,.doc,.docx,.jpg,.jpeg,.png,.webp">
-                            <span class="compose-hint">Formats acceptés : PDF, Word, image. Taille max : 5 Mo.</span>
+                        </div>
+
+                        <div class="file-card">
+                            <strong>Ajouter un vocal</strong>
+                            <span>Audio depuis le téléphone ou le navigateur.</span>
+                            <input id="voice_note" type="file" name="voice_note" accept="audio/*" capture>
                         </div>
                     </div>
 
                     <div class="compose-actions">
-                        <span class="compose-hint">Conseil : posez une question claire et directe pour recevoir une réponse plus rapide.</span>
+                        <span class="compose-hint">Vous pouvez envoyer soit un texte, soit un fichier, soit un vocal, soit les combiner.</span>
                         <button type="submit" class="btn btn--primary">Envoyer le message</button>
                     </div>
                 </form>
