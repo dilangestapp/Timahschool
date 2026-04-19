@@ -23,26 +23,26 @@
 
 @push('styles')
 <style>
-    .student-messaging {
+    .student-messaging-x {
         display: grid;
         gap: 18px;
     }
 
-    .student-messaging .page-hero {
+    .student-messaging-x .page-hero {
         position: relative;
         overflow: hidden;
         border-radius: 30px;
-        border: 1px solid var(--line);
+        border: 1px solid rgba(255,255,255,.08);
         background:
             radial-gradient(circle at top right, rgba(110, 161, 255, 0.18), transparent 28%),
-            radial-gradient(circle at 15% 100%, rgba(56, 189, 248, 0.12), transparent 32%),
-            linear-gradient(135deg, #0f172a 0%, #172554 45%, #1d4ed8 100%);
+            radial-gradient(circle at 18% 100%, rgba(56, 189, 248, 0.12), transparent 30%),
+            linear-gradient(135deg, #0f172a 0%, #172554 46%, #1d4ed8 100%);
         color: #fff;
-        padding: 24px;
+        padding: 22px;
         box-shadow: var(--shadow-lg);
     }
 
-    .student-messaging .page-hero::before {
+    .student-messaging-x .page-hero::before {
         content: "";
         position: absolute;
         width: 220px;
@@ -50,25 +50,25 @@
         border-radius: 999px;
         background: rgba(255,255,255,.05);
         top: -90px;
-        right: -60px;
+        right: -55px;
     }
 
-    .student-messaging .page-hero__grid {
+    .student-messaging-x .page-hero__grid {
         position: relative;
         z-index: 1;
         display: grid;
-        grid-template-columns: 1.06fr .94fr;
+        grid-template-columns: 1.02fr .98fr;
         gap: 18px;
-        align-items: start;
+        align-items: center;
     }
 
-    .student-messaging .page-hero__left,
-    .student-messaging .page-hero__right {
+    .student-messaging-x .page-hero__left,
+    .student-messaging-x .page-hero__right {
         display: grid;
-        gap: 14px;
+        gap: 12px;
     }
 
-    .student-messaging .hero-badge {
+    .student-messaging-x .hero-badge {
         display: inline-flex;
         align-items: center;
         gap: 8px;
@@ -83,30 +83,49 @@
         letter-spacing: -0.01em;
     }
 
-    .student-messaging .page-hero h1 {
+    .student-messaging-x .page-hero h1 {
         margin: 0;
-        font-size: clamp(1.9rem, 3.3vw, 3.2rem);
+        font-size: clamp(1.8rem, 3vw, 3rem);
         line-height: 1.02;
         letter-spacing: -0.05em;
-        max-width: 12ch;
+        max-width: 11ch;
     }
 
-    .student-messaging .page-hero p {
+    .student-messaging-x .page-hero p {
         margin: 0;
         color: rgba(255,255,255,.84);
         line-height: 1.72;
-        font-size: .98rem;
+        font-size: .95rem;
         max-width: 62ch;
     }
 
-    .student-messaging .hero-stats {
-        display: grid;
-        grid-template-columns: repeat(4, minmax(0, 1fr));
-        gap: 12px;
+    .student-messaging-x .hero-quick {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 10px;
     }
 
-    .student-messaging .hero-stat {
-        padding: 14px 16px;
+    .student-messaging-x .hero-pill {
+        display: inline-flex;
+        align-items: center;
+        min-height: 34px;
+        padding: 0 12px;
+        border-radius: 999px;
+        border: 1px solid rgba(255,255,255,.14);
+        background: rgba(255,255,255,.08);
+        color: #eef6ff;
+        font-size: .8rem;
+        font-weight: 800;
+    }
+
+    .student-messaging-x .hero-right-top {
+        display: grid;
+        grid-template-columns: repeat(4, minmax(0, 1fr));
+        gap: 10px;
+    }
+
+    .student-messaging-x .hero-stat {
+        padding: 14px;
         border-radius: 20px;
         border: 1px solid rgba(255,255,255,.14);
         background: rgba(255,255,255,.08);
@@ -115,38 +134,35 @@
         gap: 4px;
     }
 
-    .student-messaging .hero-stat strong {
-        font-size: 1.35rem;
+    .student-messaging-x .hero-stat strong {
+        font-size: 1.28rem;
         line-height: 1;
         letter-spacing: -0.04em;
     }
 
-    .student-messaging .hero-stat span {
+    .student-messaging-x .hero-stat span {
         color: rgba(255,255,255,.76);
-        font-size: .82rem;
+        font-size: .8rem;
         font-weight: 700;
     }
 
-    .student-messaging .hero-actions {
+    .student-messaging-x .hero-right-bottom {
         display: flex;
-        flex-wrap: wrap;
-        gap: 12px;
         justify-content: flex-end;
+        gap: 12px;
+        flex-wrap: wrap;
     }
 
-    .student-messaging .hero-actions .btn {
-        box-shadow: 0 14px 28px rgba(0, 0, 0, .14);
-    }
-
-    .student-messaging .chat-shell {
+    .student-messaging-x .chat-shell {
         display: grid;
         grid-template-columns: 360px minmax(0, 1fr);
         gap: 18px;
-        min-height: 720px;
+        min-height: 740px;
+        align-items: start;
     }
 
-    .student-messaging .thread-list-card,
-    .student-messaging .chat-pane-card {
+    .student-messaging-x .thread-list-card,
+    .student-messaging-x .chat-pane-card {
         border: 1px solid var(--line);
         border-radius: 30px;
         background: linear-gradient(180deg, var(--panel), var(--panel-soft));
@@ -154,40 +170,46 @@
         overflow: hidden;
     }
 
-    .student-messaging .thread-list-head,
-    .student-messaging .chat-pane-head {
+    .student-messaging-x .thread-list-card {
+        position: sticky;
+        top: 94px;
+    }
+
+    .student-messaging-x .thread-list-head,
+    .student-messaging-x .chat-pane-head {
         padding: 18px 18px 16px;
         border-bottom: 1px solid var(--line);
         background: rgba(37, 99, 235, 0.03);
     }
 
-    .student-messaging .thread-list-head h2,
-    .student-messaging .chat-pane-head h2 {
+    .student-messaging-x .thread-list-head h2,
+    .student-messaging-x .chat-pane-head h2 {
         margin: 0;
-        font-size: 1.18rem;
+        font-size: 1.14rem;
         letter-spacing: -0.03em;
     }
 
-    .student-messaging .thread-list-head p,
-    .student-messaging .chat-pane-head p {
+    .student-messaging-x .thread-list-head p,
+    .student-messaging-x .chat-pane-head p {
         margin: 6px 0 0;
         color: var(--muted);
         font-size: .9rem;
         line-height: 1.6;
     }
 
-    .student-messaging .thread-toolbar {
+    .student-messaging-x .thread-toolbar {
         padding: 14px 18px;
         display: grid;
         gap: 12px;
         border-bottom: 1px solid var(--line);
+        background: linear-gradient(180deg, rgba(37,99,235,.02), transparent);
     }
 
-    .student-messaging .search-wrap {
+    .student-messaging-x .search-wrap {
         position: relative;
     }
 
-    .student-messaging .search-wrap input {
+    .student-messaging-x .search-wrap input {
         width: 100%;
         height: 48px;
         border-radius: 16px;
@@ -199,12 +221,12 @@
         transition: .2s ease;
     }
 
-    .student-messaging .search-wrap input:focus {
+    .student-messaging-x .search-wrap input:focus {
         border-color: var(--primary);
         box-shadow: 0 0 0 4px rgba(37, 99, 235, 0.10);
     }
 
-    .student-messaging .search-wrap svg {
+    .student-messaging-x .search-wrap svg {
         position: absolute;
         left: 14px;
         top: 50%;
@@ -215,39 +237,39 @@
         pointer-events: none;
     }
 
-    .student-messaging .thread-filters {
+    .student-messaging-x .thread-filters {
         display: flex;
         flex-wrap: wrap;
         gap: 10px;
     }
 
-    .student-messaging .thread-filter {
+    .student-messaging-x .thread-filter {
         min-height: 34px;
         padding: 0 12px;
         border-radius: 999px;
         border: 1px solid var(--line);
         background: var(--panel);
         color: var(--muted);
-        font-size: .82rem;
+        font-size: .8rem;
         font-weight: 800;
         cursor: pointer;
         transition: .2s ease;
     }
 
-    .student-messaging .thread-filter.is-active {
+    .student-messaging-x .thread-filter.is-active {
         color: #fff;
         border-color: transparent;
         background: linear-gradient(135deg, var(--primary), #4f86ff);
         box-shadow: 0 10px 24px rgba(37,99,235,.20);
     }
 
-    .student-messaging .thread-list {
+    .student-messaging-x .thread-list {
         display: grid;
-        max-height: 560px;
+        max-height: 600px;
         overflow: auto;
     }
 
-    .student-messaging .thread-item {
+    .student-messaging-x .thread-item {
         width: 100%;
         display: grid;
         gap: 10px;
@@ -258,35 +280,47 @@
         text-align: left;
         cursor: pointer;
         transition: .2s ease;
+        position: relative;
     }
 
-    .student-messaging .thread-item:hover {
+    .student-messaging-x .thread-item:hover {
         background: rgba(37, 99, 235, 0.04);
     }
 
-    .student-messaging .thread-item.is-active {
+    .student-messaging-x .thread-item.is-active {
         background: rgba(37, 99, 235, 0.08);
     }
 
-    .student-messaging .thread-item.is-hidden {
+    .student-messaging-x .thread-item.is-active::before {
+        content: "";
+        position: absolute;
+        left: 0;
+        top: 12px;
+        bottom: 12px;
+        width: 4px;
+        border-radius: 999px;
+        background: linear-gradient(180deg, var(--primary), #4f86ff);
+    }
+
+    .student-messaging-x .thread-item.is-hidden {
         display: none;
     }
 
-    .student-messaging .thread-item__top {
+    .student-messaging-x .thread-item__top {
         display: flex;
         align-items: flex-start;
         justify-content: space-between;
         gap: 12px;
     }
 
-    .student-messaging .thread-item__main {
+    .student-messaging-x .thread-item__main {
         display: flex;
         align-items: flex-start;
         gap: 12px;
         min-width: 0;
     }
 
-    .student-messaging .avatar {
+    .student-messaging-x .avatar {
         width: 46px;
         height: 46px;
         flex: 0 0 46px;
@@ -302,40 +336,40 @@
         box-shadow: var(--shadow-xs);
     }
 
-    .student-messaging .thread-item__text {
+    .student-messaging-x .thread-item__text {
         min-width: 0;
         display: grid;
         gap: 3px;
     }
 
-    .student-messaging .thread-item__text strong {
+    .student-messaging-x .thread-item__text strong {
         font-size: .98rem;
         line-height: 1.25;
         letter-spacing: -0.02em;
         color: var(--text);
     }
 
-    .student-messaging .thread-item__meta {
+    .student-messaging-x .thread-item__meta {
         color: var(--muted);
         font-size: .82rem;
         line-height: 1.45;
     }
 
-    .student-messaging .thread-item__time {
+    .student-messaging-x .thread-item__time {
         color: var(--muted);
         font-size: .78rem;
         font-weight: 700;
         white-space: nowrap;
     }
 
-    .student-messaging .thread-item__subject {
+    .student-messaging-x .thread-item__subject {
         display: flex;
         align-items: center;
         gap: 8px;
         flex-wrap: wrap;
     }
 
-    .student-messaging .thread-snippet {
+    .student-messaging-x .thread-snippet {
         color: var(--muted);
         font-size: .86rem;
         line-height: 1.5;
@@ -345,7 +379,7 @@
         overflow: hidden;
     }
 
-    .student-messaging .badge {
+    .student-messaging-x .badge {
         display: inline-flex;
         align-items: center;
         min-height: 30px;
@@ -357,53 +391,53 @@
         white-space: nowrap;
     }
 
-    .student-messaging .badge--unread {
+    .student-messaging-x .badge--unread {
         background: rgba(37,99,235,.10);
         color: var(--primary);
         border-color: rgba(37,99,235,.16);
     }
 
-    .student-messaging .badge--answered {
+    .student-messaging-x .badge--answered {
         background: rgba(22,163,74,.10);
         color: #15803d;
         border-color: rgba(22,163,74,.18);
     }
 
-    .student-messaging .badge--pending {
+    .student-messaging-x .badge--pending {
         background: rgba(245,158,11,.12);
         color: #d97706;
         border-color: rgba(245,158,11,.18);
     }
 
-    .student-messaging .badge--closed {
+    .student-messaging-x .badge--closed {
         background: rgba(100,116,139,.12);
         color: var(--muted);
         border-color: var(--line);
     }
 
-    .student-messaging .badge--read {
+    .student-messaging-x .badge--read {
         background: rgba(100,116,139,.10);
         color: var(--muted);
         border-color: var(--line);
     }
 
-    .student-messaging .badge--attachment {
+    .student-messaging-x .badge--attachment {
         background: rgba(124,58,237,.10);
         color: #7c3aed;
         border-color: rgba(124,58,237,.18);
     }
 
-    .student-messaging .chat-pane {
+    .student-messaging-x .chat-pane {
         display: none;
         grid-template-rows: auto 1fr auto;
-        min-height: 100%;
+        min-height: 740px;
     }
 
-    .student-messaging .chat-pane.is-active {
+    .student-messaging-x .chat-pane.is-active {
         display: grid;
     }
 
-    .student-messaging .chat-pane-head {
+    .student-messaging-x .chat-pane-head {
         display: flex;
         align-items: center;
         justify-content: space-between;
@@ -411,55 +445,75 @@
         flex-wrap: wrap;
     }
 
-    .student-messaging .chat-pane-head__left {
+    .student-messaging-x .chat-pane-head__left {
         display: flex;
         align-items: center;
         gap: 12px;
         min-width: 0;
     }
 
-    .student-messaging .chat-pane-head__text {
+    .student-messaging-x .chat-pane-head__text {
         min-width: 0;
         display: grid;
         gap: 3px;
     }
 
-    .student-messaging .chat-pane-head__text strong {
+    .student-messaging-x .chat-pane-head__text strong {
         font-size: 1rem;
         line-height: 1.25;
         letter-spacing: -0.02em;
     }
 
-    .student-messaging .chat-pane-head__text span {
+    .student-messaging-x .chat-pane-head__text span {
         color: var(--muted);
         font-size: .84rem;
         line-height: 1.45;
     }
 
-    .student-messaging .chat-pane-actions {
+    .student-messaging-x .chat-pane-meta {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 8px;
+        margin-top: 6px;
+    }
+
+    .student-messaging-x .meta-chip {
+        min-height: 28px;
+        padding: 0 10px;
+        border-radius: 999px;
+        border: 1px solid var(--line);
+        background: var(--panel);
+        color: var(--muted);
+        font-size: .76rem;
+        font-weight: 800;
+        display: inline-flex;
+        align-items: center;
+    }
+
+    .student-messaging-x .chat-pane-actions {
         display: flex;
         flex-wrap: wrap;
         gap: 10px;
     }
 
-    .student-messaging .chat-scroll {
+    .student-messaging-x .chat-scroll {
         padding: 18px;
         display: grid;
         gap: 14px;
-        min-height: 420px;
-        max-height: 560px;
+        min-height: 430px;
+        max-height: 580px;
         overflow: auto;
         background:
             radial-gradient(circle at top right, rgba(37,99,235,.03), transparent 24%),
             linear-gradient(180deg, rgba(37,99,235,.01), transparent 18%);
     }
 
-    .student-messaging .message-group {
+    .student-messaging-x .message-group {
         display: grid;
         gap: 12px;
     }
 
-    .student-messaging .message-date {
+    .student-messaging-x .message-date {
         justify-self: center;
         min-height: 30px;
         padding: 0 12px;
@@ -473,64 +527,65 @@
         align-items: center;
     }
 
-    .student-messaging .bubble-row {
+    .student-messaging-x .bubble-row {
         display: flex;
     }
 
-    .student-messaging .bubble-row--me {
+    .student-messaging-x .bubble-row--me {
         justify-content: flex-end;
     }
 
-    .student-messaging .bubble-row--teacher {
+    .student-messaging-x .bubble-row--teacher {
         justify-content: flex-start;
     }
 
-    .student-messaging .bubble {
-        max-width: min(720px, 88%);
+    .student-messaging-x .bubble {
+        max-width: min(740px, 88%);
         padding: 16px;
         border-radius: 22px;
         border: 1px solid var(--line);
         box-shadow: var(--shadow-xs);
         display: grid;
         gap: 10px;
+        position: relative;
     }
 
-    .student-messaging .bubble--me {
+    .student-messaging-x .bubble--me {
         background: linear-gradient(180deg, #eef5ff, #f7faff);
         border-color: #d8e6fb;
     }
 
-    .student-messaging .bubble--teacher {
+    .student-messaging-x .bubble--teacher {
         background: linear-gradient(180deg, var(--panel), var(--panel-soft));
     }
 
-    html[data-theme='dark'] .student-messaging .bubble--me {
+    html[data-theme='dark'] .student-messaging-x .bubble--me {
         background: linear-gradient(180deg, #10203a, #142a46);
         border-color: rgba(110,161,255,.18);
     }
 
-    .student-messaging .bubble__meta {
+    .student-messaging-x .bubble__meta {
         color: var(--muted);
         font-size: .78rem;
         font-weight: 700;
         line-height: 1.4;
     }
 
-    .student-messaging .bubble__title {
+    .student-messaging-x .bubble__title {
         font-size: 1rem;
         font-weight: 900;
         letter-spacing: -0.02em;
         color: var(--text);
     }
 
-    .student-messaging .bubble__text {
+    .student-messaging-x .bubble__text {
         color: var(--text);
         line-height: 1.72;
         font-size: .94rem;
         word-break: break-word;
     }
 
-    .student-messaging .attachment-box {
+    .student-messaging-x .attachment-box {
         display: grid;
         gap: 10px;
         padding: 12px;
@@ -539,17 +594,17 @@
         background: rgba(255,255,255,.56);
     }
 
-    html[data-theme='dark'] .student-messaging .attachment-box {
+    html[data-theme='dark'] .student-messaging-x .attachment-box {
         background: rgba(15, 23, 42, 0.22);
     }
 
-    .student-messaging .attachment-file {
+    .student-messaging-x .attachment-file {
         display: flex;
         align-items: flex-start;
         gap: 12px;
     }
 
-    .student-messaging .attachment-file__icon {
+    .student-messaging-x .attachment-file__icon {
         width: 42px;
         height: 42px;
         border-radius: 14px;
@@ -563,24 +618,24 @@
         font-weight: 900;
     }
 
-    .student-messaging .attachment-file__text {
+    .student-messaging-x .attachment-file__text {
         min-width: 0;
         display: grid;
         gap: 4px;
     }
 
-    .student-messaging .attachment-file__text strong {
+    .student-messaging-x .attachment-file__text strong {
         font-size: .92rem;
         line-height: 1.35;
         word-break: break-word;
     }
 
-    .student-messaging .attachment-file__text span {
+    .student-messaging-x .attachment-file__text span {
         color: var(--muted);
         font-size: .8rem;
     }
 
-    .student-messaging .attachment-image-link {
+    .student-messaging-x .attachment-image-link {
         display: block;
         border-radius: 18px;
         overflow: hidden;
@@ -588,20 +643,20 @@
         background: var(--panel);
     }
 
-    .student-messaging .attachment-image {
+    .student-messaging-x .attachment-image {
         width: 100%;
-        max-height: 260px;
+        max-height: 280px;
         object-fit: cover;
         display: block;
     }
 
-    .student-messaging .attachment-actions {
+    .student-messaging-x .attachment-actions {
         display: flex;
         flex-wrap: wrap;
         gap: 10px;
     }
 
-    .student-messaging .attachment-actions a {
+    .student-messaging-x .attachment-actions a {
         min-height: 34px;
         padding: 0 12px;
         border-radius: 999px;
@@ -614,7 +669,7 @@
         align-items: center;
     }
 
-    .student-messaging .chat-pane-footer {
+    .student-messaging-x .chat-pane-footer {
         padding: 16px 18px;
         border-top: 1px solid var(--line);
         background: linear-gradient(180deg, rgba(37,99,235,.02), transparent);
@@ -622,44 +677,75 @@
         gap: 12px;
     }
 
-    .student-messaging .composer {
+    .student-messaging-x .reply-card {
         display: grid;
-        gap: 10px;
-    }
-
-    .student-messaging .composer textarea {
-        width: 100%;
-        min-height: 110px;
-        resize: vertical;
-        border-radius: 20px;
+        gap: 12px;
+        padding: 16px;
+        border-radius: 22px;
         border: 1px solid var(--line);
-        background: var(--panel);
-        color: var(--text);
-        padding: 14px 16px;
-        outline: none;
-        transition: .2s ease;
+        background:
+            radial-gradient(circle at top right, rgba(37,99,235,.08), transparent 28%),
+            linear-gradient(180deg, var(--panel), var(--panel-soft));
     }
 
-    .student-messaging .composer textarea:focus {
-        border-color: var(--primary);
-        box-shadow: 0 0 0 4px rgba(37,99,235,.10);
-    }
-
-    .student-messaging .composer-actions {
+    .student-messaging-x .reply-card__top {
         display: flex;
-        align-items: center;
+        align-items: flex-start;
         justify-content: space-between;
         gap: 12px;
         flex-wrap: wrap;
     }
 
-    .student-messaging .composer-hint {
+    .student-messaging-x .reply-card__top strong {
+        font-size: 1rem;
+        letter-spacing: -0.02em;
+    }
+
+    .student-messaging-x .reply-card__top span {
         color: var(--muted);
         font-size: .84rem;
         line-height: 1.5;
     }
 
-    .student-messaging .chat-empty {
+    .student-messaging-x .reply-preview {
+        min-height: 88px;
+        border-radius: 18px;
+        border: 1px dashed var(--line);
+        background: rgba(37,99,235,.03);
+        padding: 14px;
+        color: var(--muted);
+        font-size: .9rem;
+        line-height: 1.65;
+    }
+
+    .student-messaging-x .reply-actions {
+        display: flex;
+        justify-content: space-between;
+        gap: 12px;
+        flex-wrap: wrap;
+        align-items: center;
+    }
+
+    .student-messaging-x .reply-tools {
+        display: flex;
+        gap: 10px;
+        flex-wrap: wrap;
+    }
+
+    .student-messaging-x .tool-pill {
+        min-height: 34px;
+        padding: 0 12px;
+        border-radius: 999px;
+        border: 1px solid var(--line);
+        background: var(--panel);
+        color: var(--muted);
+        font-size: .8rem;
+        font-weight: 800;
+        display: inline-flex;
+        align-items: center;
+    }
+
+    .student-messaging-x .chat-empty {
         min-height: 100%;
         display: grid;
         place-items: center;
@@ -668,13 +754,13 @@
         color: var(--muted);
     }
 
-    .student-messaging .chat-empty__box {
+    .student-messaging-x .chat-empty__box {
         max-width: 420px;
         display: grid;
         gap: 12px;
     }
 
-    .student-messaging .chat-empty__icon {
+    .student-messaging-x .chat-empty__icon {
         width: 74px;
         height: 74px;
         border-radius: 22px;
@@ -688,7 +774,7 @@
         font-weight: 900;
     }
 
-    .student-messaging .mobile-back {
+    .student-messaging-x .mobile-back {
         display: none;
         min-height: 40px;
         padding: 0 12px;
@@ -700,7 +786,7 @@
         cursor: pointer;
     }
 
-    .student-messaging .mobile-compose {
+    .student-messaging-x .mobile-compose {
         display: none;
         position: fixed;
         right: 16px;
@@ -717,136 +803,138 @@
     }
 
     @media (max-width: 1180px) {
-        .student-messaging .page-hero__grid,
-        .student-messaging .chat-shell {
+        .student-messaging-x .page-hero__grid,
+        .student-messaging-x .chat-shell {
             grid-template-columns: 1fr;
         }
 
-        .student-messaging .hero-stats {
+        .student-messaging-x .hero-right-top {
             grid-template-columns: repeat(2, minmax(0, 1fr));
         }
 
-        .student-messaging .thread-list {
+        .student-messaging-x .thread-list-card {
+            position: static;
+        }
+
+        .student-messaging-x .thread-list,
+        .student-messaging-x .chat-scroll {
             max-height: none;
         }
 
-        .student-messaging .chat-scroll {
-            max-height: none;
+        .student-messaging-x .chat-pane {
+            min-height: auto;
         }
     }
 
     @media (max-width: 720px) {
-        .student-messaging {
+        .student-messaging-x {
             gap: 16px;
         }
 
-        .student-messaging .page-hero,
-        .student-messaging .thread-list-card,
-        .student-messaging .chat-pane-card {
+        .student-messaging-x .page-hero,
+        .student-messaging-x .thread-list-card,
+        .student-messaging-x .chat-pane-card {
             border-radius: 22px;
         }
 
-        .student-messaging .page-hero {
+        .student-messaging-x .page-hero {
             padding: 18px 14px;
         }
 
-        .student-messaging .page-hero h1 {
+        .student-messaging-x .page-hero h1 {
             max-width: none;
-            font-size: clamp(1.6rem, 8vw, 2.35rem);
+            font-size: clamp(1.55rem, 8vw, 2.25rem);
         }
 
-        .student-messaging .page-hero p {
+        .student-messaging-x .page-hero p {
             font-size: .9rem;
             line-height: 1.6;
         }
 
-        .student-messaging .hero-actions {
-            justify-content: flex-start;
-        }
-
-        .student-messaging .hero-stats {
+        .student-messaging-x .hero-right-top {
             grid-template-columns: 1fr 1fr;
         }
 
-        .student-messaging .chat-shell {
+        .student-messaging-x .hero-right-bottom {
+            justify-content: flex-start;
+        }
+
+        .student-messaging-x .chat-shell {
             min-height: auto;
         }
 
-        .student-messaging .thread-list-card,
-        .student-messaging .chat-pane-card {
-            min-height: auto;
-        }
-
-        .student-messaging .chat-pane-card {
+        .student-messaging-x .chat-pane-card {
             display: none;
         }
 
-        .student-messaging.is-thread-open .thread-list-card {
+        .student-messaging-x.is-thread-open .thread-list-card {
             display: none;
         }
 
-        .student-messaging.is-thread-open .chat-pane-card {
+        .student-messaging-x.is-thread-open .chat-pane-card {
             display: block;
         }
 
-        .student-messaging .mobile-back {
+        .student-messaging-x .mobile-back {
             display: inline-flex;
             align-items: center;
             justify-content: center;
         }
 
-        .student-messaging .mobile-compose {
+        .student-messaging-x .mobile-compose {
             display: inline-flex;
             align-items: center;
             justify-content: center;
         }
 
-        .student-messaging.is-thread-open .mobile-compose {
+        .student-messaging-x.is-thread-open .mobile-compose {
             display: none;
         }
 
-        .student-messaging .thread-list-head,
-        .student-messaging .thread-toolbar,
-        .student-messaging .chat-pane-head,
-        .student-messaging .chat-pane-footer,
-        .student-messaging .chat-scroll,
-        .student-messaging .wow-card__body,
-        .student-messaging .panel__item {
+        .student-messaging-x .thread-list-head,
+        .student-messaging-x .thread-toolbar,
+        .student-messaging-x .chat-pane-head,
+        .student-messaging-x .chat-scroll,
+        .student-messaging-x .chat-pane-footer {
             padding-left: 14px;
             padding-right: 14px;
         }
 
-        .student-messaging .bubble {
+        .student-messaging-x .bubble {
             max-width: 100%;
         }
 
-        .student-messaging .composer-actions {
+        .student-messaging-x .reply-actions {
             align-items: stretch;
         }
 
-        .student-messaging .composer-actions .btn {
+        .student-messaging-x .reply-actions .btn {
             width: 100%;
             justify-content: center;
+        }
+
+        .student-messaging-x .reply-tools {
+            width: 100%;
         }
     }
 
     @media (max-width: 480px) {
-        .student-messaging .hero-stats {
+        .student-messaging-x .hero-right-top {
             grid-template-columns: 1fr;
         }
 
-        .student-messaging .thread-item,
-        .student-messaging .chat-scroll,
-        .student-messaging .chat-pane-footer {
+        .student-messaging-x .thread-item,
+        .student-messaging-x .chat-scroll,
+        .student-messaging-x .chat-pane-footer {
             padding-left: 12px;
             padding-right: 12px;
         }
 
-        .student-messaging .thread-item__main {
+        .student-messaging-x .thread-item__main {
             gap: 10px;
         }
 
-        .student-messaging .avatar {
+        .student-messaging-x .avatar {
             width: 42px;
             height: 42px;
             flex-basis: 42px;
@@ -854,7 +942,7 @@
             font-size: .9rem;
         }
 
-        .student-messaging .attachment-image {
+        .student-messaging-x .attachment-image {
             max-height: 210px;
         }
     }
@@ -862,17 +950,23 @@
 @endpush
 
 @section('content')
-<section class="student-messaging" id="studentMessaging">
+<section class="student-messaging-x" id="studentMessagingX">
     <div class="page-hero">
         <div class="page-hero__grid">
             <div class="page-hero__left">
                 <span class="hero-badge">💬 Messagerie élève</span>
                 <h1>Mes échanges avec les enseignants</h1>
-                <p>Retrouvez vos conversations, les réponses et les pièces jointes dans une vue plus moderne, plus rapide et plus pratique.</p>
+                <p>Retrouvez vos conversations, les réponses et les pièces jointes dans une interface plus moderne, plus rapide et plus pratique au quotidien.</p>
+
+                <div class="hero-quick">
+                    <span class="hero-pill">Lecture rapide</span>
+                    <span class="hero-pill">Pièces jointes intégrées</span>
+                    <span class="hero-pill">Vue conversation</span>
+                </div>
             </div>
 
             <div class="page-hero__right">
-                <div class="hero-stats">
+                <div class="hero-right-top">
                     <div class="hero-stat">
                         <strong>{{ $threadCount }}</strong>
                         <span>conversations</span>
@@ -891,7 +985,7 @@
                     </div>
                 </div>
 
-                <div class="hero-actions">
+                <div class="hero-right-bottom">
                     <a href="{{ route('student.messages.create') }}" class="btn btn--primary">Nouveau message</a>
                 </div>
             </div>
@@ -902,7 +996,7 @@
         <section class="thread-list-card">
             <div class="thread-list-head">
                 <h2>Conversations</h2>
-                <p>Recherchez, filtrez et ouvrez rapidement la bonne discussion.</p>
+                <p>Retrouvez vite le bon enseignant, la bonne matière et le bon échange.</p>
             </div>
 
             <div class="thread-toolbar">
@@ -930,9 +1024,6 @@
                         $subjectLabel = $message->subject->name ?? 'Matière inconnue';
                         $title = $message->title ?: ($message->topic ?? 'Sans objet');
                         $attachmentUrl = $message->attachment_path ? asset('storage/' . $message->attachment_path) : null;
-                        $attachmentName = $message->attachment_name ?: basename((string) $message->attachment_path);
-                        $extension = strtolower(pathinfo((string) $attachmentName, PATHINFO_EXTENSION));
-                        $isImage = in_array($extension, ['jpg', 'jpeg', 'png', 'gif', 'webp', 'bmp']);
                         $statusUi = $statusMap[$message->status ?? 'read'] ?? ['label' => ucfirst((string) $message->status), 'class' => 'read'];
                         $snippet = $message->reply_message ?: $message->message;
                         $avatar = collect(explode(' ', trim($teacherName)))->filter()->map(fn ($part) => mb_strtoupper(mb_substr($part, 0, 1)))->take(2)->implode('');
@@ -1011,11 +1102,16 @@
                                 <div class="chat-pane-head__text">
                                     <strong>{{ $teacherName }}</strong>
                                     <span>{{ $subjectLabel }} · {{ $classLabel }}</span>
+
+                                    <div class="chat-pane-meta">
+                                        <span class="meta-chip">{{ $classLabel }}</span>
+                                        <span class="meta-chip">{{ $subjectLabel }}</span>
+                                        <span class="badge badge--{{ $statusUi['class'] }}">{{ $statusUi['label'] }}</span>
+                                    </div>
                                 </div>
                             </div>
 
                             <div class="chat-pane-actions">
-                                <span class="badge badge--{{ $statusUi['class'] }}">{{ $statusUi['label'] }}</span>
                                 <a href="{{ route('student.messages.create') }}" class="btn btn--ghost">Nouveau message</a>
                             </div>
                         </div>
@@ -1069,12 +1165,24 @@
                         </div>
 
                         <div class="chat-pane-footer">
-                            <div class="composer">
-                                <textarea placeholder="Pour continuer cet échange, utilisez le bouton Nouveau message ci-dessous."></textarea>
+                            <div class="reply-card">
+                                <div class="reply-card__top">
+                                    <div>
+                                        <strong>Continuer cet échange</strong>
+                                        <span>Préparez votre prochaine demande ou relancez proprement la discussion.</span>
+                                    </div>
+                                </div>
 
-                                <div class="composer-actions">
-                                    <div class="composer-hint">
-                                        Interface modernisée de messagerie. Pour envoyer un nouveau message, utilisez l’action prévue.
+                                <div class="reply-preview">
+                                    Écrivez ici votre prochaine idée, votre question ou votre précision. Pour l’envoi réel,
+                                    utilisez le bouton « Nouveau message » ci-dessous afin de conserver le flux actuel du système.
+                                </div>
+
+                                <div class="reply-actions">
+                                    <div class="reply-tools">
+                                        <span class="tool-pill">Texte</span>
+                                        <span class="tool-pill">Pièce jointe</span>
+                                        <span class="tool-pill">Question claire</span>
                                     </div>
 
                                     <a href="{{ route('student.messages.create') }}" class="btn btn--primary">Nouveau message</a>
@@ -1105,7 +1213,7 @@
 @push('scripts')
 <script>
     (function () {
-        const root = document.getElementById('studentMessaging');
+        const root = document.getElementById('studentMessagingX');
         if (!root) return;
 
         const items = Array.from(root.querySelectorAll('.thread-item'));
