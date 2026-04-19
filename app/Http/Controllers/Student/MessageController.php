@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Student;
 use App\Http\Controllers\Controller;
 use App\Models\TeacherAssignment;
 use App\Models\TeacherMessage;
+use App\Services\AnonymousVoiceTransformer;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Schema;
 use Illuminate\Support\Facades\Storage;
@@ -116,7 +117,7 @@ class MessageController extends Controller
         return view('student.messages.create', compact('assignments', 'studentProfile', 'selectedAssignmentId', 'selectedAssignment'));
     }
 
-    public function store(Request $request)
+    public function store(Request $request, AnonymousVoiceTransformer $voiceTransformer)
     {
         $student = auth()->user();
         $studentProfile = $student->studentProfile;
@@ -137,10 +138,9 @@ class MessageController extends Controller
             ->where('is_active', true)
             ->firstOrFail();
 
-        $attachmentFile = $request->file('voice_note') ?: $request->file('attachment');
         $cleanMessage = trim((string) ($data['message'] ?? ''));
 
-        if (!$attachmentFile && $cleanMessage === '') {
+        if (!$request->file('attachment') && !$request->file('voice_note') && $cleanMessage === '') {
             return back()
                 ->withErrors(['message' => 'Écrivez un message ou ajoutez un fichier / vocal.'])
                 ->withInput();
@@ -149,9 +149,13 @@ class MessageController extends Controller
         $attachmentPath = null;
         $attachmentName = null;
 
-        if ($attachmentFile) {
-            $attachmentPath = $attachmentFile->store('teacher_messages', 'local');
-            $attachmentName = $attachmentFile->getClientOriginalName();
+        if ($request->file('voice_note')) {
+            $voiceData = $voiceTransformer->store($request->file('voice_note'));
+            $attachmentPath = $voiceData['path'];
+            $attachmentName = $voiceData['name'];
+        } elseif ($request->file('attachment')) {
+            $attachmentPath = $request->file('attachment')->store('teacher_messages', 'local');
+            $attachmentName = $request->file('attachment')->getClientOriginalName();
         }
 
         $payload = [
