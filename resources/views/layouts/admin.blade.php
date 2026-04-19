@@ -7,8 +7,10 @@
     <title>@yield('title', 'Admin') - TIMAH ACADEMY</title>
     <link rel="icon" type="image/svg+xml" href="{{ asset('assets/brand/timah-academy-favicon.svg') }}">
     <style>{!! file_get_contents(public_path('assets/css/admin.css')) !!}</style>
+    <style>{!! file_get_contents(public_path('assets/css/ui-groups.css')) !!}</style>
+    @stack('styles')
 </head>
-<body>
+<body data-ui-group="@yield('ui_group', 'control')" data-ui-role="admin">
 <div class="admin-shell">
     <aside class="admin-sidebar">
         <div class="admin-sidebar__top">
@@ -86,6 +88,7 @@
         </main>
     </div>
 </div>
+
 <script>
 (() => {
     const root = document.documentElement;
@@ -124,5 +127,7 @@
     });
 })();
 </script>
+
+@stack('scripts')
 </body>
 </html>
