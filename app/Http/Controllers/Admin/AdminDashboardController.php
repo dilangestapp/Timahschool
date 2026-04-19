@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
 use App\Models\Payment;
+use App\Models\PlatformSetting;
 use App\Models\SchoolClass;
 use App\Models\Subscription;
 use App\Models\TdQuestionThread;
@@ -40,6 +41,7 @@ class AdminDashboardController extends Controller
 
         return view('admin.dashboard', [
             'stats' => $stats,
+            'dashboardText' => PlatformSetting::group('dashboard_admin'),
             'recentTeacherMessages' => $hasMessages
                 ? TeacherMessage::query()->with(['teacher', 'student', 'schoolClass', 'subject'])->latest()->take(6)->get()
                 : collect(),
