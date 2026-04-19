@@ -390,9 +390,10 @@
         }
     </style>
 
+    <style>{!! file_get_contents(public_path('assets/css/ui-groups.css')) !!}</style>
     @stack('styles')
 </head>
-<body>
+<body data-ui-group="@yield('ui_group', 'workspace')" data-ui-role="student">
 <div class="student-app" id="studentApp">
     <div class="mobile-overlay" id="mobileOverlay"></div>
 
@@ -501,7 +502,6 @@
     const root = document.documentElement;
     const storageKey = 'timah-student-theme';
     const app = document.getElementById('studentApp');
-    const sidebar = document.getElementById('studentSidebar');
     const overlay = document.getElementById('mobileOverlay');
     const menuBtn = document.getElementById('mobileMenuBtn');
     const media = window.matchMedia('(prefers-color-scheme: dark)');
