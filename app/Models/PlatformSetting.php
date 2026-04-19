@@ -19,8 +19,6 @@ class PlatformSetting extends Model
         'is_public',
     ];
 
-    public $timestamps = true;
-
     protected $casts = [
         'sort_order' => 'integer',
         'is_public' => 'boolean',
@@ -68,11 +66,13 @@ class PlatformSetting extends Model
             ->toArray();
     }
 
-    public static function setGroupValues(string $group, array $values): void
+    public static function putGroup(string $group, array $values): void
     {
         if (!Schema::hasTable('platform_settings')) {
             return;
         }
+
+        $order = 1;
 
         foreach ($values as $key => $value) {
             static::query()->updateOrCreate(
@@ -83,9 +83,17 @@ class PlatformSetting extends Model
                 [
                     'value' => static::normalizeValue($value),
                     'type' => static::detectType($value),
+                    'sort_order' => $order,
                 ]
             );
+
+            $order++;
         }
+    }
+
+    public static function setGroupValues(string $group, array $values): void
+    {
+        static::putGroup($group, $values);
     }
 
     protected static function castValue(mixed $value, ?string $type): mixed
