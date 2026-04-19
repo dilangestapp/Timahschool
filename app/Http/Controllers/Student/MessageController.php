@@ -126,8 +126,9 @@ class MessageController extends Controller
         $data = $request->validate([
             'teacher_assignment_id' => ['required', 'integer', 'exists:teacher_assignments,id'],
             'title' => ['required', 'string', 'max:255'],
-            'message' => ['required', 'string'],
-            'attachment' => ['nullable', 'file', 'mimes:pdf,doc,docx,jpg,jpeg,png,webp', 'max:5120'],
+            'message' => ['nullable', 'string'],
+            'attachment' => ['nullable', 'file', 'mimes:pdf,doc,docx,jpg,jpeg,png,webp', 'max:10240'],
+            'voice_note' => ['nullable', 'file', 'mimes:mp3,wav,ogg,m4a,webm,aac,3gp,amr,mp4', 'max:15360'],
         ]);
 
         $assignment = TeacherAssignment::query()
@@ -136,12 +137,21 @@ class MessageController extends Controller
             ->where('is_active', true)
             ->firstOrFail();
 
+        $attachmentFile = $request->file('voice_note') ?: $request->file('attachment');
+        $cleanMessage = trim((string) ($data['message'] ?? ''));
+
+        if (!$attachmentFile && $cleanMessage === '') {
+            return back()
+                ->withErrors(['message' => 'Écrivez un message ou ajoutez un fichier / vocal.'])
+                ->withInput();
+        }
+
         $attachmentPath = null;
         $attachmentName = null;
 
-        if ($request->hasFile('attachment')) {
-            $attachmentPath = $request->file('attachment')->store('teacher_messages', 'local');
-            $attachmentName = $request->file('attachment')->getClientOriginalName();
+        if ($attachmentFile) {
+            $attachmentPath = $attachmentFile->store('teacher_messages', 'local');
+            $attachmentName = $attachmentFile->getClientOriginalName();
         }
 
         $payload = [
@@ -151,7 +161,7 @@ class MessageController extends Controller
             'school_class_id' => $assignment->school_class_id,
             'subject_id' => $assignment->subject_id,
             'title' => $data['title'],
-            'message' => $data['message'],
+            'message' => $cleanMessage !== '' ? $cleanMessage : 'Note vocale',
             'attachment_path' => $attachmentPath,
             'attachment_name' => $attachmentName,
             'status' => TeacherMessage::STATUS_UNREAD,
@@ -180,7 +190,7 @@ class MessageController extends Controller
             return response()->download($absolutePath, $downloadName);
         }
 
-        if ($message->isImageAttachment()) {
+        if ($message->isImageAttachment() || $message->isAudioAttachment()) {
             return response()->file($absolutePath);
         }
 
