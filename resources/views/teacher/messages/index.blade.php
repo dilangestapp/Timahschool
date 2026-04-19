@@ -77,6 +77,12 @@
         box-shadow: 0 14px 28px rgba(37,99,235,.22);
     }
 
+    .wa-teacher .teacher-btn--primary:hover,
+    .wa-teacher .btn--primary:hover {
+        transform: translateY(-1px);
+        box-shadow: 0 18px 34px rgba(37,99,235,.26);
+    }
+
     .wa-teacher .teacher-btn--ghost,
     .wa-teacher .btn--ghost {
         background: rgba(255,255,255,.72);
@@ -88,6 +94,12 @@
     html[data-theme='dark'] .wa-teacher .teacher-btn--ghost,
     html[data-theme='dark'] .wa-teacher .btn--ghost {
         background: rgba(15,23,42,.58);
+    }
+
+    .wa-teacher .teacher-btn--ghost:hover,
+    .wa-teacher .btn--ghost:hover {
+        background: var(--primary-soft);
+        border-color: var(--line-strong);
     }
 
     .wa-teacher__top {
@@ -105,7 +117,7 @@
 
     .wa-teacher__top-left h1 {
         margin: 0;
-        font-size: clamp(1.5rem, 2.6vw, 2.1rem);
+        font-size: clamp(1.55rem, 2.7vw, 2.15rem);
         line-height: 1.05;
         letter-spacing: -0.04em;
     }
@@ -138,16 +150,16 @@
 
     .wa-teacher__shell {
         display: grid;
-        grid-template-columns: 340px minmax(0, 1fr);
+        grid-template-columns: 360px minmax(0, 1fr);
         gap: 16px;
-        min-height: 76vh;
+        min-height: 78vh;
         align-items: stretch;
     }
 
     .wa-teacher__sidebar,
     .wa-teacher__chat {
         border: 1px solid var(--line);
-        border-radius: 28px;
+        border-radius: 30px;
         box-shadow: var(--shadow);
         overflow: hidden;
     }
@@ -167,7 +179,7 @@
     }
 
     .wa-teacher__sidebar-head {
-        padding: 16px 16px 14px;
+        padding: 18px 18px 16px;
         border-bottom: 1px solid var(--line);
         display: flex;
         align-items: center;
@@ -202,7 +214,7 @@
         display: flex;
         align-items: flex-start;
         gap: 12px;
-        padding: 14px 16px;
+        padding: 16px 18px;
         border: 0;
         border-bottom: 1px solid var(--line);
         background: transparent;
@@ -229,17 +241,17 @@
         content: "";
         position: absolute;
         left: 0;
-        top: 10px;
-        bottom: 10px;
+        top: 12px;
+        bottom: 12px;
         width: 4px;
         border-radius: 999px;
         background: var(--wa-tone-grad);
     }
 
     .wa-teacher__avatar {
-        width: 48px;
-        height: 48px;
-        flex: 0 0 48px;
+        width: 50px;
+        height: 50px;
+        flex: 0 0 50px;
         border-radius: 16px;
         display: inline-flex;
         align-items: center;
@@ -267,7 +279,7 @@
     }
 
     .wa-teacher__thread-name {
-        font-size: .98rem;
+        font-size: 1rem;
         font-weight: 900;
         line-height: 1.25;
         letter-spacing: -0.02em;
@@ -283,13 +295,13 @@
 
     .wa-teacher__thread-meta {
         color: var(--muted);
-        font-size: .8rem;
-        line-height: 1.4;
+        font-size: .81rem;
+        line-height: 1.45;
     }
 
     .wa-teacher__thread-snippet {
         color: var(--muted);
-        font-size: .86rem;
+        font-size: .87rem;
         line-height: 1.45;
         display: -webkit-box;
         -webkit-line-clamp: 2;
@@ -330,7 +342,7 @@
 
     .wa-teacher__chat {
         display: grid;
-        min-height: 76vh;
+        min-height: 78vh;
         background: linear-gradient(180deg, var(--wa-chat-bg-top), var(--wa-chat-bg-bottom));
     }
 
@@ -349,7 +361,7 @@
     }
 
     .wa-teacher__chat-head {
-        padding: 14px 16px;
+        padding: 16px 18px;
         border-bottom: 1px solid var(--line);
         display: flex;
         align-items: center;
@@ -384,9 +396,9 @@
     }
 
     .wa-teacher__chat-avatar {
-        width: 46px;
-        height: 46px;
-        flex: 0 0 46px;
+        width: 48px;
+        height: 48px;
+        flex: 0 0 48px;
         border-radius: 16px;
         display: inline-flex;
         align-items: center;
@@ -437,9 +449,9 @@
     }
 
     .wa-teacher__chat-body {
-        padding: 20px 18px;
+        padding: 22px 20px;
         display: grid;
-        gap: 16px;
+        gap: 18px;
         overflow: auto;
         background:
             radial-gradient(circle at top right, var(--wa-tone-soft), transparent 20%),
@@ -488,7 +500,7 @@
 
     .wa-bubble {
         max-width: min(780px, 84%);
-        padding: 14px 15px;
+        padding: 16px 16px;
         border-radius: 22px;
         border: 1px solid var(--line);
         box-shadow: var(--shadow-xs);
@@ -624,11 +636,11 @@
     }
 
     .wa-teacher__compose {
-        padding: 14px 16px;
+        padding: 16px 18px;
         border-top: 1px solid var(--line);
         display: flex;
         align-items: flex-end;
-        gap: 10px;
+        gap: 12px;
         background: linear-gradient(180deg, rgba(255,255,255,.78), rgba(255,255,255,.58));
         backdrop-filter: blur(10px);
     }
@@ -644,8 +656,8 @@
 
     .wa-teacher__compose-field textarea {
         width: 100%;
-        min-height: 96px;
-        max-height: 180px;
+        min-height: 110px;
+        max-height: 190px;
         resize: vertical;
         border-radius: 20px;
         border: 1px solid var(--wa-tone-border);
@@ -751,7 +763,7 @@
         }
 
         .wa-teacher__compose-field textarea {
-            min-height: 84px;
+            min-height: 88px;
         }
     }
 
@@ -786,7 +798,7 @@
     <div class="wa-teacher__top">
         <div class="wa-teacher__top-left">
             <h1>Messagerie enseignants</h1>
-            <p>Choisissez un élève à gauche puis répondez directement dans une interface plus moderne et plus pratique.</p>
+            <p>Choisissez un élève à gauche puis répondez directement dans une interface moderne, propre et proche de la version élève.</p>
         </div>
 
         <div class="wa-teacher__top-stats">
@@ -891,9 +903,6 @@
 
                             <div class="wa-teacher__chat-tools">
                                 <span class="wa-subject-chip">{{ strtoupper($subjectName) }}</span>
-                                @if ($thread->reply_target)
-                                    <a href="{{ route('teacher.messages.show', $thread->reply_target) }}" class="teacher-btn teacher-btn--ghost">Voir direct</a>
-                                @endif
                             </div>
                         </div>
 
