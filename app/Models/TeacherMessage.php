@@ -70,20 +70,6 @@ class TeacherMessage extends Model
         return (string) ($this->title ?: $this->topic ?: 'Sans objet');
     }
 
-    public function isImageAttachment(): bool
-    {
-        if (!$this->attachment_name && !$this->attachment_path) {
-            return false;
-        }
-
-        $name = strtolower((string) ($this->attachment_name ?: $this->attachment_path));
-
-        return str_ends_with($name, '.jpg')
-            || str_ends_with($name, '.jpeg')
-            || str_ends_with($name, '.png')
-            || str_ends_with($name, '.webp');
-    }
-
     public function attachmentExtension(): ?string
     {
         $name = $this->attachment_name ?: $this->attachment_path;
@@ -92,5 +78,19 @@ class TeacherMessage extends Model
         }
 
         return strtolower(pathinfo($name, PATHINFO_EXTENSION));
+    }
+
+    public function isImageAttachment(): bool
+    {
+        $extension = $this->attachmentExtension();
+
+        return in_array($extension, ['jpg', 'jpeg', 'png', 'webp'], true);
+    }
+
+    public function isAudioAttachment(): bool
+    {
+        $extension = $this->attachmentExtension();
+
+        return in_array($extension, ['mp3', 'wav', 'ogg', 'm4a', 'webm', 'aac', '3gp', 'amr', 'mp4'], true);
     }
 }
