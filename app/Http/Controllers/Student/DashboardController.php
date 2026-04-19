@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Student;
 
 use App\Http\Controllers\Controller;
 use App\Models\Course;
+use App\Models\PlatformSetting;
 use App\Models\TdAttempt;
 use App\Models\TdSet;
 use Illuminate\Support\Facades\Schema;
@@ -72,6 +73,7 @@ class DashboardController extends Controller
             'recentTdSets' => $recentTdSets,
             'tdOpenedCount' => $tdOpenedCount,
             'pendingQuizzes' => $pendingQuizzes,
+            'dashboardText' => PlatformSetting::group('dashboard_student'),
         ]);
     }
 }
