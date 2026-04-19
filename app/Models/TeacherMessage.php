@@ -73,6 +73,7 @@ class TeacherMessage extends Model
     public function attachmentExtension(): ?string
     {
         $name = $this->attachment_name ?: $this->attachment_path;
+
         if (!$name) {
             return null;
         }
