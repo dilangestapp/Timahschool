@@ -23,17 +23,18 @@ class AnonymousVoiceTransformer
             ];
         }
 
-        $targetRelativePath = $directory . '/anonymized/' . pathinfo($sourceRelativePath, PATHINFO_FILENAME) . '-anonymous.m4a';
+        $targetRelativePath = $directory . '/anonymized/' . pathinfo($sourceRelativePath, PATHINFO_FILENAME) . '-voice-anonyme.mp3';
         $targetAbsolutePath = Storage::disk('local')->path($targetRelativePath);
 
         Storage::disk('local')->makeDirectory(dirname($targetRelativePath));
 
         $filter = implode(',', [
-            'asetrate=44100*0.90',
-            'atempo=1.111111',
+            'asetrate=44100*1.08',
+            'atempo=0.93',
+            'aresample=44100',
             'highpass=f=140',
-            'lowpass=f=3000',
-            'afftdn=nf=-20',
+            'lowpass=f=3200',
+            'afftdn=nf=-18',
             'acompressor=threshold=-18dB:ratio=2.2:attack=20:release=250',
         ]);
 
@@ -45,17 +46,21 @@ class AnonymousVoiceTransformer
             '-vn',
             '-af',
             $filter,
+            '-ac',
+            '1',
+            '-ar',
+            '44100',
             '-c:a',
-            'aac',
+            'libmp3lame',
             '-b:a',
-            '96k',
+            '128k',
             $targetAbsolutePath,
         ]);
 
         $process->setTimeout(120);
         $process->run();
 
-        if (!$process->isSuccessful() || !is_file($targetAbsolutePath)) {
+        if (!$process->isSuccessful() || !is_file($targetAbsolutePath) || filesize($targetAbsolutePath) === 0) {
             Log::warning('Anonymous voice transformation failed. Falling back to original audio.', [
                 'original' => $sourceRelativePath,
                 'error' => $process->getErrorOutput(),
@@ -72,7 +77,7 @@ class AnonymousVoiceTransformer
 
         return [
             'path' => $targetRelativePath,
-            'name' => 'voice-anonyme-' . now()->format('Ymd-His') . '.m4a',
+            'name' => 'voice-anonyme-' . now()->format('Ymd-His') . '.mp3',
             'transformed' => true,
         ];
     }
