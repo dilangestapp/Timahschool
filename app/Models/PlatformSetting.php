@@ -3,6 +3,7 @@
 namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Support\Facades\Schema;
 use Illuminate\Support\Facades\Storage;
 
@@ -93,11 +94,39 @@ class PlatformSetting extends Model
         ];
     }
 
+    protected static function ensureTableExists(): bool
+    {
+        if (Schema::hasTable('platform_settings')) {
+            return true;
+        }
+
+        try {
+            Schema::create('platform_settings', function (Blueprint $table) {
+                $table->id();
+                $table->string('group', 100);
+                $table->string('key', 150);
+                $table->longText('value')->nullable();
+                $table->string('type', 30)->default('text');
+                $table->string('label')->nullable();
+                $table->integer('sort_order')->default(0);
+                $table->boolean('is_public')->default(false);
+                $table->timestamps();
+
+                $table->unique(['group', 'key']);
+                $table->index('group');
+            });
+        } catch (\Throwable $e) {
+            return Schema::hasTable('platform_settings');
+        }
+
+        return true;
+    }
+
     public static function group(string $group): array
     {
         $defaults = static::defaults()[$group] ?? [];
 
-        if (!Schema::hasTable('platform_settings')) {
+        if (!static::ensureTableExists()) {
             return $defaults;
         }
 
@@ -125,7 +154,7 @@ class PlatformSetting extends Model
     {
         $defaults = static::defaults()[$group] ?? [];
 
-        if (!Schema::hasTable('platform_settings')) {
+        if (!static::ensureTableExists()) {
             return $defaults;
         }
 
@@ -145,7 +174,7 @@ class PlatformSetting extends Model
 
     public static function putGroup(string $group, array $values): void
     {
-        if (!Schema::hasTable('platform_settings')) {
+        if (!static::ensureTableExists()) {
             return;
         }
 
