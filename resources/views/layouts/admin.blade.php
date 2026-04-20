@@ -1,6 +1,10 @@
 @php
     $generalSettings = \App\Models\PlatformSetting::group('general');
     $platformName = $generalSettings['platform_name'] ?? 'TIMAH ACADEMY';
+    $platformSlogan = $generalSettings['platform_slogan'] ?? 'Plateforme éducative moderne et premium';
+    $platformLogo = !empty($generalSettings['logo_path'])
+        ? \Illuminate\Support\Facades\Storage::url($generalSettings['logo_path'])
+        : null;
 @endphp
 <!DOCTYPE html>
 <html lang="fr" data-theme="auto">
@@ -19,7 +23,11 @@
     <aside class="admin-sidebar">
         <div class="admin-sidebar__top">
             <a href="{{ route('admin.dashboard') }}" class="admin-brand">
-                <img src="{{ asset('assets/brand/timah-academy-logo-horizontal-light.svg') }}" alt="{{ $platformName }}" style="height:34px; width:auto;">
+                @if($platformLogo)
+                    <img src="{{ $platformLogo }}" alt="{{ $platformName }}" style="height:44px; width:auto; display:block;">
+                @else
+                    <img src="{{ asset('assets/brand/timah-academy-logo-horizontal-light.svg') }}" alt="{{ $platformName }}" style="height:34px; width:auto; display:block;">
+                @endif
             </a>
         </div>
 
