@@ -1,10 +1,18 @@
+@php
+    $generalSettings = \App\Models\PlatformSetting::group('general');
+    $platformName = $generalSettings['platform_name'] ?? 'TIMAH ACADEMY';
+    $platformSlogan = $generalSettings['platform_slogan'] ?? 'Plateforme éducative moderne et premium';
+    $platformLogo = !empty($generalSettings['logo_path'])
+        ? \Illuminate\Support\Facades\Storage::url($generalSettings['logo_path'])
+        : null;
+@endphp
 <!DOCTYPE html>
 <html lang="fr">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta name="description" content="@yield('meta_description', 'TIMAH ACADEMY - plateforme éducative pour réussir avec des cours, TD et quiz structurés.')">
-    <title>@yield('title', 'TIMAH ACADEMY')</title>
+    <title>@yield('title', $platformName)</title>
 
     <script>
         (function () {
@@ -66,13 +74,8 @@
             --shadow-lg: 0 24px 60px rgba(0, 0, 0, 0.35);
         }
 
-        * {
-            box-sizing: border-box;
-        }
-
-        html {
-            scroll-behavior: smooth;
-        }
+        * { box-sizing: border-box; }
+        html { scroll-behavior: smooth; }
 
         body {
             margin: 0;
@@ -86,22 +89,9 @@
             transition: background .25s ease, color .25s ease;
         }
 
-        a {
-            color: inherit;
-            text-decoration: none;
-        }
-
-        img {
-            max-width: 100%;
-            display: block;
-        }
-
-        button,
-        input,
-        textarea,
-        select {
-            font: inherit;
-        }
+        a { color: inherit; text-decoration: none; }
+        img { max-width: 100%; display: block; }
+        button, input, textarea, select { font: inherit; }
 
         .container {
             width: min(var(--container), calc(100% - 32px));
@@ -260,10 +250,6 @@
             background: rgba(14, 27, 49, 0.92);
         }
 
-        .btn--full {
-            width: 100%;
-        }
-
         .theme-toggle {
             width: 46px;
             min-width: 46px;
@@ -271,82 +257,7 @@
             font-size: 1rem;
         }
 
-        .section {
-            padding: 72px 0;
-        }
-
-        .section--tight {
-            padding: 44px 0;
-        }
-
-        .section-title {
-            margin: 0 0 10px;
-            font-size: clamp(1.85rem, 2.8vw, 2.8rem);
-            line-height: 1.08;
-            letter-spacing: -0.03em;
-        }
-
-        .section-subtitle {
-            margin: 0;
-            max-width: 760px;
-            color: var(--muted);
-            font-size: 1rem;
-        }
-
-        .eyebrow {
-            display: inline-flex;
-            align-items: center;
-            gap: 8px;
-            min-height: 34px;
-            padding: 0 14px;
-            border-radius: 999px;
-            border: 1px solid var(--line);
-            background: rgba(255, 255, 255, 0.72);
-            color: var(--primary);
-            font-weight: 800;
-            font-size: .84rem;
-            letter-spacing: -0.01em;
-        }
-
-        html[data-theme='dark'] .eyebrow {
-            background: rgba(14, 27, 49, 0.88);
-        }
-
-        .muted {
-            color: var(--muted);
-        }
-
-        .feature-list {
-            list-style: none;
-            margin: 18px 0 22px;
-            padding: 0;
-            display: grid;
-            gap: 10px;
-        }
-
-        .feature-list li {
-            display: flex;
-            align-items: flex-start;
-            gap: 10px;
-            color: var(--muted);
-        }
-
-        .feature-list li span:first-child {
-            color: var(--success);
-            font-weight: 900;
-        }
-
-        .plan-price {
-            margin: 10px 0 10px;
-            font-size: 2rem;
-            font-weight: 900;
-            line-height: 1;
-            letter-spacing: -0.03em;
-        }
-
-        .public-main {
-            flex: 1;
-        }
+        .public-main { flex: 1; }
 
         .public-footer {
             margin-top: 56px;
@@ -426,9 +337,7 @@
         }
 
         @media (max-width: 720px) {
-            :root {
-                --header-height: 76px;
-            }
+            :root { --header-height: 76px; }
 
             .container {
                 width: min(var(--container), calc(100% - 22px));
@@ -452,14 +361,6 @@
                 min-height: 44px;
             }
 
-            .section {
-                padding: 58px 0;
-            }
-
-            .section--tight {
-                padding: 36px 0;
-            }
-
             .public-footer {
                 margin-top: 42px;
             }
@@ -474,10 +375,15 @@
     <header class="public-header" id="publicHeader">
         <div class="container public-header__inner">
             <a href="{{ url('/') }}" class="brand">
-                <span class="brand__mark">TA</span>
+                @if($platformLogo)
+                    <img src="{{ $platformLogo }}" alt="{{ $platformName }}" style="height:46px; width:auto; display:block; border-radius:16px;">
+                @else
+                    <span class="brand__mark">TA</span>
+                @endif
+
                 <span class="brand__text">
-                    <span class="brand__title">TIMAH ACADEMY</span>
-                    <span class="brand__subtitle">Plateforme éducative moderne et premium</span>
+                    <span class="brand__title">{{ $platformName }}</span>
+                    <span class="brand__subtitle">{{ $platformSlogan }}</span>
                 </span>
             </a>
 
@@ -512,7 +418,7 @@
         <div class="container">
             <div class="public-footer__inner">
                 <div class="footer-brand">
-                    <strong>TIMAH ACADEMY</strong>
+                    <strong>{{ $platformName }}</strong>
                     <p>
                         Une plateforme pensée pour aider les élèves, les parents et les enseignants
                         à avancer avec des cours structurés, des quiz, des TD et un meilleur suivi.
@@ -535,7 +441,7 @@
             </div>
 
             <div class="footer-bottom">
-                © {{ date('Y') }} TIMAH ACADEMY — Tous droits réservés.
+                © {{ date('Y') }} {{ $platformName }} — Tous droits réservés.
             </div>
         </div>
     </footer>
@@ -552,10 +458,7 @@
         }
 
         function refreshThemeButton() {
-            if (!toggle) {
-                return;
-            }
-
+            if (!toggle) return;
             toggle.textContent = getCurrentTheme() === 'dark' ? '☀️' : '🌙';
             toggle.setAttribute('aria-label', getCurrentTheme() === 'dark' ? 'Activer le thème clair' : 'Activer le thème sombre');
         }
@@ -570,17 +473,13 @@
 
         if (toggle) {
             refreshThemeButton();
-
             toggle.addEventListener('click', function () {
                 applyTheme(getCurrentTheme() === 'dark' ? 'light' : 'dark');
             });
         }
 
         function updateHeaderState() {
-            if (!header) {
-                return;
-            }
-
+            if (!header) return;
             if (window.scrollY > 12) {
                 header.classList.add('is-scrolled');
             } else {
