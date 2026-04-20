@@ -2,7 +2,7 @@
 
 @section('title', 'Paramètres plateforme')
 @section('page_title', 'Paramètres plateforme')
-@section('page_subtitle', 'Gérez les textes globaux, les dashboards et les informations visibles de la plateforme sans toucher au code.')
+@section('page_subtitle', 'Gérez les textes globaux, les dashboards et maintenant le logo principal de la plateforme.')
 
 @php
     $general = $general ?? [];
@@ -10,6 +10,7 @@
     $teacherDashboard = $teacherDashboard ?? [];
     $studentDashboard = $studentDashboard ?? [];
     $homepage = $homepage ?? [];
+    $currentLogoUrl = !empty($general['logo_path']) ? \Illuminate\Support\Facades\Storage::url($general['logo_path']) : null;
 @endphp
 
 @push('styles')
@@ -132,10 +133,6 @@
         gap: 16px;
     }
 
-    .settings-fields--single {
-        grid-template-columns: 1fr;
-    }
-
     .settings-field {
         display: grid;
         gap: 8px;
@@ -165,6 +162,11 @@
         line-height: 1.5;
     }
 
+    .settings-field input[type="file"] {
+        padding: 12px 14px;
+        background: rgba(79,70,229,.04);
+    }
+
     .settings-field textarea {
         min-height: 104px;
         resize: vertical;
@@ -180,6 +182,59 @@
     .settings-field small {
         color: var(--admin-muted, #64748b);
         line-height: 1.45;
+    }
+
+    .settings-logo-box {
+        display: grid;
+        gap: 14px;
+        padding: 16px;
+        border: 1px dashed var(--admin-border, #dbe3f0);
+        border-radius: 20px;
+        background: linear-gradient(180deg, rgba(255,255,255,.72), rgba(255,255,255,.48));
+    }
+
+    .settings-logo-preview {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        min-height: 160px;
+        border-radius: 20px;
+        border: 1px solid var(--admin-border, #dbe3f0);
+        background:
+            radial-gradient(circle at top right, rgba(79,70,229,.08), transparent 30%),
+            linear-gradient(180deg, rgba(255,255,255,.92), rgba(246,248,252,.78));
+        overflow: hidden;
+        padding: 18px;
+    }
+
+    .settings-logo-preview img {
+        max-width: 100%;
+        max-height: 120px;
+        object-fit: contain;
+        display: block;
+    }
+
+    .settings-logo-empty {
+        text-align: center;
+        color: var(--admin-muted, #64748b);
+        font-size: .9rem;
+        line-height: 1.5;
+    }
+
+    .settings-checkbox {
+        display: inline-flex;
+        align-items: center;
+        gap: 10px;
+        font-size: .9rem;
+        font-weight: 700;
+        color: var(--admin-ink, #0f172a);
+    }
+
+    .settings-checkbox input {
+        width: 18px;
+        height: 18px;
+        margin: 0;
+        accent-color: var(--admin-primary, #4f46e5);
     }
 
     .settings-actions {
@@ -232,10 +287,7 @@
     }
 
     @media (max-width: 980px) {
-        .settings-hero {
-            grid-template-columns: 1fr;
-        }
-
+        .settings-hero,
         .settings-fields {
             grid-template-columns: 1fr;
         }
@@ -250,34 +302,35 @@
             <h2>Centre de configuration</h2>
             <p>
                 Ici, l’administrateur peut modifier les textes globaux de la plateforme,
-                les titres visibles sur les dashboards et les informations générales sans toucher aux fichiers du projet.
+                les titres visibles sur les dashboards et maintenant téléverser directement
+                le logo principal sans toucher au code.
             </p>
         </div>
 
         <div class="settings-hero__stats">
             <div class="settings-stat">
-                <strong>4</strong>
-                <span>blocs réglables immédiatement</span>
+                <strong>Logo</strong>
+                <span>upload direct depuis cette page</span>
             </div>
             <div class="settings-stat">
                 <strong>3</strong>
-                <span>dashboards déjà prévus</span>
+                <span>dashboards déjà pilotables</span>
             </div>
             <div class="settings-stat">
                 <strong>1</strong>
-                <span>point d’entrée central pour l’admin</span>
+                <span>centre unique de paramètres</span>
             </div>
         </div>
     </section>
 
-    <form method="POST" action="{{ route('admin.settings.update') }}" class="settings-form">
+    <form method="POST" action="{{ route('admin.settings.update') }}" class="settings-form" enctype="multipart/form-data">
         @csrf
 
         <section class="settings-card settings-section">
             <div class="settings-section__head">
                 <div>
                     <h3>Paramètres généraux</h3>
-                    <p>Informations globales visibles sur la plateforme, le support et certains libellés partagés.</p>
+                    <p>Informations globales visibles sur la plateforme, le support, les libellés partagés et le logo officiel.</p>
                 </div>
                 <span class="settings-pill">Général</span>
             </div>
@@ -291,6 +344,33 @@
                 <div class="settings-field">
                     <label for="general_platform_slogan">Slogan</label>
                     <input type="text" id="general_platform_slogan" name="general_platform_slogan" value="{{ old('general_platform_slogan', $general['platform_slogan'] ?? 'Plateforme éducative moderne et premium') }}">
+                </div>
+
+                <div class="settings-field settings-field--full">
+                    <label>Logo de la plateforme</label>
+
+                    <div class="settings-logo-box">
+                        <div class="settings-logo-preview">
+                            @if($currentLogoUrl)
+                                <img src="{{ $currentLogoUrl }}" alt="Logo actuel">
+                            @else
+                                <div class="settings-logo-empty">
+                                    Aucun logo téléversé pour le moment.<br>
+                                    Le système utilise encore le logo par défaut.
+                                </div>
+                            @endif
+                        </div>
+
+                        <div class="settings-field">
+                            <input type="file" name="general_logo" accept=".png,.jpg,.jpeg,.webp,.svg">
+                            <small>Formats acceptés : PNG, JPG, JPEG, WEBP, SVG. Taille max : 4 Mo.</small>
+                        </div>
+
+                        <label class="settings-checkbox">
+                            <input type="checkbox" name="general_remove_logo" value="1">
+                            Supprimer le logo actuel et revenir au logo par défaut
+                        </label>
+                    </div>
                 </div>
 
                 <div class="settings-field">
@@ -624,7 +704,7 @@
 
         <div class="settings-actions">
             <div class="settings-actions__left">
-                Enregistrez uniquement quand tous les champs obligatoires sont remplis.
+                Le logo téléversé ici devient le logo principal utilisé dans la plateforme.
             </div>
 
             <div class="settings-actions__right">
