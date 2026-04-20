@@ -7,6 +7,7 @@ use App\Models\HomepageSetting;
 use App\Models\PlatformSetting;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Storage;
 
 class AdminPlatformSettingsController extends Controller
 {
@@ -32,6 +33,8 @@ class AdminPlatformSettingsController extends Controller
             'general_footer_text' => ['nullable', 'string', 'max:400'],
             'general_primary_color' => ['nullable', 'string', 'max:20'],
             'general_secondary_color' => ['nullable', 'string', 'max:20'],
+            'general_logo' => ['nullable', 'file', 'mimes:png,jpg,jpeg,webp,svg', 'max:4096'],
+            'general_remove_logo' => ['nullable', 'boolean'],
 
             'admin_page_title' => ['required', 'string', 'max:150'],
             'admin_page_subtitle' => ['required', 'string', 'max:255'],
@@ -79,6 +82,24 @@ class AdminPlatformSettingsController extends Controller
             'student_shortcut_messages_text' => ['required', 'string', 'max:255'],
         ]);
 
+        $currentGeneral = PlatformSetting::group('general');
+        $logoPath = $currentGeneral['logo_path'] ?? '';
+
+        if ($request->boolean('general_remove_logo') && !empty($logoPath)) {
+            if (Storage::disk('public')->exists($logoPath)) {
+                Storage::disk('public')->delete($logoPath);
+            }
+            $logoPath = '';
+        }
+
+        if ($request->hasFile('general_logo')) {
+            if (!empty($logoPath) && Storage::disk('public')->exists($logoPath)) {
+                Storage::disk('public')->delete($logoPath);
+            }
+
+            $logoPath = $request->file('general_logo')->store('branding', 'public');
+        }
+
         PlatformSetting::putGroup('general', [
             'platform_name' => $validated['general_platform_name'],
             'platform_slogan' => $validated['general_platform_slogan'] ?? '',
@@ -88,6 +109,7 @@ class AdminPlatformSettingsController extends Controller
             'footer_text' => $validated['general_footer_text'] ?? '',
             'primary_color' => $validated['general_primary_color'] ?? '#315efb',
             'secondary_color' => $validated['general_secondary_color'] ?? '#7c3aed',
+            'logo_path' => $logoPath,
         ]);
 
         PlatformSetting::putGroup('dashboard_admin', [
