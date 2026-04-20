@@ -1,9 +1,16 @@
+@php
+    $generalSettings = \App\Models\PlatformSetting::group('general');
+    $platformName = $generalSettings['platform_name'] ?? 'TIMAH ACADEMY';
+    $platformLogo = !empty($generalSettings['logo_path'])
+        ? \Illuminate\Support\Facades\Storage::url($generalSettings['logo_path'])
+        : null;
+@endphp
 <!DOCTYPE html>
 <html lang="fr" data-theme="light">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>@yield('title', 'Espace Élève') - TIMAH ACADEMY</title>
+    <title>@yield('title', 'Espace Élève') - {{ $platformName }}</title>
 
     <style>
         :root {
@@ -45,13 +52,8 @@
             --shadow-lg: 0 24px 58px rgba(0, 0, 0, 0.34);
         }
 
-        * {
-            box-sizing: border-box;
-        }
-
-        html {
-            scroll-behavior: smooth;
-        }
+        * { box-sizing: border-box; }
+        html { scroll-behavior: smooth; }
 
         body {
             margin: 0;
@@ -64,17 +66,8 @@
             transition: background .25s ease, color .25s ease;
         }
 
-        a {
-            color: inherit;
-            text-decoration: none;
-        }
-
-        button,
-        input,
-        textarea,
-        select {
-            font: inherit;
-        }
+        a { color: inherit; text-decoration: none; }
+        button, input, textarea, select { font: inherit; }
 
         .student-app {
             min-height: 100vh;
@@ -399,9 +392,14 @@
 
     <aside class="student-sidebar" id="studentSidebar">
         <a href="{{ route('student.dashboard') }}" class="brand">
-            <span class="brand__mark">TA</span>
+            @if($platformLogo)
+                <img src="{{ $platformLogo }}" alt="{{ $platformName }}" style="height:44px; width:auto; display:block; border-radius:16px;">
+            @else
+                <span class="brand__mark">TA</span>
+            @endif
+
             <span class="brand__text">
-                <strong>TIMAH ACADEMY</strong>
+                <strong>{{ $platformName }}</strong>
                 <span>Espace élève moderne</span>
             </span>
         </a>
@@ -468,9 +466,14 @@
                 <button type="button" class="mobile-menu-btn" id="mobileMenuBtn">☰</button>
 
                 <a href="{{ route('student.dashboard') }}" class="brand">
-                    <span class="brand__mark">TA</span>
+                    @if($platformLogo)
+                        <img src="{{ $platformLogo }}" alt="{{ $platformName }}" style="height:44px; width:auto; display:block; border-radius:16px;">
+                    @else
+                        <span class="brand__mark">TA</span>
+                    @endif
+
                     <span class="brand__text">
-                        <strong>TIMAH ACADEMY</strong>
+                        <strong>{{ $platformName }}</strong>
                         <span>Espace élève</span>
                     </span>
                 </a>
