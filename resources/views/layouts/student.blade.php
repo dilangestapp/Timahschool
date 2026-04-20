@@ -1,9 +1,7 @@
 @php
     $generalSettings = \App\Models\PlatformSetting::group('general');
     $platformName = $generalSettings['platform_name'] ?? 'TIMAH ACADEMY';
-    $platformLogo = !empty($generalSettings['logo_path'])
-        ? \Illuminate\Support\Facades\Storage::url($generalSettings['logo_path'])
-        : null;
+   $platformLogo = \App\Models\PlatformSetting::logoUrl($generalSettings['logo_path'] ?? null);
 @endphp
 <!DOCTYPE html>
 <html lang="fr" data-theme="light">
