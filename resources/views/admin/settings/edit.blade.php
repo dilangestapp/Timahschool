@@ -10,7 +10,7 @@
     $teacherDashboard = $teacherDashboard ?? [];
     $studentDashboard = $studentDashboard ?? [];
     $homepage = $homepage ?? [];
-    $currentLogoUrl = !empty($general['logo_path']) ? \Illuminate\Support\Facades\Storage::url($general['logo_path']) : null;
+    $currentLogoUrl = \App\Models\PlatformSetting::logoUrl($general['logo_path'] ?? null);
 @endphp
 
 @push('styles')
