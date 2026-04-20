@@ -7,7 +7,6 @@ use App\Models\HomepageSetting;
 use App\Models\PlatformSetting;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Storage;
 
 class AdminPlatformSettingsController extends Controller
 {
@@ -85,19 +84,46 @@ class AdminPlatformSettingsController extends Controller
         $currentGeneral = PlatformSetting::group('general');
         $logoPath = $currentGeneral['logo_path'] ?? '';
 
-        if ($request->boolean('general_remove_logo') && !empty($logoPath)) {
-            if (Storage::disk('public')->exists($logoPath)) {
-                Storage::disk('public')->delete($logoPath);
+        if ($request->boolean('general_remove_logo') && $logoPath) {
+            $oldPublicFile = public_path($logoPath);
+            $oldStorageFile = public_path('storage/' . ltrim($logoPath, '/'));
+
+            if (file_exists($oldPublicFile)) {
+                @unlink($oldPublicFile);
             }
+
+            if (file_exists($oldStorageFile)) {
+                @unlink($oldStorageFile);
+            }
+
             $logoPath = '';
         }
 
         if ($request->hasFile('general_logo')) {
-            if (!empty($logoPath) && Storage::disk('public')->exists($logoPath)) {
-                Storage::disk('public')->delete($logoPath);
+            if ($logoPath) {
+                $oldPublicFile = public_path($logoPath);
+                $oldStorageFile = public_path('storage/' . ltrim($logoPath, '/'));
+
+                if (file_exists($oldPublicFile)) {
+                    @unlink($oldPublicFile);
+                }
+
+                if (file_exists($oldStorageFile)) {
+                    @unlink($oldStorageFile);
+                }
             }
 
-            $logoPath = $request->file('general_logo')->store('branding', 'public');
+            $directory = public_path('uploads/branding');
+
+            if (!is_dir($directory)) {
+                @mkdir($directory, 0775, true);
+            }
+
+            $file = $request->file('general_logo');
+            $filename = 'platform-logo-' . time() . '.' . $file->getClientOriginalExtension();
+            $file->move($directory, $filename);
+
+            $logoPath = 'uploads/branding/' . $filename;
         }
 
         PlatformSetting::putGroup('general', [
