@@ -19,11 +19,18 @@ class HomeController extends Controller
         } catch (Throwable $e) {
             $classes = collect();
         }
-        $classes = SchoolClass::query()
-            ->where('is_active', true)
-            ->orderBy('order')
-            ->orderBy('name')
-            ->get();
+
+        try {
+            if ($classes->isEmpty() && Schema::hasTable('school_classes')) {
+                $classes = SchoolClass::query()
+                    ->where('is_active', true)
+                    ->orderBy('order')
+                    ->orderBy('name')
+                    ->get();
+            }
+        } catch (Throwable $e) {
+            $classes = collect();
+        }
 
         $classGroups = $classes->groupBy(function ($class) {
             $system = $class->system ?? null;
@@ -52,11 +59,10 @@ class HomeController extends Controller
                     ->orderByDesc('is_featured')
                     ->orderBy('sort_order')
                     ->latest()
-                    ->take(18)
+                    ->take(6)
                     ->get();
             }
         } catch (Throwable $e) {
-            // Fallback silencieux pour éviter tout 500 si DB/migrations indisponibles au boot.
             $homepage = HomepageSetting::defaults();
             $messages = collect();
         }
@@ -64,10 +70,20 @@ class HomeController extends Controller
         $featuredClassIds = collect($homepage['featured_class_ids'] ?? [])->filter()->all();
         $featuredClasses = ! empty($featuredClassIds)
             ? $classes->whereIn('id', $featuredClassIds)->values()
-            : $classes->take(9)->values();
+            : $classes->take(6)->values();
 
-        $examCountdowns = ExamCountdown::all();
+        $homeExamCountdowns = collect(ExamCountdown::all())
+            ->only([0, 1, 2, 3])
+            ->values();
 
-        return view('public.home', compact('classes', 'classGroups', 'classGroupLabels', 'homepage', 'messages', 'featuredClasses', 'examCountdowns'));
+        return view('public.home_slim', compact(
+            'classes',
+            'classGroups',
+            'classGroupLabels',
+            'homepage',
+            'messages',
+            'featuredClasses',
+            'homeExamCountdowns'
+        ));
     }
 }
