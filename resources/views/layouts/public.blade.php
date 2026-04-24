@@ -161,168 +161,50 @@
             padding: 5px;
         }
 
-        .brand__logo.is-hidden {
-            display: none;
-        }
+        .brand__logo.is-hidden { display: none; }
+        .brand__logo:not(.is-hidden) + .brand__mark { display: none; }
 
-        .brand__logo:not(.is-hidden) + .brand__mark {
-            display: none;
-        }
+        .brand__text { display: flex; flex-direction: column; min-width: 0; }
+        .brand__title { font-size: 1.05rem; font-weight: 950; line-height: 1.1; letter-spacing: -0.03em; white-space: nowrap; color: var(--text); }
+        .brand__subtitle { color: var(--muted); font-size: .78rem; font-weight: 700; line-height: 1.2; white-space: normal; max-width: 270px; }
+        .public-header__right { display: contents; }
+        .public-nav { display: flex; align-items: center; gap: 6px; flex-wrap: wrap; justify-content: center; }
+        .nav-link { padding: 10px 12px; border-radius: 999px; color: var(--muted); font-size: .9rem; font-weight: 800; transition: .2s ease; }
+        .nav-link:hover { color: var(--text); background: var(--primary-soft); }
+        .header-tools { display: flex; align-items: center; gap: 10px; flex-wrap: nowrap; justify-content: flex-end; }
 
-        .brand__text {
-            display: flex;
-            flex-direction: column;
-            min-width: 0;
+        .btn, .theme-toggle {
+            display: inline-flex; align-items: center; justify-content: center; gap: 8px; min-height: 46px; padding: 0 18px;
+            border-radius: 999px; border: 1px solid var(--line); background: var(--panel); color: var(--text); font-weight: 900;
+            cursor: pointer; transition: transform .2s ease, box-shadow .2s ease, border-color .2s ease, background .2s ease, color .2s ease;
+            box-shadow: none; white-space: nowrap;
         }
-
-        .brand__title {
-            font-size: 1.05rem;
-            font-weight: 950;
-            line-height: 1.1;
-            letter-spacing: -0.03em;
-            white-space: nowrap;
-            color: var(--text);
-        }
-
-        .brand__subtitle {
-            color: var(--muted);
-            font-size: .78rem;
-            font-weight: 700;
-            line-height: 1.2;
-            white-space: normal;
-            max-width: 270px;
-        }
-
-        .public-header__right {
-            display: contents;
-        }
-
-        .public-nav {
-            display: flex;
-            align-items: center;
-            gap: 6px;
-            flex-wrap: wrap;
-            justify-content: center;
-        }
-
-        .nav-link {
-            padding: 10px 12px;
-            border-radius: 999px;
-            color: var(--muted);
-            font-size: .9rem;
-            font-weight: 800;
-            transition: .2s ease;
-        }
-
-        .nav-link:hover {
-            color: var(--text);
-            background: var(--primary-soft);
-        }
-
-        .header-tools {
-            display: flex;
-            align-items: center;
-            gap: 10px;
-            flex-wrap: nowrap;
-            justify-content: flex-end;
-        }
-
-        .btn,
-        .theme-toggle {
-            display: inline-flex;
-            align-items: center;
-            justify-content: center;
-            gap: 8px;
-            min-height: 46px;
-            padding: 0 18px;
-            border-radius: 999px;
-            border: 1px solid var(--line);
-            background: var(--panel);
-            color: var(--text);
-            font-weight: 900;
-            cursor: pointer;
-            transition: transform .2s ease, box-shadow .2s ease, border-color .2s ease, background .2s ease, color .2s ease;
-            box-shadow: none;
-            white-space: nowrap;
-        }
-
-        .btn:hover,
-        .theme-toggle:hover {
-            transform: translateY(-1px);
-            box-shadow: var(--shadow-xs);
-        }
-
-        .btn--primary {
-            color: #fff;
-            border-color: transparent;
-            background: linear-gradient(135deg, #3157ff, #6938ef);
-            box-shadow: 0 14px 28px rgba(49, 87, 255, 0.24);
-        }
-
-        .btn--ghost {
-            background: rgba(255, 255, 255, 0.76);
-        }
-
-        html[data-theme='dark'] .btn--ghost {
-            background: rgba(14, 27, 49, 0.92);
-        }
-
-        .theme-toggle {
-            width: 46px;
-            min-width: 46px;
-            padding: 0;
-            font-size: 1rem;
-        }
-
+        .btn:hover, .theme-toggle:hover { transform: translateY(-1px); box-shadow: var(--shadow-xs); }
+        .btn--primary { color: #fff; border-color: transparent; background: linear-gradient(135deg, #3157ff, #6938ef); box-shadow: 0 14px 28px rgba(49, 87, 255, 0.24); }
+        .btn--ghost { background: rgba(255, 255, 255, 0.76); }
+        html[data-theme='dark'] .btn--ghost { background: rgba(14, 27, 49, 0.92); }
+        .theme-toggle { width: 46px; min-width: 46px; padding: 0; font-size: 1rem; }
         .public-main { flex: 1; }
 
         .public-footer {
-            margin-top: 56px;
-            color: #d7e2f8;
-            background:
-                radial-gradient(circle at top left, rgba(71, 120, 255, 0.22), transparent 30%),
-                linear-gradient(180deg, #0b1630, #07101f);
+            margin-top: 56px; color: #d7e2f8;
+            background: radial-gradient(circle at top left, rgba(71, 120, 255, 0.22), transparent 30%), linear-gradient(180deg, #0b1630, #07101f);
             border-top: 1px solid rgba(255, 255, 255, 0.08);
         }
-
-        .public-footer__inner {
-            padding: 34px 0 28px;
-            display: grid;
-            grid-template-columns: 1.1fr .9fr .9fr;
-            gap: 22px;
-        }
-
+        .public-footer__inner { padding: 34px 0 28px; display: grid; grid-template-columns: 1.1fr .9fr .9fr; gap: 22px; }
         .footer-brand { display: grid; gap: 12px; }
         .footer-brand strong { font-size: 1rem; color: #fff; letter-spacing: -0.02em; }
-        .footer-brand p,
-        .footer-links a,
-        .footer-meta { color: rgba(231, 238, 252, 0.78); font-size: .95rem; }
+        .footer-brand p, .footer-links a, .footer-meta { color: rgba(231, 238, 252, 0.78); font-size: .95rem; }
         .footer-links { display: grid; gap: 10px; align-content: start; }
-        .footer-links strong,
-        .footer-contact strong { color: #fff; font-size: .95rem; }
+        .footer-links strong, .footer-contact strong { color: #fff; font-size: .95rem; }
         .footer-contact { display: grid; gap: 10px; align-content: start; }
         .footer-bottom { padding: 0 0 26px; color: rgba(231, 238, 252, 0.65); font-size: .88rem; }
 
         @media (max-width: 1180px) {
-            .public-header__inner {
-                grid-template-columns: 1fr auto;
-                padding: 14px 0;
-                min-height: auto;
-            }
-
-            .public-nav {
-                grid-column: 1 / -1;
-                grid-row: 2;
-                justify-content: flex-start;
-                padding-top: 2px;
-            }
-
-            .header-tools {
-                grid-column: 2;
-                grid-row: 1;
-            }
+            .public-header__inner { grid-template-columns: 1fr auto; padding: 14px 0; min-height: auto; }
+            .public-nav { grid-column: 1 / -1; grid-row: 2; justify-content: flex-start; padding-top: 2px; }
+            .header-tools { grid-column: 2; grid-row: 1; }
         }
-
         @media (max-width: 720px) {
             :root { --header-height: 76px; }
             .container { width: min(var(--container), calc(100% - 22px)); }
@@ -338,6 +220,9 @@
     </style>
 
     <style>{!! file_get_contents(public_path('assets/css/ui-groups.css')) !!}</style>
+    @if(file_exists(public_path('assets/css/home-card-colors.css')))
+        <style>{!! file_get_contents(public_path('assets/css/home-card-colors.css')) !!}</style>
+    @endif
     @stack('styles')
 </head>
 <body data-ui-group="@yield('ui_group', 'public')" data-ui-role="public">
@@ -369,53 +254,23 @@
 
                 <div class="header-tools">
                     <button type="button" class="theme-toggle" id="themeToggle" aria-label="Changer le thème">🌙</button>
-
-                    @if (Route::has('login'))
-                        <a href="{{ route('login') }}" class="btn btn--ghost">Connexion</a>
-                    @endif
-
-                    @if (Route::has('register'))
-                        <a href="{{ route('register') }}" class="btn btn--primary">Créer un compte</a>
-                    @endif
+                    @if (Route::has('login'))<a href="{{ route('login') }}" class="btn btn--ghost">Connexion</a>@endif
+                    @if (Route::has('register'))<a href="{{ route('register') }}" class="btn btn--primary">Créer un compte</a>@endif
                 </div>
             </div>
         </div>
     </header>
 
-    <main class="public-main">
-        @yield('content')
-    </main>
+    <main class="public-main">@yield('content')</main>
 
     <footer class="public-footer">
         <div class="container">
             <div class="public-footer__inner">
-                <div class="footer-brand">
-                    <strong>{{ $platformName }}</strong>
-                    <p>
-                        Une plateforme pensée pour aider les élèves, les parents et les enseignants
-                        à avancer avec des cours structurés, des quiz, des TD et un meilleur suivi.
-                    </p>
-                </div>
-
-                <div class="footer-links">
-                    <strong>Accès rapide</strong>
-                    <a href="{{ url('/') }}#classes">Explorer les classes</a>
-                    <a href="{{ url('/') }}#exam-countdowns">Examens officiels 2026</a>
-                    <a href="{{ url('/') }}#pricing">Voir les abonnements</a>
-                    <a href="{{ url('/') }}#mini-faq">Questions fréquentes</a>
-                    <a href="{{ url('/') }}#help-support">Support et contact</a>
-                </div>
-
-                <div class="footer-contact">
-                    <strong>Plateforme</strong>
-                    <div class="footer-meta">Apprendre aujourd’hui, réussir demain.</div>
-                    <div class="footer-meta">Expérience claire, moderne et orientée progression.</div>
-                </div>
+                <div class="footer-brand"><strong>{{ $platformName }}</strong><p>Une plateforme pensée pour aider les élèves, les parents et les enseignants à avancer avec des cours structurés, des quiz, des TD et un meilleur suivi.</p></div>
+                <div class="footer-links"><strong>Accès rapide</strong><a href="{{ url('/') }}#classes">Explorer les classes</a><a href="{{ url('/') }}#exam-countdowns">Examens officiels 2026</a><a href="{{ url('/') }}#pricing">Voir les abonnements</a><a href="{{ url('/') }}#mini-faq">Questions fréquentes</a><a href="{{ url('/') }}#help-support">Support et contact</a></div>
+                <div class="footer-contact"><strong>Plateforme</strong><div class="footer-meta">Apprendre aujourd’hui, réussir demain.</div><div class="footer-meta">Expérience claire, moderne et orientée progression.</div></div>
             </div>
-
-            <div class="footer-bottom">
-                © {{ date('Y') }} {{ $platformName }} — Tous droits réservés.
-            </div>
+            <div class="footer-bottom">© {{ date('Y') }} {{ $platformName }} — Tous droits réservés.</div>
         </div>
     </footer>
 </div>
@@ -425,41 +280,14 @@
         var root = document.documentElement;
         var toggle = document.getElementById('themeToggle');
         var header = document.getElementById('publicHeader');
-
-        function getCurrentTheme() {
-            return root.getAttribute('data-theme') === 'dark' ? 'dark' : 'light';
-        }
-
-        function refreshThemeButton() {
-            if (!toggle) return;
-            toggle.textContent = getCurrentTheme() === 'dark' ? '☀️' : '🌙';
-            toggle.setAttribute('aria-label', getCurrentTheme() === 'dark' ? 'Activer le thème clair' : 'Activer le thème sombre');
-        }
-
-        function applyTheme(theme) {
-            root.setAttribute('data-theme', theme);
-            try { localStorage.setItem('timah-theme', theme); } catch (e) {}
-            refreshThemeButton();
-        }
-
-        if (toggle) {
-            refreshThemeButton();
-            toggle.addEventListener('click', function () {
-                applyTheme(getCurrentTheme() === 'dark' ? 'light' : 'dark');
-            });
-        }
-
-        function updateHeaderState() {
-            if (!header) return;
-            if (window.scrollY > 12) header.classList.add('is-scrolled');
-            else header.classList.remove('is-scrolled');
-        }
-
-        updateHeaderState();
-        window.addEventListener('scroll', updateHeaderState, { passive: true });
+        function getCurrentTheme() { return root.getAttribute('data-theme') === 'dark' ? 'dark' : 'light'; }
+        function refreshThemeButton() { if (!toggle) return; toggle.textContent = getCurrentTheme() === 'dark' ? '☀️' : '🌙'; toggle.setAttribute('aria-label', getCurrentTheme() === 'dark' ? 'Activer le thème clair' : 'Activer le thème sombre'); }
+        function applyTheme(theme) { root.setAttribute('data-theme', theme); try { localStorage.setItem('timah-theme', theme); } catch (e) {} refreshThemeButton(); }
+        if (toggle) { refreshThemeButton(); toggle.addEventListener('click', function () { applyTheme(getCurrentTheme() === 'dark' ? 'light' : 'dark'); }); }
+        function updateHeaderState() { if (!header) return; if (window.scrollY > 12) header.classList.add('is-scrolled'); else header.classList.remove('is-scrolled'); }
+        updateHeaderState(); window.addEventListener('scroll', updateHeaderState, { passive: true });
     })();
 </script>
-
 @stack('scripts')
 </body>
 </html>
