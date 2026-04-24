@@ -7,6 +7,7 @@ use App\Models\Course;
 use App\Models\PlatformSetting;
 use App\Models\TdAttempt;
 use App\Models\TdSet;
+use App\Support\ExamCountdown;
 use Illuminate\Support\Facades\Schema;
 
 class DashboardController extends Controller
@@ -16,6 +17,8 @@ class DashboardController extends Controller
         $user = auth()->user();
         $studentProfile = $user->studentProfile;
         $classId = $studentProfile?->school_class_id;
+        $className = $studentProfile?->schoolClass?->name;
+        $studentExamCountdown = ExamCountdown::forClass($className);
 
         $recentCourses = collect();
         $allCourses = collect();
@@ -152,6 +155,7 @@ class DashboardController extends Controller
             'weeklyActivity' => $weeklyActivity,
             'latestEvents' => $latestEvents,
             'pendingReminders' => $pendingReminders,
+            'studentExamCountdown' => $studentExamCountdown,
         ]);
     }
 }
