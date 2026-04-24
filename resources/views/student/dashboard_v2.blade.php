@@ -94,7 +94,7 @@
             <div>
                 <span class="eyebrow">Tableau de bord intelligent</span>
                 <h1>Bonjour <span class="hero-name">{{ $studentName }}</span></h1>
-                <p class="hero-text">Votre tableau de bord affiche maintenant des statistiques réelles : contenus disponibles, TD ouverts, progression, rappels et dernières publications de votre classe.</p>
+                <p class="hero-text">Votre tableau de bord affiche maintenant des statistiques réelles : contenus disponibles, TD ouverts, progression, rappels, dernières publications et échéance officielle de votre examen.</p>
                 <div class="hero-pills">
                     <span class="hero-pill">🎓 {{ $className }}</span>
                     <span class="hero-pill">📚 {{ $totalResources }} ressource(s)</span>
@@ -115,6 +115,10 @@
             </div>
         </div>
     </section>
+
+    @if(!empty($studentExamCountdown))
+        @include('components.exam-countdowns', ['examCountdowns' => [$studentExamCountdown], 'compact' => true])
+    @endif
 
     <section class="kpi-grid">
         <div class="kpi"><span>TD disponibles</span><strong>{{ $allTdCount }}</strong><small>{{ $tdOpenedCount }} ouvert(s), {{ $tdCompletedCount }} terminé(s)</small></div>
