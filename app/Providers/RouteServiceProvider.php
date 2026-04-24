@@ -33,6 +33,11 @@ class RouteServiceProvider extends ServiceProvider
 
             Route::middleware('web')
                 ->group(base_path('routes/web.php'));
+
+            if (file_exists(base_path('routes/timah_extras.php'))) {
+                Route::middleware('web')
+                    ->group(base_path('routes/timah_extras.php'));
+            }
         });
     }
 
