@@ -2,7 +2,6 @@
 
 use App\Http\Controllers\Admin\AdminStudentAccountController;
 use App\Http\Middleware\EnsureAdmin;
-use App\Http\Middleware\EnsureTeacher;
 use App\Models\TdSet;
 use App\Models\TeacherAssignment;
 use Illuminate\Http\Request;
@@ -23,9 +22,11 @@ Route::prefix($adminPath)
 
 Route::prefix('teacher')
     ->name('teacher.')
-    ->middleware(['auth', 'no.cache', EnsureTeacher::class])
+    ->middleware(['auth', 'no.cache'])
     ->group(function () {
         Route::post('/td/sets/{td}/correction-delay', function (Request $request, TdSet $td) {
+            abort_unless($request->user() && method_exists($request->user(), 'isTeacher') && $request->user()->isTeacher(), 403);
+
             $data = $request->validate([
                 'correction_delay_minutes' => ['required', 'integer', 'min:0', 'max:1440'],
             ], [
