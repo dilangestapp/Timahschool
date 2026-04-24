@@ -17,20 +17,21 @@
 @push('styles')
 <style>
     .student-pro-dashboard{display:grid;gap:22px;color:var(--text)}
-    .student-pro-dashboard .dash-hero{position:relative;overflow:hidden;border-radius:30px;padding:26px;background:linear-gradient(135deg,#0f172a 0%,#12336d 52%,#0f766e 100%);color:#fff;box-shadow:var(--shadow-lg)}
+    .student-pro-dashboard .dash-hero{position:relative;overflow:hidden;border-radius:30px;padding:26px;background:linear-gradient(135deg,#0f172a 0%,#12336d 52%,#0f766e 100%);color:#fff!important;box-shadow:var(--shadow-lg)}
     .student-pro-dashboard .dash-hero:before{content:"";position:absolute;right:-90px;top:-90px;width:260px;height:260px;border-radius:999px;background:rgba(255,255,255,.09)}
     .student-pro-dashboard .dash-hero:after{content:"";position:absolute;left:-70px;bottom:-100px;width:240px;height:240px;border-radius:999px;background:rgba(45,212,191,.16)}
     .student-pro-dashboard .hero-grid{position:relative;z-index:1;display:grid;grid-template-columns:1.2fr .8fr;gap:20px;align-items:stretch}
-    .student-pro-dashboard .eyebrow{display:inline-flex;align-items:center;width:max-content;gap:8px;padding:8px 12px;border-radius:999px;background:rgba(255,255,255,.12);border:1px solid rgba(255,255,255,.16);font-weight:900;font-size:.78rem;text-transform:uppercase;letter-spacing:.04em}
-    .student-pro-dashboard h1{margin:14px 0 10px;font-size:clamp(2rem,4vw,3.8rem);line-height:1;letter-spacing:-.06em;color:#fff}
-    .student-pro-dashboard .hero-text{margin:0;color:rgba(255,255,255,.82);line-height:1.7;max-width:68ch}
+    .student-pro-dashboard .eyebrow{display:inline-flex;align-items:center;width:max-content;gap:8px;padding:8px 12px;border-radius:999px;background:rgba(255,255,255,.16);border:1px solid rgba(255,255,255,.22);font-weight:900;font-size:.78rem;text-transform:uppercase;letter-spacing:.04em;color:#f8fafc!important}
+    .student-pro-dashboard .dash-hero h1{margin:14px 0 10px;font-size:clamp(2rem,4vw,3.8rem);line-height:1;letter-spacing:-.06em;color:#ffffff!important;text-shadow:0 3px 18px rgba(0,0,0,.28)}
+    .student-pro-dashboard .dash-hero .hero-name{color:#ffffff!important;font-weight:950!important}
+    .student-pro-dashboard .hero-text{margin:0;color:rgba(255,255,255,.90)!important;line-height:1.7;max-width:68ch;text-shadow:0 2px 12px rgba(0,0,0,.20)}
     .student-pro-dashboard .hero-pills{display:flex;flex-wrap:wrap;gap:10px;margin-top:18px}
-    .student-pro-dashboard .hero-pill{display:inline-flex;align-items:center;gap:8px;min-height:38px;padding:0 13px;border-radius:999px;background:rgba(255,255,255,.12);border:1px solid rgba(255,255,255,.14);font-weight:800;color:#f8fafc}
+    .student-pro-dashboard .hero-pill{display:inline-flex;align-items:center;gap:8px;min-height:38px;padding:0 13px;border-radius:999px;background:rgba(255,255,255,.16);border:1px solid rgba(255,255,255,.22);font-weight:800;color:#f8fafc!important}
     .student-pro-dashboard .hero-side{display:grid;gap:14px}
-    .student-pro-dashboard .hero-card{border-radius:22px;padding:18px;background:rgba(255,255,255,.11);border:1px solid rgba(255,255,255,.16);backdrop-filter:blur(10px)}
-    .student-pro-dashboard .hero-card small{display:block;color:rgba(255,255,255,.70);font-weight:800;text-transform:uppercase;letter-spacing:.04em;margin-bottom:8px}
-    .student-pro-dashboard .hero-card strong{font-size:1.3rem;letter-spacing:-.03em}
-    .student-pro-dashboard .hero-card p{margin:8px 0 0;color:rgba(255,255,255,.76);line-height:1.55}
+    .student-pro-dashboard .hero-card{border-radius:22px;padding:18px;background:rgba(255,255,255,.13);border:1px solid rgba(255,255,255,.20);backdrop-filter:blur(10px);color:#fff!important}
+    .student-pro-dashboard .hero-card small{display:block;color:rgba(255,255,255,.78)!important;font-weight:800;text-transform:uppercase;letter-spacing:.04em;margin-bottom:8px}
+    .student-pro-dashboard .hero-card strong{font-size:1.3rem;letter-spacing:-.03em;color:#ffffff!important}
+    .student-pro-dashboard .hero-card p{margin:8px 0 0;color:rgba(255,255,255,.86)!important;line-height:1.55}
     .student-pro-dashboard .kpi-grid{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:16px}
     .student-pro-dashboard .kpi{padding:18px;border-radius:24px;background:linear-gradient(180deg,var(--panel),var(--panel-soft));border:1px solid var(--line);box-shadow:var(--shadow)}
     .student-pro-dashboard .kpi span{display:block;color:var(--muted);font-size:.78rem;text-transform:uppercase;letter-spacing:.05em;font-weight:900}
@@ -92,7 +93,7 @@
         <div class="hero-grid">
             <div>
                 <span class="eyebrow">Tableau de bord intelligent</span>
-                <h1>Bonjour {{ $studentName }}</h1>
+                <h1>Bonjour <span class="hero-name">{{ $studentName }}</span></h1>
                 <p class="hero-text">Votre tableau de bord affiche maintenant des statistiques réelles : contenus disponibles, TD ouverts, progression, rappels et dernières publications de votre classe.</p>
                 <div class="hero-pills">
                     <span class="hero-pill">🎓 {{ $className }}</span>
