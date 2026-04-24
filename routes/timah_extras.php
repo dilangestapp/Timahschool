@@ -1,6 +1,7 @@
 <?php
 
 use App\Http\Controllers\Admin\AdminStudentAccountController;
+use App\Http\Controllers\Teacher\TdQuickEditorController;
 use App\Http\Middleware\EnsureAdmin;
 use App\Models\TdSet;
 use App\Models\TeacherAssignment;
@@ -24,6 +25,9 @@ Route::prefix('teacher')
     ->name('teacher.')
     ->middleware(['auth', 'no.cache'])
     ->group(function () {
+        Route::get('/td/sets/{td}/editor', [TdQuickEditorController::class, 'edit'])
+            ->name('td.sets.editor');
+
         Route::post('/td/sets/{td}/correction-delay', function (Request $request, TdSet $td) {
             abort_unless($request->user() && method_exists($request->user(), 'isTeacher') && $request->user()->isTeacher(), 403);
 
