@@ -7,6 +7,7 @@ use App\Models\Course;
 use App\Models\PlatformSetting;
 use App\Models\TdAttempt;
 use App\Models\TdSet;
+use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\Schema;
 
 class DashboardController extends Controller
@@ -15,32 +16,50 @@ class DashboardController extends Controller
     {
         $user = auth()->user();
         $studentProfile = $user->studentProfile;
+        $classId = $studentProfile?->school_class_id;
 
         $recentCourses = collect();
-        if ($studentProfile && $studentProfile->school_class_id) {
-            $recentCourses = Course::query()
-                ->where('school_class_id', $studentProfile->school_class_id)
+        $allCourses = collect();
+        if ($classId && Schema::hasTable('courses')) {
+            $courseQuery = Course::query()
+                ->where('school_class_id', $classId)
                 ->where('status', 'published')
                 ->with('subject')
-                ->latest()
-                ->take(4)
-                ->get();
+                ->latest();
+
+            $allCourses = (clone $courseQuery)->take(100)->get();
+            $recentCourses = $allCourses->take(6)->values();
         }
 
         $recentTdSets = collect();
+        $allTdSets = collect();
+        $tdAttempts = collect();
         $tdOpenedCount = 0;
-        if (Schema::hasTable('td_sets') && $studentProfile && $studentProfile->school_class_id) {
-            $recentTdSets = TdSet::query()
-                ->where('school_class_id', $studentProfile->school_class_id)
+        $tdCompletedCount = 0;
+        $unopenedTdSets = collect();
+
+        if ($classId && Schema::hasTable('td_sets')) {
+            $tdQuery = TdSet::query()
+                ->where('school_class_id', $classId)
                 ->where('status', TdSet::STATUS_PUBLISHED)
                 ->with('subject')
-                ->latest('published_at')
-                ->take(4)
-                ->get();
+                ->latest('published_at');
+
+            $allTdSets = (clone $tdQuery)->take(100)->get();
+            $recentTdSets = $allTdSets->take(6)->values();
 
             if (Schema::hasTable('td_attempts')) {
-                $tdOpenedCount = TdAttempt::query()->where('student_id', $user->id)->count();
+                $tdAttempts = TdAttempt::query()
+                    ->where('student_id', $user->id)
+                    ->whereIn('td_set_id', $allTdSets->pluck('id'))
+                    ->get();
+
+                $tdOpenedCount = $tdAttempts->count();
+                $tdCompletedCount = $tdAttempts->where('status', TdAttempt::STATUS_COMPLETED)->count();
             }
+
+            $openedIds = $tdAttempts->pluck('td_set_id')->unique();
+            $unopenedTdSets = $allTdSets->whereNotIn('id', $openedIds)->values();
         }
 
         $pendingQuizzes = collect();
@@ -48,22 +67,105 @@ class DashboardController extends Controller
             class_exists('App\\Models\\Quiz')
             && Schema::hasTable('quizzes')
             && Schema::hasTable('quiz_attempts')
-            && $studentProfile
-            && $studentProfile->school_class_id
+            && $classId
         ) {
             $quizModel = app('App\\Models\\Quiz');
 
             $pendingQuizzes = $quizModel::query()
-                ->whereHas('subject.classSubject', function ($q) use ($studentProfile) {
-                    $q->where('school_class_id', $studentProfile->school_class_id);
+                ->whereHas('subject.classSubject', function ($q) use ($classId) {
+                    $q->where('school_class_id', $classId);
                 })
                 ->where('status', 'published')
                 ->whereDoesntHave('attempts', function ($q) use ($user) {
                     $q->where('user_id', $user->id);
                 })
-                ->take(3)
+                ->take(6)
                 ->get();
         }
+
+        $totalResources = $allTdSets->count() + $allCourses->count() + $pendingQuizzes->count();
+        $consultedResources = $tdOpenedCount;
+        $progressPercent = $totalResources > 0 ? min(100, (int) round(($consultedResources / $totalResources) * 100)) : 0;
+        $pendingCount = $unopenedTdSets->count() + $pendingQuizzes->count();
+
+        $subjectStats = $allTdSets
+            ->merge($allCourses)
+            ->groupBy(fn ($item) => $item->subject->name ?? 'Sans matière')
+            ->map(function ($items, $name) {
+                return [
+                    'name' => $name,
+                    'count' => $items->count(),
+                ];
+            })
+            ->sortByDesc('count')
+            ->take(6)
+            ->values();
+
+        $typeStats = collect([
+            ['label' => 'TD', 'total' => $allTdSets->count(), 'pending' => $unopenedTdSets->count()],
+            ['label' => 'Cours', 'total' => $allCourses->count(), 'pending' => 0],
+            ['label' => 'Quiz', 'total' => $pendingQuizzes->count(), 'pending' => $pendingQuizzes->count()],
+        ]);
+
+        $weeklyActivity = collect(range(6, 0))->map(function ($daysAgo) use ($tdAttempts) {
+            $day = now()->subDays($daysAgo);
+            $value = $tdAttempts->filter(function ($attempt) use ($day) {
+                $date = $attempt->opened_at ?: $attempt->created_at;
+                return $date && $date->isSameDay($day);
+            })->count();
+
+            return [
+                'label' => $day->locale('fr')->translatedFormat('D'),
+                'date' => $day->format('d/m'),
+                'value' => $value,
+            ];
+        })->push([
+            'label' => now()->locale('fr')->translatedFormat('D'),
+            'date' => now()->format('d/m'),
+            'value' => $tdAttempts->filter(function ($attempt) {
+                $date = $attempt->opened_at ?: $attempt->created_at;
+                return $date && $date->isSameDay(now());
+            })->count(),
+        ]);
+
+        $latestEvents = $allTdSets
+            ->map(function ($td) {
+                return [
+                    'type' => 'TD',
+                    'title' => $td->title,
+                    'subject' => $td->subject->name ?? 'Matière',
+                    'date' => $td->published_at ?: $td->created_at,
+                    'access' => $td->access_level === TdSet::ACCESS_FREE ? 'Gratuit' : 'Premium',
+                    'route' => route('student.td.show', $td),
+                ];
+            })
+            ->merge($allCourses->map(function ($course) {
+                return [
+                    'type' => 'Cours',
+                    'title' => $course->title ?? $course->name ?? 'Cours',
+                    'subject' => $course->subject->name ?? 'Matière',
+                    'date' => $course->published_at ?: $course->created_at,
+                    'access' => 'Cours',
+                    'route' => route('student.courses.show', $course),
+                ];
+            }))
+            ->sortByDesc(fn ($item) => optional($item['date'])->timestamp ?? 0)
+            ->take(8)
+            ->values();
+
+        $pendingReminders = $unopenedTdSets
+            ->take(6)
+            ->map(function ($td) {
+                return [
+                    'type' => 'TD non consulté',
+                    'title' => $td->title,
+                    'subject' => $td->subject->name ?? 'Matière',
+                    'date' => $td->published_at ?: $td->created_at,
+                    'priority' => $td->access_level === TdSet::ACCESS_FREE ? 'À ouvrir maintenant' : 'À consulter avec abonnement',
+                    'route' => route('student.td.show', $td),
+                ];
+            })
+            ->values();
 
         return view('student.dashboard', [
             'user' => $user,
@@ -72,8 +174,20 @@ class DashboardController extends Controller
             'recentCourses' => $recentCourses,
             'recentTdSets' => $recentTdSets,
             'tdOpenedCount' => $tdOpenedCount,
+            'tdCompletedCount' => $tdCompletedCount,
             'pendingQuizzes' => $pendingQuizzes,
             'dashboardText' => PlatformSetting::group('dashboard_student'),
+            'allCoursesCount' => $allCourses->count(),
+            'allTdCount' => $allTdSets->count(),
+            'totalResources' => $totalResources,
+            'consultedResources' => $consultedResources,
+            'progressPercent' => $progressPercent,
+            'pendingCount' => $pendingCount,
+            'subjectStats' => $subjectStats,
+            'typeStats' => $typeStats,
+            'weeklyActivity' => $weeklyActivity,
+            'latestEvents' => $latestEvents,
+            'pendingReminders' => $pendingReminders,
         ]);
     }
 }
