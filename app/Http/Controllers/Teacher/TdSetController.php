@@ -7,6 +7,7 @@ use App\Models\TdSet;
 use App\Models\TeacherAssignment;
 use Illuminate\Http\Request;
 use Illuminate\Support\Collection;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Schema;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Str;
@@ -54,6 +55,14 @@ class TdSetController extends Controller
         ]);
     }
 
+    public function bulkCreate()
+    {
+        return view('teacher.td.sets.bulk-create', [
+            'assignments' => $this->assignments(),
+            'defaultRows' => 10,
+        ]);
+    }
+
     public function store(Request $request)
     {
         $assignments = $this->assignments()->keyBy('id');
@@ -93,6 +102,101 @@ class TdSetController extends Controller
         ]);
 
         return redirect()->route('teacher.td.sets.index')->with('success', 'TD enregistré avec succès.');
+    }
+
+    public function bulkStore(Request $request)
+    {
+        $assignments = $this->assignments()->keyBy('id');
+
+        $data = $request->validate([
+            'teacher_assignment_id' => ['required', 'integer'],
+            'chapter_label' => ['nullable', 'string', 'max:255'],
+            'difficulty' => ['required', 'in:easy,medium,hard,exam'],
+            'access_level' => ['required', 'in:free,premium'],
+            'correction_delay_minutes' => ['required', 'integer', 'min:0', 'max:1440'],
+            'status' => ['required', 'in:draft,published,archived'],
+            'td_rows' => ['required', 'array', 'min:1', 'max:30'],
+            'td_rows.*.title' => ['nullable', 'string', 'max:255'],
+            'td_rows.*.document' => ['nullable', 'file', 'max:20480', 'mimes:pdf,doc,docx,txt,odt,rtf,html,htm,png,jpg,jpeg,webp'],
+            'td_rows.*.correction_document' => ['nullable', 'file', 'max:20480', 'mimes:pdf,doc,docx,txt,odt,rtf,html,htm,png,jpg,jpeg,webp'],
+        ], [
+            'td_rows.required' => 'Ajoutez au moins une ligne TD + corrigé.',
+            'td_rows.*.document.mimes' => 'Formats TD autorisés : PDF, DOC, DOCX, TXT, ODT, RTF, HTML, PNG, JPG, JPEG, WEBP.',
+            'td_rows.*.correction_document.mimes' => 'Formats corrigé autorisés : PDF, DOC, DOCX, TXT, ODT, RTF, HTML, PNG, JPG, JPEG, WEBP.',
+        ]);
+
+        abort_unless($assignments->has((int) $data['teacher_assignment_id']), 403);
+        $assignment = $assignments[(int) $data['teacher_assignment_id']];
+
+        $rows = $request->file('td_rows', []);
+        $created = 0;
+        $skipped = [];
+
+        DB::transaction(function () use ($request, $data, $assignment, $rows, &$created, &$skipped) {
+            foreach ((array) $data['td_rows'] as $index => $row) {
+                $document = $rows[$index]['document'] ?? null;
+                $correction = $rows[$index]['correction_document'] ?? null;
+
+                if (!$document && !$correction) {
+                    continue;
+                }
+
+                if (!$document) {
+                    $skipped[] = 'Ligne ' . ((int) $index + 1) . ' ignorée : sujet TD manquant.';
+                    continue;
+                }
+
+                $title = trim((string) ($row['title'] ?? ''));
+                if ($title === '') {
+                    $title = $this->titleFromUploadedFile($document, (int) $index + 1);
+                }
+
+                [$documentPath, $documentName, $documentMime, $documentSize] = $this->storeUploadedFile($document, 'td/documents');
+                [$correctionPath, $correctionName, $correctionMime, $correctionSize] = $correction
+                    ? $this->storeUploadedFile($correction, 'td/corrections')
+                    : [null, null, null, null];
+
+                TdSet::query()->create([
+                    'school_class_id' => $assignment->school_class_id,
+                    'subject_id' => $assignment->subject_id,
+                    'teacher_assignment_id' => $assignment->id,
+                    'author_user_id' => auth()->id(),
+                    'title' => $title,
+                    'slug' => Str::slug($title) . '-' . now()->timestamp . '-' . $index,
+                    'chapter_label' => $data['chapter_label'] ?? null,
+                    'difficulty' => $data['difficulty'],
+                    'access_level' => $data['access_level'],
+                    'correction_delay_minutes' => (int) ($data['correction_delay_minutes'] ?? 30),
+                    'status' => $data['status'],
+                    'document_path' => $documentPath,
+                    'document_name' => $documentName,
+                    'document_mime' => $documentMime,
+                    'document_size' => $documentSize,
+                    'editable_html' => null,
+                    'editable_text' => null,
+                    'has_editable_version' => false,
+                    'correction_html' => null,
+                    'correction_document_path' => $correctionPath,
+                    'correction_document_name' => $correctionName,
+                    'correction_document_mime' => $correctionMime,
+                    'correction_document_size' => $correctionSize,
+                    'published_at' => $data['status'] === TdSet::STATUS_PUBLISHED ? now() : null,
+                ]);
+
+                $created++;
+            }
+        });
+
+        if ($created < 1) {
+            return back()->withInput()->with('error', 'Aucun TD n’a été créé. Ajoutez au moins un sujet TD.');
+        }
+
+        $message = $created . ' TD créé(s) avec leur corrigé associé ligne par ligne.';
+        if (!empty($skipped)) {
+            $message .= ' ' . implode(' ', $skipped);
+        }
+
+        return redirect()->route('teacher.td.sets.index')->with('success', $message);
     }
 
     public function edit(TdSet $td)
@@ -252,9 +356,20 @@ class TdSetController extends Controller
         }
 
         $file = $request->file($field);
-        $path = $file->store($dir, 'public');
+        return $this->storeUploadedFile($file, $dir);
+    }
 
+    protected function storeUploadedFile($file, string $dir): array
+    {
+        $path = $file->store($dir, 'public');
         return [$path, $file->getClientOriginalName(), $file->getMimeType(), $file->getSize()];
+    }
+
+    protected function titleFromUploadedFile($file, int $rowNumber): string
+    {
+        $name = pathinfo($file->getClientOriginalName(), PATHINFO_FILENAME);
+        $name = trim(str_replace(['_', '-'], ' ', $name));
+        return $name !== '' ? Str::title($name) : 'TD ' . $rowNumber;
     }
 
     protected function deleteFile(?string $path): void
