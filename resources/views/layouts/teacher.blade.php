@@ -14,6 +14,7 @@
     <link rel="icon" type="image/svg+xml" href="{{ asset('assets/brand/timah-academy-favicon.svg') }}">
     <style>{!! file_get_contents(public_path('assets/css/teacher.css')) !!}</style>
     <style>{!! file_get_contents(public_path('assets/css/ui-groups.css')) !!}</style>
+    <link rel="stylesheet" href="{{ asset('assets/css/timah-mobile-polish.css') }}">
     <style>
         .teacher-layout-body {
             min-height: 100vh;
