@@ -7,7 +7,6 @@ use App\Models\Course;
 use App\Models\PlatformSetting;
 use App\Models\TdAttempt;
 use App\Models\TdSet;
-use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\Schema;
 
 class DashboardController extends Controller
@@ -63,22 +62,12 @@ class DashboardController extends Controller
         }
 
         $pendingQuizzes = collect();
-        if (
-            class_exists('App\\Models\\Quiz')
-            && Schema::hasTable('quizzes')
-            && Schema::hasTable('quiz_attempts')
-            && $classId
-        ) {
+        if (class_exists('App\\Models\\Quiz') && Schema::hasTable('quizzes') && Schema::hasTable('quiz_attempts') && $classId) {
             $quizModel = app('App\\Models\\Quiz');
-
             $pendingQuizzes = $quizModel::query()
-                ->whereHas('subject.classSubject', function ($q) use ($classId) {
-                    $q->where('school_class_id', $classId);
-                })
+                ->whereHas('subject.classSubject', fn ($q) => $q->where('school_class_id', $classId))
                 ->where('status', 'published')
-                ->whereDoesntHave('attempts', function ($q) use ($user) {
-                    $q->where('user_id', $user->id);
-                })
+                ->whereDoesntHave('attempts', fn ($q) => $q->where('user_id', $user->id))
                 ->take(6)
                 ->get();
         }
@@ -88,15 +77,9 @@ class DashboardController extends Controller
         $progressPercent = $totalResources > 0 ? min(100, (int) round(($consultedResources / $totalResources) * 100)) : 0;
         $pendingCount = $unopenedTdSets->count() + $pendingQuizzes->count();
 
-        $subjectStats = $allTdSets
-            ->merge($allCourses)
+        $subjectStats = $allTdSets->merge($allCourses)
             ->groupBy(fn ($item) => $item->subject->name ?? 'Sans matière')
-            ->map(function ($items, $name) {
-                return [
-                    'name' => $name,
-                    'count' => $items->count(),
-                ];
-            })
+            ->map(fn ($items, $name) => ['name' => $name, 'count' => $items->count()])
             ->sortByDesc('count')
             ->take(6)
             ->values();
@@ -113,12 +96,7 @@ class DashboardController extends Controller
                 $date = $attempt->opened_at ?: $attempt->created_at;
                 return $date && $date->isSameDay($day);
             })->count();
-
-            return [
-                'label' => $day->locale('fr')->translatedFormat('D'),
-                'date' => $day->format('d/m'),
-                'value' => $value,
-            ];
+            return ['label' => $day->locale('fr')->translatedFormat('D'), 'date' => $day->format('d/m'), 'value' => $value];
         })->push([
             'label' => now()->locale('fr')->translatedFormat('D'),
             'date' => now()->format('d/m'),
@@ -128,46 +106,32 @@ class DashboardController extends Controller
             })->count(),
         ]);
 
-        $latestEvents = $allTdSets
-            ->map(function ($td) {
-                return [
-                    'type' => 'TD',
-                    'title' => $td->title,
-                    'subject' => $td->subject->name ?? 'Matière',
-                    'date' => $td->published_at ?: $td->created_at,
-                    'access' => $td->access_level === TdSet::ACCESS_FREE ? 'Gratuit' : 'Premium',
-                    'route' => route('student.td.show', $td),
-                ];
-            })
-            ->merge($allCourses->map(function ($course) {
-                return [
-                    'type' => 'Cours',
-                    'title' => $course->title ?? $course->name ?? 'Cours',
-                    'subject' => $course->subject->name ?? 'Matière',
-                    'date' => $course->published_at ?: $course->created_at,
-                    'access' => 'Cours',
-                    'route' => route('student.courses.show', $course),
-                ];
-            }))
-            ->sortByDesc(fn ($item) => optional($item['date'])->timestamp ?? 0)
-            ->take(8)
-            ->values();
+        $latestEvents = $allTdSets->map(fn ($td) => [
+            'type' => 'TD',
+            'title' => $td->title,
+            'subject' => $td->subject->name ?? 'Matière',
+            'date' => $td->published_at ?: $td->created_at,
+            'access' => $td->access_level === TdSet::ACCESS_FREE ? 'Gratuit' : 'Premium',
+            'route' => route('student.td.show', $td),
+        ])->merge($allCourses->map(fn ($course) => [
+            'type' => 'Cours',
+            'title' => $course->title ?? $course->name ?? 'Cours',
+            'subject' => $course->subject->name ?? 'Matière',
+            'date' => $course->published_at ?: $course->created_at,
+            'access' => 'Cours',
+            'route' => route('student.courses.show', $course),
+        ]))->sortByDesc(fn ($item) => optional($item['date'])->timestamp ?? 0)->take(8)->values();
 
-        $pendingReminders = $unopenedTdSets
-            ->take(6)
-            ->map(function ($td) {
-                return [
-                    'type' => 'TD non consulté',
-                    'title' => $td->title,
-                    'subject' => $td->subject->name ?? 'Matière',
-                    'date' => $td->published_at ?: $td->created_at,
-                    'priority' => $td->access_level === TdSet::ACCESS_FREE ? 'À ouvrir maintenant' : 'À consulter avec abonnement',
-                    'route' => route('student.td.show', $td),
-                ];
-            })
-            ->values();
+        $pendingReminders = $unopenedTdSets->take(6)->map(fn ($td) => [
+            'type' => 'TD non consulté',
+            'title' => $td->title,
+            'subject' => $td->subject->name ?? 'Matière',
+            'date' => $td->published_at ?: $td->created_at,
+            'priority' => $td->access_level === TdSet::ACCESS_FREE ? 'À ouvrir maintenant' : 'À consulter avec abonnement',
+            'route' => route('student.td.show', $td),
+        ])->values();
 
-        return view('student.dashboard', [
+        return view('student.dashboard_v2', [
             'user' => $user,
             'studentProfile' => $studentProfile,
             'subscription' => $user->activeSubscription,
