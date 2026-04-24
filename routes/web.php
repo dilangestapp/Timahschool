@@ -12,6 +12,7 @@ use App\Http\Controllers\Admin\AdminSubscriptionController;
 use App\Http\Controllers\Admin\AdminTdController;
 use App\Http\Controllers\Admin\AdminTeacherAssignmentController;
 use App\Http\Controllers\Admin\AdminTeacherController;
+use App\Http\Controllers\Admin\AdminUserActivityController;
 use App\Http\Controllers\Admin\AdminUserController;
 use App\Http\Controllers\Admin\Auth\AdminLoginController;
 use App\Http\Controllers\Admin\Auth\AdminSetupController;
@@ -27,6 +28,7 @@ use App\Http\Controllers\Teacher\ClassController as TeacherClassController;
 use App\Http\Controllers\Teacher\CourseController as TeacherCourseController;
 use App\Http\Controllers\Teacher\DashboardController as TeacherDashboardController;
 use App\Http\Controllers\Teacher\MessageController as TeacherMessageController;
+use App\Http\Controllers\Teacher\StudentActivityController as TeacherStudentActivityController;
 use App\Http\Controllers\Teacher\TdQuestionController as TeacherTdQuestionController;
 use App\Http\Controllers\Teacher\TdSetController as TeacherTdSetController;
 use App\Http\Controllers\Teacher\TdSourceController as TeacherTdSourceController;
@@ -64,9 +66,7 @@ Route::get('/logout', function (Request $request) {
     return redirect()->route('student.dashboard');
 })->middleware(['no.cache'])->name('logout.history');
 
-Route::post('/logout', [LoginController::class, 'logout'])
-    ->name('logout')
-    ->middleware(['auth', 'no.cache']);
+Route::post('/logout', [LoginController::class, 'logout'])->name('logout')->middleware(['auth', 'no.cache']);
 
 $adminPath = trim((string) config('timahschool.admin_path', 'backoffice-access'), '/');
 
@@ -102,6 +102,7 @@ Route::prefix($adminPath)->name('admin.')->group(function () {
         Route::post('/homepage/messages/{message}/delete', [AdminHomepageController::class, 'deleteMessage'])->name('homepage.messages.delete');
 
         Route::get('/users', [AdminUserController::class, 'index'])->name('users.index');
+        Route::get('/users/activity', [AdminUserActivityController::class, 'index'])->name('users.activity');
         Route::post('/users', [AdminUserController::class, 'store'])->name('users.store');
         Route::post('/users/{id}/update', [AdminUserController::class, 'update'])->name('users.update');
         Route::post('/users/{id}/delete', [AdminUserController::class, 'delete'])->name('users.delete');
@@ -160,6 +161,7 @@ Route::prefix($adminPath)->name('admin.')->group(function () {
 Route::middleware(['auth', 'no.cache', EnsureTeacher::class])->prefix('teacher')->name('teacher.')->group(function () {
     Route::get('/dashboard', [TeacherDashboardController::class, 'index'])->name('dashboard');
     Route::get('/classes', [TeacherClassController::class, 'index'])->name('classes.index');
+    Route::get('/students/activity', [TeacherStudentActivityController::class, 'index'])->name('students.activity');
     Route::get('/courses', [TeacherCourseController::class, 'index'])->name('courses.index');
     Route::get('/courses/create', [TeacherCourseController::class, 'create'])->name('courses.create');
     Route::post('/courses', [TeacherCourseController::class, 'store'])->name('courses.store');
