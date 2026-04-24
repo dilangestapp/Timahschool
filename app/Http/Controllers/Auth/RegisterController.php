@@ -12,6 +12,7 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Hash;
+use Illuminate\Support\Facades\Schema;
 use Illuminate\Validation\Rules;
 
 class RegisterController extends Controller
@@ -27,23 +28,35 @@ class RegisterController extends Controller
     {
         $validated = $request->validate([
             'username' => ['required', 'string', 'max:255', 'unique:users,username', 'alpha_dash'],
-            'full_name' => ['required', 'string', 'max:255'],
-            'email' => ['nullable', 'email', 'max:255', 'unique:users,email'],
-            'phone' => ['nullable', 'string', 'max:20'],
             'school_class_id' => ['required', 'exists:school_classes,id'],
-            'password' => ['required', 'confirmed', Rules\Password::defaults()],
+            'city' => ['required', 'string', 'max:120'],
+            'password' => ['required', Rules\Password::defaults()],
+        ], [
+            'username.required' => 'Le nom d’utilisateur est obligatoire.',
+            'username.unique' => 'Ce nom d’utilisateur est déjà utilisé.',
+            'username.alpha_dash' => 'Le nom d’utilisateur doit contenir uniquement des lettres, chiffres, tirets ou underscores.',
+            'school_class_id.required' => 'La classe est obligatoire.',
+            'school_class_id.exists' => 'La classe sélectionnée est invalide.',
+            'city.required' => 'La ville est obligatoire.',
+            'password.required' => 'Le mot de passe est obligatoire.',
         ]);
 
         $user = DB::transaction(function () use ($validated) {
-            $user = User::create([
-                'name' => $validated['full_name'],
+            $userData = [
+                'name' => $validated['username'],
                 'username' => $validated['username'],
-                'full_name' => $validated['full_name'],
-                'email' => $validated['email'] ?? null,
-                'phone' => $validated['phone'] ?? null,
+                'full_name' => $validated['username'],
+                'email' => null,
+                'phone' => null,
                 'status' => 'active',
                 'password' => Hash::make($validated['password']),
-            ]);
+            ];
+
+            if (Schema::hasColumn('users', 'city')) {
+                $userData['city'] = $validated['city'];
+            }
+
+            $user = User::create($userData);
 
             $studentRole = Role::where('name', 'student')->first();
             if ($studentRole) {
@@ -72,6 +85,6 @@ class RegisterController extends Controller
         Auth::login($user);
 
         return redirect()->route('student.dashboard')
-            ->with('success', 'Bienvenue sur TIMAH SCHOOL ! Votre essai gratuit de 24h commence maintenant.');
+            ->with('success', 'Bienvenue sur TIMAH ACADEMY ! Votre essai gratuit de 24h commence maintenant.');
     }
 }
