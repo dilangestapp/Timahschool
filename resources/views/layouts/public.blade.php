@@ -388,6 +388,7 @@
             <div class="public-header__right">
                 <nav class="public-nav">
                     <a href="{{ url('/') }}#classes" class="nav-link">Classes</a>
+                    <a href="{{ url('/') }}#exam-countdowns" class="nav-link">Examens 2026</a>
                     <a href="{{ url('/') }}#pricing" class="nav-link">Abonnements</a>
                     <a href="{{ url('/') }}#mini-faq" class="nav-link">FAQ</a>
                     <a href="{{ url('/') }}#help-support" class="nav-link">Support</a>
@@ -409,6 +410,9 @@
     </header>
 
     <main class="public-main">
+        @if(isset($examCountdowns) && collect($examCountdowns)->isNotEmpty())
+            @include('components.exam-countdowns', ['examCountdowns' => $examCountdowns])
+        @endif
         @yield('content')
     </main>
 
@@ -426,6 +430,7 @@
                 <div class="footer-links">
                     <strong>Accès rapide</strong>
                     <a href="{{ url('/') }}#classes">Explorer les classes</a>
+                    <a href="{{ url('/') }}#exam-countdowns">Examens officiels 2026</a>
                     <a href="{{ url('/') }}#pricing">Voir les abonnements</a>
                     <a href="{{ url('/') }}#mini-faq">Questions fréquentes</a>
                     <a href="{{ url('/') }}#help-support">Support et contact</a>
