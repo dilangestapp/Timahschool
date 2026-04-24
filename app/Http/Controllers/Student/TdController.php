@@ -15,6 +15,8 @@ use Symfony\Component\HttpFoundation\Response;
 
 class TdController extends Controller
 {
+    private const CORRECTION_DELAY_MINUTES = 30;
+
     public function index(Request $request)
     {
         $user = auth()->user();
@@ -64,14 +66,27 @@ class TdController extends Controller
             $this->buildAttemptAttributes([
                 'status' => TdAttempt::STATUS_OPENED,
                 'opened_at' => now(),
+                'correction_unlocked_at' => now()->addMinutes(self::CORRECTION_DELAY_MINUTES),
             ])
         );
 
+        $updates = [];
+
+        if (!$attempt->opened_at) {
+            $updates['opened_at'] = now();
+        }
+
+        if (!$attempt->correction_unlocked_at) {
+            $updates['correction_unlocked_at'] = ($attempt->opened_at ?: now())->copy()->addMinutes(self::CORRECTION_DELAY_MINUTES);
+        }
+
         if ($attempt->status !== TdAttempt::STATUS_COMPLETED) {
-            $attempt->update($this->buildAttemptAttributes([
-                'status' => TdAttempt::STATUS_OPENED,
-                'opened_at' => $attempt->opened_at ?? now(),
-            ]));
+            $updates['status'] = TdAttempt::STATUS_OPENED;
+        }
+
+        if (!empty($updates)) {
+            $attempt->update($this->buildAttemptAttributes($updates));
+            $attempt->refresh();
         }
 
         $thread = TdQuestionThread::query()
@@ -80,12 +95,19 @@ class TdController extends Controller
             ->where('student_id', $user->id)
             ->first();
 
+        $secondsRemaining = $attempt->correction_unlocked_at
+            ? max(0, now()->diffInSeconds($attempt->correction_unlocked_at, false))
+            : 0;
+
         return view('student.td.show', [
             'td' => $td->load(['subject', 'schoolClass', 'author']),
             'attempt' => $attempt,
             'thread' => $thread,
             'subscription' => $user->activeSubscription,
             'canSeeCorrection' => $td->correctionIsAvailableFor($user, $attempt),
+            'correctionDelayMinutes' => self::CORRECTION_DELAY_MINUTES,
+            'correctionUnlockAt' => $attempt->correction_unlocked_at,
+            'correctionSecondsRemaining' => $secondsRemaining,
         ]);
     }
 
@@ -96,18 +118,32 @@ class TdController extends Controller
             return $response;
         }
 
-        TdAttempt::query()->updateOrCreate(
+        $attempt = TdAttempt::query()->firstOrCreate(
             ['td_set_id' => $td->id, 'student_id' => $user->id],
             $this->buildAttemptAttributes([
-                'status' => TdAttempt::STATUS_COMPLETED,
+                'status' => TdAttempt::STATUS_OPENED,
                 'opened_at' => now(),
-                'completed_at' => now(),
-                'submitted_at' => now(),
-                'correction_unlocked_at' => now(),
+                'correction_unlocked_at' => now()->addMinutes(self::CORRECTION_DELAY_MINUTES),
             ])
         );
 
-        return back()->with('success', 'TD marqué comme terminé.');
+        $unlockAt = $attempt->correction_unlocked_at ?: ($attempt->opened_at ?: now())->copy()->addMinutes(self::CORRECTION_DELAY_MINUTES);
+
+        $attempt->update($this->buildAttemptAttributes([
+            'status' => TdAttempt::STATUS_COMPLETED,
+            'opened_at' => $attempt->opened_at ?: now(),
+            'completed_at' => now(),
+            'submitted_at' => now(),
+            'correction_unlocked_at' => $unlockAt,
+        ]));
+
+        $remaining = max(0, now()->diffInMinutes($unlockAt, false));
+
+        if ($remaining > 0) {
+            return back()->with('success', 'TD marqué comme terminé. Le corrigé restera verrouillé jusqu’à la fin du compte à rebours.');
+        }
+
+        return back()->with('success', 'TD marqué comme terminé. Le corrigé est maintenant disponible.');
     }
 
     public function ask(Request $request, TdSet $td)
@@ -193,7 +229,7 @@ class TdController extends Controller
             ->first();
 
         if (!$td->correctionIsAvailableFor($user, $attempt)) {
-            return back()->with('info', 'Le corrigé de ce TD sera disponible dès que les conditions d’accès seront remplies.');
+            return back()->with('info', 'Le corrigé de ce TD sera disponible après la fin du compte à rebours et après validation du TD.');
         }
 
         abort_unless($td->correction_document_path, 404);
