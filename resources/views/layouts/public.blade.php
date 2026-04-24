@@ -34,21 +34,21 @@
             --muted: #64748b;
             --line: #dbe5f2;
             --line-strong: #c9d7ea;
-            --primary: #1d6dff;
-            --primary-dark: #0b3ea8;
-            --primary-soft: rgba(29, 109, 255, 0.10);
+            --primary: #3157ff;
+            --primary-dark: #1734b7;
+            --primary-soft: rgba(49, 87, 255, 0.10);
             --success: #0f9d58;
             --warning: #f59e0b;
             --danger: #ef4444;
             --shadow-xs: 0 6px 16px rgba(15, 23, 42, 0.04);
             --shadow: 0 14px 34px rgba(15, 23, 42, 0.08);
-            --shadow-lg: 0 20px 56px rgba(15, 23, 42, 0.12);
+            --shadow-lg: 0 24px 60px rgba(15, 23, 42, 0.14);
             --radius-xs: 12px;
             --radius-sm: 16px;
             --radius: 22px;
             --radius-lg: 30px;
             --container: 1240px;
-            --header-height: 86px;
+            --header-height: 88px;
         }
 
         html[data-theme='dark'] {
@@ -61,9 +61,9 @@
             --muted: #9fb0cc;
             --line: rgba(190, 207, 238, 0.12);
             --line-strong: rgba(190, 207, 238, 0.18);
-            --primary: #6ea1ff;
-            --primary-dark: #9cc0ff;
-            --primary-soft: rgba(110, 161, 255, 0.12);
+            --primary: #8aaeff;
+            --primary-dark: #b8ccff;
+            --primary-soft: rgba(138, 174, 255, 0.12);
             --success: #35c47b;
             --warning: #fbbf24;
             --danger: #f87171;
@@ -80,8 +80,8 @@
             font-family: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
             color: var(--text);
             background:
-                radial-gradient(circle at top left, rgba(29, 109, 255, 0.10), transparent 30%),
-                radial-gradient(circle at top right, rgba(59, 130, 246, 0.08), transparent 28%),
+                radial-gradient(circle at top left, rgba(49, 87, 255, 0.10), transparent 30%),
+                radial-gradient(circle at top right, rgba(15, 118, 110, 0.08), transparent 28%),
                 linear-gradient(180deg, var(--bg-soft), var(--bg));
             line-height: 1.6;
             transition: background .25s ease, color .25s ease;
@@ -106,14 +106,14 @@
             position: sticky;
             top: 0;
             z-index: 60;
-            backdrop-filter: blur(16px);
-            background: rgba(244, 247, 251, 0.78);
+            backdrop-filter: blur(18px);
+            background: rgba(244, 247, 251, 0.88);
             border-bottom: 1px solid var(--line);
             transition: background .25s ease, border-color .25s ease, box-shadow .25s ease;
         }
 
         html[data-theme='dark'] .public-header {
-            background: rgba(7, 17, 31, 0.72);
+            background: rgba(7, 17, 31, 0.82);
         }
 
         .public-header.is-scrolled {
@@ -122,10 +122,10 @@
 
         .public-header__inner {
             min-height: var(--header-height);
-            display: flex;
+            display: grid;
+            grid-template-columns: minmax(260px, 360px) minmax(320px, 1fr) auto;
             align-items: center;
-            justify-content: space-between;
-            gap: 16px;
+            gap: 18px;
         }
 
         .brand {
@@ -136,18 +136,37 @@
         }
 
         .brand__mark {
-            width: 46px;
-            height: 46px;
-            flex: 0 0 46px;
-            border-radius: 15px;
+            width: 48px;
+            height: 48px;
+            flex: 0 0 48px;
+            border-radius: 16px;
             display: inline-flex;
             align-items: center;
             justify-content: center;
-            font-weight: 900;
+            font-weight: 950;
             color: #fff;
-            background: linear-gradient(135deg, var(--primary), #4f86ff);
-            box-shadow: 0 14px 28px rgba(29, 109, 255, 0.26);
-            letter-spacing: -0.02em;
+            background: linear-gradient(135deg, #0f172a, #3157ff 58%, #0f766e);
+            box-shadow: 0 14px 28px rgba(49, 87, 255, 0.24);
+            letter-spacing: -0.04em;
+        }
+
+        .brand__logo {
+            width: 52px;
+            height: 52px;
+            flex: 0 0 52px;
+            border-radius: 16px;
+            object-fit: contain;
+            background: rgba(255,255,255,.74);
+            border: 1px solid var(--line);
+            padding: 5px;
+        }
+
+        .brand__logo.is-hidden {
+            display: none;
+        }
+
+        .brand__logo:not(.is-hidden) + .brand__mark {
+            display: none;
         }
 
         .brand__text {
@@ -157,42 +176,41 @@
         }
 
         .brand__title {
-            font-size: 1rem;
-            font-weight: 900;
+            font-size: 1.05rem;
+            font-weight: 950;
             line-height: 1.1;
-            letter-spacing: -0.02em;
+            letter-spacing: -0.03em;
             white-space: nowrap;
+            color: var(--text);
         }
 
         .brand__subtitle {
             color: var(--muted);
             font-size: .78rem;
-            font-weight: 600;
+            font-weight: 700;
             line-height: 1.2;
-            white-space: nowrap;
+            white-space: normal;
+            max-width: 270px;
         }
 
         .public-header__right {
-            display: flex;
-            align-items: center;
-            gap: 12px;
-            min-width: 0;
+            display: contents;
         }
 
         .public-nav {
             display: flex;
             align-items: center;
-            gap: 8px;
+            gap: 6px;
             flex-wrap: wrap;
-            justify-content: flex-end;
+            justify-content: center;
         }
 
         .nav-link {
-            padding: 10px 14px;
+            padding: 10px 12px;
             border-radius: 999px;
             color: var(--muted);
-            font-size: .94rem;
-            font-weight: 600;
+            font-size: .9rem;
+            font-weight: 800;
             transition: .2s ease;
         }
 
@@ -205,7 +223,7 @@
             display: flex;
             align-items: center;
             gap: 10px;
-            flex-wrap: wrap;
+            flex-wrap: nowrap;
             justify-content: flex-end;
         }
 
@@ -221,10 +239,11 @@
             border: 1px solid var(--line);
             background: var(--panel);
             color: var(--text);
-            font-weight: 800;
+            font-weight: 900;
             cursor: pointer;
             transition: transform .2s ease, box-shadow .2s ease, border-color .2s ease, background .2s ease, color .2s ease;
             box-shadow: none;
+            white-space: nowrap;
         }
 
         .btn:hover,
@@ -236,8 +255,8 @@
         .btn--primary {
             color: #fff;
             border-color: transparent;
-            background: linear-gradient(135deg, var(--primary), #4f86ff);
-            box-shadow: 0 14px 28px rgba(29, 109, 255, 0.24);
+            background: linear-gradient(135deg, #3157ff, #6938ef);
+            box-shadow: 0 14px 28px rgba(49, 87, 255, 0.24);
         }
 
         .btn--ghost {
@@ -273,95 +292,48 @@
             gap: 22px;
         }
 
-        .footer-brand {
-            display: grid;
-            gap: 12px;
-        }
-
-        .footer-brand strong {
-            font-size: 1rem;
-            color: #fff;
-            letter-spacing: -0.02em;
-        }
-
+        .footer-brand { display: grid; gap: 12px; }
+        .footer-brand strong { font-size: 1rem; color: #fff; letter-spacing: -0.02em; }
         .footer-brand p,
         .footer-links a,
-        .footer-meta {
-            color: rgba(231, 238, 252, 0.78);
-            font-size: .95rem;
-        }
-
-        .footer-links {
-            display: grid;
-            gap: 10px;
-            align-content: start;
-        }
-
+        .footer-meta { color: rgba(231, 238, 252, 0.78); font-size: .95rem; }
+        .footer-links { display: grid; gap: 10px; align-content: start; }
         .footer-links strong,
-        .footer-contact strong {
-            color: #fff;
-            font-size: .95rem;
-        }
+        .footer-contact strong { color: #fff; font-size: .95rem; }
+        .footer-contact { display: grid; gap: 10px; align-content: start; }
+        .footer-bottom { padding: 0 0 26px; color: rgba(231, 238, 252, 0.65); font-size: .88rem; }
 
-        .footer-contact {
-            display: grid;
-            gap: 10px;
-            align-content: start;
-        }
-
-        .footer-bottom {
-            padding: 0 0 26px;
-            color: rgba(231, 238, 252, 0.65);
-            font-size: .88rem;
-        }
-
-        @media (max-width: 1080px) {
+        @media (max-width: 1180px) {
             .public-header__inner {
-                min-height: auto;
+                grid-template-columns: 1fr auto;
                 padding: 14px 0;
-                flex-direction: column;
-                align-items: stretch;
+                min-height: auto;
             }
 
-            .public-header__right,
-            .public-nav,
+            .public-nav {
+                grid-column: 1 / -1;
+                grid-row: 2;
+                justify-content: flex-start;
+                padding-top: 2px;
+            }
+
             .header-tools {
-                justify-content: center;
-            }
-
-            .public-footer__inner {
-                grid-template-columns: 1fr;
+                grid-column: 2;
+                grid-row: 1;
             }
         }
 
         @media (max-width: 720px) {
             :root { --header-height: 76px; }
-
-            .container {
-                width: min(var(--container), calc(100% - 22px));
-            }
-
-            .brand__subtitle {
-                white-space: normal;
-            }
-
-            .public-nav {
-                gap: 6px;
-            }
-
-            .nav-link {
-                padding: 9px 12px;
-                font-size: .9rem;
-            }
-
-            .btn,
-            .theme-toggle {
-                min-height: 44px;
-            }
-
-            .public-footer {
-                margin-top: 42px;
-            }
+            .container { width: min(var(--container), calc(100% - 22px)); }
+            .public-header__inner { grid-template-columns: 1fr; gap: 12px; }
+            .brand__subtitle { white-space: normal; max-width: none; }
+            .public-nav { justify-content: flex-start; overflow-x: auto; flex-wrap: nowrap; padding-bottom: 2px; }
+            .nav-link { padding: 9px 12px; font-size: .88rem; }
+            .header-tools { justify-content: flex-start; flex-wrap: wrap; grid-column: auto; grid-row: auto; }
+            .btn, .theme-toggle { min-height: 44px; }
+            .public-footer { margin-top: 42px; }
+            .public-footer__inner { grid-template-columns: 1fr; }
         }
     </style>
 
@@ -374,7 +346,8 @@
         <div class="container public-header__inner">
             <a href="{{ url('/') }}" class="brand">
                 @if($platformLogo)
-                    <img src="{{ $platformLogo }}" alt="{{ $platformName }}" style="height:46px; width:auto; display:block; border-radius:16px;">
+                    <img src="{{ $platformLogo }}" alt="" class="brand__logo" onerror="this.classList.add('is-hidden')">
+                    <span class="brand__mark">TA</span>
                 @else
                     <span class="brand__mark">TA</span>
                 @endif
@@ -410,9 +383,6 @@
     </header>
 
     <main class="public-main">
-        @if(isset($examCountdowns) && collect($examCountdowns)->isNotEmpty())
-            @include('components.exam-countdowns', ['examCountdowns' => $examCountdowns])
-        @endif
         @yield('content')
     </main>
 
@@ -468,9 +438,7 @@
 
         function applyTheme(theme) {
             root.setAttribute('data-theme', theme);
-            try {
-                localStorage.setItem('timah-theme', theme);
-            } catch (e) {}
+            try { localStorage.setItem('timah-theme', theme); } catch (e) {}
             refreshThemeButton();
         }
 
@@ -483,11 +451,8 @@
 
         function updateHeaderState() {
             if (!header) return;
-            if (window.scrollY > 12) {
-                header.classList.add('is-scrolled');
-            } else {
-                header.classList.remove('is-scrolled');
-            }
+            if (window.scrollY > 12) header.classList.add('is-scrolled');
+            else header.classList.remove('is-scrolled');
         }
 
         updateHeaderState();
