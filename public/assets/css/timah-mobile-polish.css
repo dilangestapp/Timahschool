@@ -1,0 +1,624 @@
+/* =========================================================
+   TIMAH ACADEMY - Correctif visuel global mobile
+   Objectif : supprimer les boutons bleu/violet bruts et uniformiser
+   les cartes, badges, filtres, tableaux et formulaires internes.
+   ========================================================= */
+
+:root {
+    --timah-primary: #0f766e;
+    --timah-primary-dark: #115e59;
+    --timah-primary-soft: rgba(15, 118, 110, 0.12);
+    --timah-primary-faint: rgba(15, 118, 110, 0.07);
+    --timah-ink: #0f172a;
+    --timah-muted: #475569;
+    --timah-soft: #f8fafc;
+    --timah-card: rgba(255, 255, 255, 0.86);
+    --timah-card-strong: #ffffff;
+    --timah-line: rgba(148, 163, 184, 0.28);
+    --timah-shadow: 0 18px 40px rgba(15, 23, 42, 0.10);
+    --timah-shadow-soft: 0 10px 24px rgba(15, 23, 42, 0.07);
+    --timah-radius: 22px;
+    --timah-radius-sm: 14px;
+}
+
+html[data-theme='dark'] {
+    --timah-primary: #2dd4bf;
+    --timah-primary-dark: #5eead4;
+    --timah-primary-soft: rgba(45, 212, 191, 0.16);
+    --timah-primary-faint: rgba(45, 212, 191, 0.08);
+    --timah-ink: #f8fafc;
+    --timah-muted: #cbd5e1;
+    --timah-soft: #0f172a;
+    --timah-card: rgba(15, 23, 42, 0.82);
+    --timah-card-strong: #111827;
+    --timah-line: rgba(203, 213, 225, 0.16);
+    --timah-shadow: 0 20px 48px rgba(0, 0, 0, 0.36);
+    --timah-shadow-soft: 0 12px 28px rgba(0, 0, 0, 0.26);
+}
+
+body[data-ui-group='workspace'] {
+    color: var(--timah-ink) !important;
+}
+
+body[data-ui-group='workspace'] a {
+    -webkit-tap-highlight-color: transparent;
+}
+
+/* =========================================================
+   Boutons globaux : remplacement des couleurs bleu/violet brutes
+   ========================================================= */
+
+body[data-ui-group='workspace'] .btn,
+body[data-ui-group='workspace'] .teacher-btn,
+body[data-ui-group='workspace'] button.btn,
+body[data-ui-group='workspace'] a.btn,
+body[data-ui-group='workspace'] button.teacher-btn,
+body[data-ui-group='workspace'] a.teacher-btn {
+    min-height: 44px !important;
+    display: inline-flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    gap: 8px !important;
+    padding: 11px 17px !important;
+    border-radius: 999px !important;
+    border: 1px solid transparent !important;
+    font-weight: 850 !important;
+    font-size: 0.92rem !important;
+    line-height: 1.1 !important;
+    text-decoration: none !important;
+    cursor: pointer !important;
+    transition: transform .18s ease, box-shadow .18s ease, background .18s ease, border-color .18s ease !important;
+    white-space: normal !important;
+}
+
+body[data-ui-group='workspace'] .btn:hover,
+body[data-ui-group='workspace'] .teacher-btn:hover {
+    transform: translateY(-1px);
+}
+
+body[data-ui-group='workspace'] .btn--primary,
+body[data-ui-group='workspace'] .teacher-btn--primary,
+body[data-ui-group='workspace'] .topbar-btn--primary {
+    background: linear-gradient(135deg, #0f766e 0%, #059669 100%) !important;
+    color: #ffffff !important;
+    border-color: rgba(15, 118, 110, 0.08) !important;
+    box-shadow: 0 14px 28px rgba(15, 118, 110, 0.24) !important;
+}
+
+body[data-ui-group='workspace'] .btn--primary:hover,
+body[data-ui-group='workspace'] .teacher-btn--primary:hover,
+body[data-ui-group='workspace'] .topbar-btn--primary:hover {
+    background: linear-gradient(135deg, #115e59 0%, #047857 100%) !important;
+    box-shadow: 0 18px 34px rgba(15, 118, 110, 0.30) !important;
+}
+
+body[data-ui-group='workspace'] .btn--ghost,
+body[data-ui-group='workspace'] .teacher-btn--ghost,
+body[data-ui-group='workspace'] .topbar-btn,
+body[data-ui-group='workspace'] .theme-btn,
+body[data-ui-group='workspace'] .theme-toggle,
+body[data-ui-group='workspace'] .mobile-menu-btn,
+body[data-ui-group='workspace'] .teacher-drawer-toggle {
+    background: rgba(255, 255, 255, 0.88) !important;
+    color: #0f172a !important;
+    border-color: var(--timah-line) !important;
+    box-shadow: var(--timah-shadow-soft) !important;
+}
+
+html[data-theme='dark'] body[data-ui-group='workspace'] .btn--ghost,
+html[data-theme='dark'] body[data-ui-group='workspace'] .teacher-btn--ghost,
+html[data-theme='dark'] body[data-ui-group='workspace'] .topbar-btn,
+html[data-theme='dark'] body[data-ui-group='workspace'] .theme-btn,
+html[data-theme='dark'] body[data-ui-group='workspace'] .theme-toggle,
+html[data-theme='dark'] body[data-ui-group='workspace'] .mobile-menu-btn,
+html[data-theme='dark'] body[data-ui-group='workspace'] .teacher-drawer-toggle {
+    background: rgba(15, 23, 42, 0.86) !important;
+    color: #f8fafc !important;
+}
+
+body[data-ui-group='workspace'] .btn--ghost:hover,
+body[data-ui-group='workspace'] .teacher-btn--ghost:hover,
+body[data-ui-group='workspace'] .topbar-btn:hover,
+body[data-ui-group='workspace'] .theme-btn:hover,
+body[data-ui-group='workspace'] .theme-toggle:hover {
+    background: var(--timah-primary-soft) !important;
+    border-color: rgba(15, 118, 110, 0.25) !important;
+}
+
+body[data-ui-group='workspace'] .teacher-btn--danger {
+    background: #fee2e2 !important;
+    color: #991b1b !important;
+    border-color: rgba(220, 38, 38, 0.18) !important;
+    box-shadow: none !important;
+}
+
+html[data-theme='dark'] body[data-ui-group='workspace'] .teacher-btn--danger {
+    background: rgba(127, 29, 29, 0.42) !important;
+    color: #fecaca !important;
+}
+
+body[data-ui-group='workspace'] .btn--full {
+    width: 100% !important;
+}
+
+/* Liens qui ressemblent à des actions */
+body[data-ui-group='workspace'] .td-doc-box a,
+body[data-ui-group='workspace'] .teacher-table a:not(.teacher-btn),
+body[data-ui-group='workspace'] .td-thread-attachment a {
+    color: var(--timah-primary-dark) !important;
+    font-weight: 800 !important;
+    text-decoration: none !important;
+}
+
+html[data-theme='dark'] body[data-ui-group='workspace'] .td-doc-box a,
+html[data-theme='dark'] body[data-ui-group='workspace'] .teacher-table a:not(.teacher-btn),
+html[data-theme='dark'] body[data-ui-group='workspace'] .td-thread-attachment a {
+    color: var(--timah-primary-dark) !important;
+}
+
+/* =========================================================
+   Cartes / panneaux
+   ========================================================= */
+
+body[data-ui-group='workspace'] .panel,
+body[data-ui-group='workspace'] .td-panel,
+body[data-ui-group='workspace'] .td-show-panel,
+body[data-ui-group='workspace'] .teacher-section,
+body[data-ui-group='workspace'] .teacher-panel,
+body[data-ui-group='workspace'] .teacher-card,
+body[data-ui-group='workspace'] .teacher-form-card,
+body[data-ui-group='workspace'] .plan-card,
+body[data-ui-group='workspace'] .td-card,
+body[data-ui-group='workspace'] .td-doc-box,
+body[data-ui-group='workspace'] .empty-state {
+    background: var(--timah-card) !important;
+    border: 1px solid var(--timah-line) !important;
+    border-radius: var(--timah-radius) !important;
+    box-shadow: var(--timah-shadow-soft) !important;
+    backdrop-filter: blur(14px) !important;
+}
+
+body[data-ui-group='workspace'] .panel,
+body[data-ui-group='workspace'] .teacher-section {
+    padding: 22px !important;
+    overflow: hidden !important;
+}
+
+body[data-ui-group='workspace'] .panel__head,
+body[data-ui-group='workspace'] .teacher-section__head,
+body[data-ui-group='workspace'] .td-show-panel__head {
+    display: flex !important;
+    align-items: flex-start !important;
+    justify-content: space-between !important;
+    gap: 16px !important;
+    margin-bottom: 18px !important;
+}
+
+body[data-ui-group='workspace'] h1,
+body[data-ui-group='workspace'] h2,
+body[data-ui-group='workspace'] h3 {
+    color: var(--timah-ink) !important;
+    letter-spacing: -0.035em !important;
+}
+
+body[data-ui-group='workspace'] .muted,
+body[data-ui-group='workspace'] .teacher-muted {
+    color: var(--timah-muted) !important;
+    line-height: 1.45 !important;
+}
+
+/* =========================================================
+   Formulaires / filtres : suppression du rendu HTML natif
+   ========================================================= */
+
+body[data-ui-group='workspace'] input[type='text'],
+body[data-ui-group='workspace'] input[type='search'],
+body[data-ui-group='workspace'] input[type='email'],
+body[data-ui-group='workspace'] input[type='number'],
+body[data-ui-group='workspace'] input[type='password'],
+body[data-ui-group='workspace'] input[type='file'],
+body[data-ui-group='workspace'] select,
+body[data-ui-group='workspace'] textarea {
+    min-height: 44px !important;
+    width: 100%;
+    border-radius: 14px !important;
+    border: 1px solid var(--timah-line) !important;
+    background: rgba(255, 255, 255, 0.86) !important;
+    color: var(--timah-ink) !important;
+    padding: 11px 13px !important;
+    outline: none !important;
+    box-shadow: none !important;
+    transition: border-color .18s ease, box-shadow .18s ease, background .18s ease !important;
+}
+
+html[data-theme='dark'] body[data-ui-group='workspace'] input,
+html[data-theme='dark'] body[data-ui-group='workspace'] select,
+html[data-theme='dark'] body[data-ui-group='workspace'] textarea {
+    background: rgba(15, 23, 42, 0.72) !important;
+}
+
+body[data-ui-group='workspace'] textarea {
+    min-height: 118px !important;
+    resize: vertical !important;
+}
+
+body[data-ui-group='workspace'] input:focus,
+body[data-ui-group='workspace'] select:focus,
+body[data-ui-group='workspace'] textarea:focus {
+    border-color: rgba(15, 118, 110, 0.45) !important;
+    box-shadow: 0 0 0 4px var(--timah-primary-soft) !important;
+}
+
+body[data-ui-group='workspace'] .td-filter-form,
+body[data-ui-group='workspace'] .teacher-filter-inline,
+body[data-ui-group='workspace'] .teacher-actions,
+body[data-ui-group='workspace'] .td-inline-actions,
+body[data-ui-group='workspace'] .td-card__actions {
+    display: flex !important;
+    align-items: center !important;
+    gap: 10px !important;
+    flex-wrap: wrap !important;
+}
+
+/* =========================================================
+   Badges propres et lisibles
+   ========================================================= */
+
+body[data-ui-group='workspace'] .td-badge,
+body[data-ui-group='workspace'] .teacher-badge,
+body[data-ui-group='workspace'] .plan-badge {
+    display: inline-flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    min-height: 28px !important;
+    padding: 6px 10px !important;
+    border-radius: 999px !important;
+    font-size: 0.73rem !important;
+    font-weight: 900 !important;
+    letter-spacing: .03em !important;
+    text-transform: uppercase !important;
+    border: 1px solid transparent !important;
+}
+
+body[data-ui-group='workspace'] .td-badge--free,
+body[data-ui-group='workspace'] .teacher-badge--free,
+body[data-ui-group='workspace'] .td-badge--active,
+body[data-ui-group='workspace'] .teacher-badge--active,
+body[data-ui-group='workspace'] .teacher-badge--published {
+    background: #dcfce7 !important;
+    color: #166534 !important;
+    border-color: rgba(22, 101, 52, .10) !important;
+}
+
+body[data-ui-group='workspace'] .td-badge--premium,
+body[data-ui-group='workspace'] .teacher-badge--premium,
+body[data-ui-group='workspace'] .plan-badge {
+    background: #ccfbf1 !important;
+    color: #115e59 !important;
+    border-color: rgba(15, 118, 110, .16) !important;
+}
+
+body[data-ui-group='workspace'] .teacher-badge--draft,
+body[data-ui-group='workspace'] .td-badge--difficulty {
+    background: #fef3c7 !important;
+    color: #92400e !important;
+    border-color: rgba(146, 64, 14, .12) !important;
+}
+
+body[data-ui-group='workspace'] .teacher-badge--archived {
+    background: #e2e8f0 !important;
+    color: #334155 !important;
+    border-color: rgba(51, 65, 85, .12) !important;
+}
+
+/* =========================================================
+   Page TD élève
+   ========================================================= */
+
+body[data-ui-group='workspace'] .td-card-grid {
+    display: grid !important;
+    grid-template-columns: repeat(3, minmax(0, 1fr)) !important;
+    gap: 16px !important;
+}
+
+body[data-ui-group='workspace'] .td-card {
+    padding: 18px !important;
+    display: flex !important;
+    min-height: 220px !important;
+    flex-direction: column !important;
+    gap: 12px !important;
+}
+
+body[data-ui-group='workspace'] .td-card__head,
+body[data-ui-group='workspace'] .td-badge-group {
+    display: flex !important;
+    align-items: center !important;
+    gap: 8px !important;
+    flex-wrap: wrap !important;
+}
+
+body[data-ui-group='workspace'] .td-card h3 {
+    margin: 0 !important;
+    font-size: 1.22rem !important;
+}
+
+body[data-ui-group='workspace'] .td-card p {
+    margin: 0 !important;
+}
+
+body[data-ui-group='workspace'] .td-card__actions {
+    margin-top: auto !important;
+}
+
+body[data-ui-group='workspace'] .td-card__actions .btn {
+    width: 100% !important;
+}
+
+body[data-ui-group='workspace'] .td-doc-box {
+    padding: 16px !important;
+    margin-bottom: 18px !important;
+}
+
+body[data-ui-group='workspace'] .td-question-form {
+    display: grid !important;
+    gap: 12px !important;
+}
+
+body[data-ui-group='workspace'] .td-thread-list {
+    display: grid !important;
+    gap: 12px !important;
+    margin-bottom: 16px !important;
+}
+
+body[data-ui-group='workspace'] .td-thread-bubble {
+    padding: 14px !important;
+    border-radius: 18px !important;
+    border: 1px solid var(--timah-line) !important;
+    background: rgba(248, 250, 252, 0.88) !important;
+}
+
+body[data-ui-group='workspace'] .td-thread-bubble--me {
+    background: var(--timah-primary-faint) !important;
+    border-color: rgba(15, 118, 110, .18) !important;
+}
+
+/* =========================================================
+   Page abonnement
+   ========================================================= */
+
+body[data-ui-group='workspace'] .subscription-grid {
+    display: grid !important;
+    grid-template-columns: repeat(3, minmax(0, 1fr)) !important;
+    gap: 16px !important;
+}
+
+body[data-ui-group='workspace'] .plan-card {
+    padding: 20px !important;
+    display: flex !important;
+    flex-direction: column !important;
+    gap: 10px !important;
+    min-height: 100% !important;
+}
+
+body[data-ui-group='workspace'] .plan-card--highlight {
+    border-color: rgba(15, 118, 110, 0.30) !important;
+    box-shadow: 0 20px 44px rgba(15, 118, 110, 0.16) !important;
+}
+
+body[data-ui-group='workspace'] .plan-price {
+    font-size: 1.65rem !important;
+    line-height: 1 !important;
+    font-weight: 950 !important;
+    color: var(--timah-primary-dark) !important;
+    letter-spacing: -0.04em !important;
+}
+
+body[data-ui-group='workspace'] .feature-list {
+    display: grid !important;
+    gap: 8px !important;
+    padding: 0 !important;
+    margin: 4px 0 14px !important;
+    list-style: none !important;
+}
+
+body[data-ui-group='workspace'] .feature-list li {
+    display: flex !important;
+    gap: 8px !important;
+    align-items: flex-start !important;
+    color: var(--timah-muted) !important;
+    line-height: 1.38 !important;
+}
+
+body[data-ui-group='workspace'] .plan-card .btn--full {
+    margin-top: auto !important;
+}
+
+/* =========================================================
+   Tableaux enseignant : desktop propre + mobile en cartes
+   ========================================================= */
+
+body[data-ui-group='workspace'] .teacher-table-wrap {
+    width: 100% !important;
+    overflow-x: auto !important;
+    border-radius: var(--timah-radius) !important;
+    border: 1px solid var(--timah-line) !important;
+    background: rgba(255, 255, 255, 0.52) !important;
+}
+
+body[data-ui-group='workspace'] .teacher-table {
+    width: 100% !important;
+    border-collapse: collapse !important;
+    min-width: 980px;
+}
+
+body[data-ui-group='workspace'] .teacher-table th {
+    padding: 14px 12px !important;
+    text-align: left !important;
+    color: #334155 !important;
+    font-size: .78rem !important;
+    text-transform: uppercase !important;
+    letter-spacing: .06em !important;
+    border-bottom: 1px solid var(--timah-line) !important;
+    background: rgba(248, 250, 252, 0.80) !important;
+}
+
+body[data-ui-group='workspace'] .teacher-table td {
+    padding: 14px 12px !important;
+    vertical-align: top !important;
+    border-bottom: 1px solid var(--timah-line) !important;
+    color: var(--timah-ink) !important;
+}
+
+body[data-ui-group='workspace'] .teacher-actions--stack {
+    align-items: flex-start !important;
+}
+
+body[data-ui-group='workspace'] .teacher-actions--stack .teacher-btn,
+body[data-ui-group='workspace'] .teacher-actions--stack form {
+    width: 100% !important;
+}
+
+body[data-ui-group='workspace'] .teacher-actions--stack form .teacher-btn {
+    width: 100% !important;
+}
+
+/* =========================================================
+   Responsive mobile
+   ========================================================= */
+
+@media (max-width: 980px) {
+    body[data-ui-group='workspace'] .td-card-grid,
+    body[data-ui-group='workspace'] .subscription-grid {
+        grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+    }
+}
+
+@media (max-width: 720px) {
+    body[data-ui-group='workspace'] .student-content,
+    body[data-ui-group='workspace'] .teacher-content {
+        padding: 14px !important;
+    }
+
+    body[data-ui-group='workspace'] .panel,
+    body[data-ui-group='workspace'] .teacher-section {
+        padding: 16px !important;
+        border-radius: 20px !important;
+    }
+
+    body[data-ui-group='workspace'] .panel__head,
+    body[data-ui-group='workspace'] .teacher-section__head,
+    body[data-ui-group='workspace'] .td-show-panel__head {
+        display: grid !important;
+        grid-template-columns: 1fr !important;
+        gap: 12px !important;
+    }
+
+    body[data-ui-group='workspace'] .td-filter-form,
+    body[data-ui-group='workspace'] .teacher-filter-inline,
+    body[data-ui-group='workspace'] .teacher-actions,
+    body[data-ui-group='workspace'] .td-inline-actions {
+        display: grid !important;
+        grid-template-columns: 1fr !important;
+        width: 100% !important;
+    }
+
+    body[data-ui-group='workspace'] .btn,
+    body[data-ui-group='workspace'] .teacher-btn,
+    body[data-ui-group='workspace'] .td-inline-actions input,
+    body[data-ui-group='workspace'] .td-inline-actions form,
+    body[data-ui-group='workspace'] .td-inline-actions .btn {
+        width: 100% !important;
+    }
+
+    body[data-ui-group='workspace'] .td-card-grid,
+    body[data-ui-group='workspace'] .subscription-grid {
+        grid-template-columns: 1fr !important;
+    }
+
+    body[data-ui-group='workspace'] .td-card {
+        min-height: 0 !important;
+    }
+
+    body[data-ui-group='workspace'] .teacher-table-wrap {
+        overflow: visible !important;
+        border: 0 !important;
+        background: transparent !important;
+    }
+
+    body[data-ui-group='workspace'] .teacher-table {
+        min-width: 0 !important;
+        display: block !important;
+    }
+
+    body[data-ui-group='workspace'] .teacher-table thead {
+        display: none !important;
+    }
+
+    body[data-ui-group='workspace'] .teacher-table tbody,
+    body[data-ui-group='workspace'] .teacher-table tr,
+    body[data-ui-group='workspace'] .teacher-table td {
+        display: block !important;
+        width: 100% !important;
+    }
+
+    body[data-ui-group='workspace'] .teacher-table tr {
+        margin-bottom: 14px !important;
+        padding: 14px !important;
+        border-radius: 20px !important;
+        border: 1px solid var(--timah-line) !important;
+        background: var(--timah-card) !important;
+        box-shadow: var(--timah-shadow-soft) !important;
+    }
+
+    body[data-ui-group='workspace'] .teacher-table td {
+        padding: 9px 0 !important;
+        border-bottom: 0 !important;
+        display: grid !important;
+        grid-template-columns: 108px 1fr !important;
+        gap: 10px !important;
+        align-items: start !important;
+    }
+
+    body[data-ui-group='workspace'] .teacher-table td::before {
+        color: var(--timah-muted) !important;
+        font-size: .76rem !important;
+        font-weight: 900 !important;
+        text-transform: uppercase !important;
+        letter-spacing: .05em !important;
+    }
+
+    body[data-ui-group='workspace'] .teacher-table td:nth-child(1)::before { content: 'Titre'; }
+    body[data-ui-group='workspace'] .teacher-table td:nth-child(2)::before { content: 'Classe'; }
+    body[data-ui-group='workspace'] .teacher-table td:nth-child(3)::before { content: 'Matière'; }
+    body[data-ui-group='workspace'] .teacher-table td:nth-child(4)::before { content: 'Document'; }
+    body[data-ui-group='workspace'] .teacher-table td:nth-child(5)::before { content: 'Éditable'; }
+    body[data-ui-group='workspace'] .teacher-table td:nth-child(6)::before { content: 'Accès'; }
+    body[data-ui-group='workspace'] .teacher-table td:nth-child(7)::before { content: 'Statut'; }
+    body[data-ui-group='workspace'] .teacher-table td:nth-child(8)::before { content: 'Actions'; }
+
+    body[data-ui-group='workspace'] .teacher-table td:nth-child(8) {
+        display: block !important;
+    }
+
+    body[data-ui-group='workspace'] .teacher-table td:nth-child(8)::before {
+        display: block !important;
+        margin-bottom: 10px !important;
+    }
+
+    body[data-ui-group='workspace'] .teacher-actions--stack {
+        display: grid !important;
+        grid-template-columns: 1fr !important;
+    }
+
+    body[data-ui-group='workspace'] h1 {
+        font-size: 1.7rem !important;
+    }
+
+    body[data-ui-group='workspace'] h2 {
+        font-size: 1.35rem !important;
+    }
+
+    body[data-ui-group='workspace'] .plan-price {
+        font-size: 1.5rem !important;
+    }
+}
