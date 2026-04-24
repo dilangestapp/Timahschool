@@ -2,14 +2,14 @@
 
 @section('title', 'Mes TD')
 @section('page_title', 'Mes TD')
-@section('page_subtitle', 'Importez vos sujets, convertissez-les dans l’éditeur si nécessaire, puis publiez-les pour vos élèves.')
+@section('page_subtitle', 'Importez vos sujets, fixez le temps de traitement, puis publiez-les pour vos élèves.')
 
 @section('content')
 <section class="teacher-section">
     <div class="teacher-section__head">
         <div>
             <h2>Bibliothèque de TD</h2>
-            <p class="teacher-muted">Version simple : titre, document source, version éditable, corrigé et publication.</p>
+            <p class="teacher-muted">Chaque TD peut avoir son propre temps minimum avant l’ouverture du corrigé.</p>
         </div>
         <div class="teacher-actions">
             <form method="GET" class="teacher-filter-inline">
@@ -34,7 +34,7 @@
                     <th>Classe</th>
                     <th>Matière</th>
                     <th>Document</th>
-                    <th>Éditable</th>
+                    <th>Temps corrigé</th>
                     <th>Accès</th>
                     <th>Statut</th>
                     <th>Actions</th>
@@ -57,7 +57,19 @@
                             <span class="teacher-muted">Aucun</span>
                         @endif
                     </td>
-                    <td>{{ $td->has_editable_version ? 'Oui' : 'Non' }}</td>
+                    <td>
+                        <form method="POST" action="{{ route('teacher.td.sets.correction_delay.update', $td) }}" class="teacher-filter-inline" style="align-items:end; gap:8px;">
+                            @csrf
+                            <div style="min-width:110px;">
+                                <label class="teacher-muted" style="display:block; font-size:.72rem; font-weight:800; margin-bottom:4px;">Minutes</label>
+                                <input type="number" name="correction_delay_minutes" min="0" max="1440" value="{{ old('correction_delay_minutes', $td->correction_delay_minutes ?? 30) }}" style="width:100%; min-height:40px;">
+                            </div>
+                            <button class="teacher-btn teacher-btn--ghost" style="min-height:40px; padding:8px 12px;">OK</button>
+                        </form>
+                        <div class="teacher-muted" style="margin-top:6px; max-width:220px;">
+                            Le corrigé s’ouvre après ce délai + clic sur « J’ai terminé ».
+                        </div>
+                    </td>
                     <td><span class="teacher-badge teacher-badge--{{ $td->access_level }}">{{ $td->access_level }}</span></td>
                     <td><span class="teacher-badge teacher-badge--{{ $td->status }}">{{ $td->status }}</span></td>
                     <td>
