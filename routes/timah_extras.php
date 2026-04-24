@@ -2,6 +2,10 @@
 
 use App\Http\Controllers\Admin\AdminStudentAccountController;
 use App\Http\Middleware\EnsureAdmin;
+use App\Http\Middleware\EnsureTeacher;
+use App\Models\TdSet;
+use App\Models\TeacherAssignment;
+use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
 
 $adminPath = trim((string) config('timahschool.admin_path', 'backoffice-access'), '/');
@@ -15,4 +19,34 @@ Route::prefix($adminPath)
 
         Route::post('/users/{user}/student-subscription', [AdminStudentAccountController::class, 'updateSubscription'])
             ->name('users.student_subscription.update');
+    });
+
+Route::prefix('teacher')
+    ->name('teacher.')
+    ->middleware(['auth', 'no.cache', EnsureTeacher::class])
+    ->group(function () {
+        Route::post('/td/sets/{td}/correction-delay', function (Request $request, TdSet $td) {
+            $data = $request->validate([
+                'correction_delay_minutes' => ['required', 'integer', 'min:0', 'max:1440'],
+            ], [
+                'correction_delay_minutes.required' => 'Indiquez le temps de traitement du TD.',
+                'correction_delay_minutes.min' => 'Le temps ne peut pas être négatif.',
+                'correction_delay_minutes.max' => 'Le temps ne peut pas dépasser 24 heures.',
+            ]);
+
+            $allowed = TeacherAssignment::query()
+                ->where('teacher_id', $request->user()->id)
+                ->where('school_class_id', $td->school_class_id)
+                ->where('subject_id', $td->subject_id)
+                ->where('is_active', true)
+                ->exists();
+
+            abort_unless($allowed, 403);
+
+            $td->forceFill([
+                'correction_delay_minutes' => (int) $data['correction_delay_minutes'],
+            ])->save();
+
+            return back()->with('success', 'Temps de traitement du TD mis à jour.');
+        })->name('td.sets.correction_delay.update');
     });
