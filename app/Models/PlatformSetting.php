@@ -202,6 +202,11 @@ class PlatformSetting extends Model
         static::putGroup($group, $values);
     }
 
+    public static function defaultLogoUrl(): string
+    {
+        return asset('assets/brand/timah-academy-favicon.svg');
+    }
+
     public static function logoUrl(?string $path = null): ?string
     {
         $rawPath = $path;
@@ -212,7 +217,11 @@ class PlatformSetting extends Model
         }
 
         if (!$rawPath) {
-            return null;
+            return static::defaultLogoUrl();
+        }
+
+        if (str_starts_with($rawPath, 'data:image/')) {
+            return $rawPath;
         }
 
         if (filter_var($rawPath, FILTER_VALIDATE_URL)) {
@@ -238,7 +247,7 @@ class PlatformSetting extends Model
         } catch (\Throwable $e) {
         }
 
-        return asset($rawPath);
+        return static::defaultLogoUrl();
     }
 
     protected static function castValue(mixed $value, ?string $type): mixed
