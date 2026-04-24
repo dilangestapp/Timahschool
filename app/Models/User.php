@@ -72,6 +72,11 @@ class User extends Authenticatable
             ->withTimestamps();
     }
 
+    public function loginActivities()
+    {
+        return $this->hasMany(UserLoginActivity::class)->latest('occurred_at');
+    }
+
     public function receivedTeacherMessages()
     {
         return $this->hasMany(TeacherMessage::class, 'teacher_id')->latest();
