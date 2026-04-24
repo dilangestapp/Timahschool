@@ -9,7 +9,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <meta name="description" content="Portail administrateur sécurisé {{ $platformName }}">
+    <meta name="description" content="Portail administrateur {{ $platformName }}">
     <title>@yield('title', 'Admin') - {{ $platformName }}</title>
     <link rel="icon" type="image/svg+xml" href="{{ asset('assets/brand/timah-academy-favicon.svg') }}">
     <style>{!! file_get_contents(public_path('assets/css/admin.css')) !!}</style>
@@ -36,7 +36,8 @@
             <a href="{{ route('admin.homepage.edit') }}" class="admin-link {{ request()->routeIs('admin.homepage.*') ? 'is-active' : '' }}">Homepage</a>
 
             <div class="admin-nav__group-label">Utilisateurs</div>
-            <a href="{{ route('admin.users.index') }}" class="admin-link {{ request()->routeIs('admin.users.*') ? 'is-active' : '' }}">Utilisateurs</a>
+            <a href="{{ route('admin.users.index') }}" class="admin-link {{ request()->routeIs('admin.users.index') ? 'is-active' : '' }}">Utilisateurs</a>
+            <a href="{{ route('admin.users.activity') }}" class="admin-link {{ request()->routeIs('admin.users.activity') ? 'is-active' : '' }}">Connexions</a>
             <a href="{{ route('admin.teachers.index') }}" class="admin-link {{ request()->routeIs('admin.teachers.*') ? 'is-active' : '' }}">Enseignants</a>
             <a href="{{ route('admin.assignments.index') }}" class="admin-link {{ request()->routeIs('admin.assignments.*') ? 'is-active' : '' }}">Affectations</a>
 
@@ -70,6 +71,7 @@
             <div class="admin-topbar__actions">
                 <a href="{{ route('admin.settings.edit') }}" class="btn btn--ghost">Paramètres</a>
                 <a href="{{ route('admin.homepage.edit') }}" class="btn btn--ghost">Homepage</a>
+                <a href="{{ route('admin.users.activity') }}" class="btn btn--ghost">Connexions</a>
                 <a href="{{ route('admin.teachers.index') }}" class="btn btn--ghost">+ Enseignant</a>
                 <a href="{{ route('admin.assignments.index') }}" class="btn btn--ghost">+ Affectation</a>
                 <button type="button" class="btn btn--ghost theme-toggle" data-theme-toggle>🌗 Thème</button>
