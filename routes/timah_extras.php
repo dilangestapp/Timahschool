@@ -2,6 +2,7 @@
 
 use App\Http\Controllers\Admin\AdminStudentAccountController;
 use App\Http\Controllers\Teacher\TdQuickEditorController;
+use App\Http\Controllers\Teacher\TdSetController;
 use App\Http\Middleware\EnsureAdmin;
 use App\Models\TdSet;
 use App\Models\TeacherAssignment;
@@ -25,6 +26,12 @@ Route::prefix('teacher')
     ->name('teacher.')
     ->middleware(['auth', 'no.cache'])
     ->group(function () {
+        Route::get('/td/sets/bulk-create', [TdSetController::class, 'bulkCreate'])
+            ->name('td.sets.bulk_create');
+
+        Route::post('/td/sets/bulk-store', [TdSetController::class, 'bulkStore'])
+            ->name('td.sets.bulk_store');
+
         Route::get('/td/sets/{td}/editor', [TdQuickEditorController::class, 'edit'])
             ->name('td.sets.editor');
 
