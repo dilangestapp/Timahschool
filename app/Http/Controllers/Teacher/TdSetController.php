@@ -115,7 +115,7 @@ class TdSetController extends Controller
             'chapter_label' => $data['chapter_label'] ?? null,
             'difficulty' => $data['difficulty'],
             'access_level' => $data['access_level'],
-            'correction_delay_minutes' => (int) ($data['correction_delay_minutes'] ?? 30),
+            'correction_delay_minutes' => (int) ($data['correction_delay_minutes'] ?? ($td->correction_delay_minutes ?? 30)),
             'status' => $data['status'],
             'editable_html' => $data['editable_html'] ?: null,
             'editable_text' => $data['editable_text'] ?: null,
@@ -222,7 +222,7 @@ class TdSetController extends Controller
             'chapter_label' => ['nullable', 'string', 'max:255'],
             'difficulty' => ['required', 'in:easy,medium,hard,exam'],
             'access_level' => ['required', 'in:free,premium'],
-            'correction_delay_minutes' => ['required', 'integer', 'min:0', 'max:1440'],
+            'correction_delay_minutes' => ['nullable', 'integer', 'min:0', 'max:1440'],
             'status' => ['required', 'in:draft,published,archived'],
             'document' => ['nullable', 'file', 'max:20480', 'mimes:pdf,doc,docx,txt,odt,rtf,html,htm,png,jpg,jpeg,webp'],
             'editable_html' => ['nullable', 'string'],
@@ -238,7 +238,6 @@ class TdSetController extends Controller
         }
 
         return $request->validate($rules, [
-            'correction_delay_minutes.required' => 'Définissez le temps minimum de traitement avant déblocage du corrigé.',
             'correction_delay_minutes.min' => 'Le temps de traitement ne peut pas être négatif.',
             'correction_delay_minutes.max' => 'Le temps de traitement ne peut pas dépasser 24 heures.',
             'document.mimes' => 'Formats TD autorisés : PDF, DOC, DOCX, TXT, ODT, RTF, HTML, PNG, JPG, JPEG, WEBP.',
