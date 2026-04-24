@@ -2,7 +2,7 @@
 
 @section('title', 'Modifier le TD')
 @section('page_title', 'Modifier le TD')
-@section('page_subtitle', 'Le sujet est chargé directement dans l’éditeur. Vous pouvez aussi ouvrir l’original, consulter le corrigé et modifier le corrigé.')
+@section('page_subtitle', 'Le sujet s’ouvre directement dans un éditeur visuel, prêt à être corrigé et mis en forme.')
 
 @push('styles')
 <style>
@@ -37,8 +37,9 @@
         line-height: 1.45;
     }
     html[data-theme='dark'] .td-editor-status { background: rgba(45,212,191,.12); color: #99f6e4; }
-    .td-editor-toolbar { display: flex; gap: 8px; flex-wrap: wrap; }
-    .td-editor-tool {
+    .td-editor-toolbar { display: flex; gap: 8px; flex-wrap: wrap; align-items:center; }
+    .td-editor-tool,
+    .td-editor-select {
         border: 1px solid rgba(148,163,184,.28);
         border-radius: 999px;
         background: rgba(255,255,255,.92);
@@ -46,31 +47,43 @@
         font-weight: 900;
         cursor: pointer;
         color: var(--teacher-text, #0f172a);
+        min-height: 40px;
     }
-    html[data-theme='dark'] .td-editor-tool { background: rgba(15,23,42,.86); color: #f8fafc; }
-    .td-editor-textarea {
+    .td-editor-select { border-radius: 14px; }
+    html[data-theme='dark'] .td-editor-tool,
+    html[data-theme='dark'] .td-editor-select { background: rgba(15,23,42,.86); color: #f8fafc; }
+    .td-rich-editor {
         width: 100%;
-        min-height: 620px;
+        min-height: 650px;
         border-radius: 18px;
         border: 1px solid rgba(148,163,184,.28);
-        padding: 18px;
-        background: rgba(248,250,252,.92);
-        color: var(--teacher-text, #0f172a);
-        font: 500 15px/1.65 Inter, system-ui, sans-serif;
-        resize: vertical;
+        padding: 26px 30px;
+        background: #ffffff;
+        color: #111827;
+        font: 500 16px/1.72 Inter, system-ui, sans-serif;
         outline: none;
-    }
-    .td-editor-textarea:focus { border-color: rgba(15,118,110,.45); box-shadow: 0 0 0 4px rgba(15,118,110,.12); }
-    html[data-theme='dark'] .td-editor-textarea { background: rgba(2,6,23,.44); color: #f8fafc; }
-    .td-editor-preview {
-        display: none;
-        min-height: 260px;
-        border-radius: 18px;
-        border: 1px dashed rgba(15,118,110,.35);
-        background: rgba(15,118,110,.05);
-        padding: 16px;
         overflow: auto;
     }
+    .td-rich-editor:focus { border-color: rgba(15,118,110,.45); box-shadow: 0 0 0 4px rgba(15,118,110,.12); }
+    .td-rich-editor h1,
+    .td-rich-editor h2,
+    .td-rich-editor h3 { color:#0f172a; line-height:1.25; margin: 18px 0 10px; }
+    .td-rich-editor h1 { font-size: 1.75rem; text-align:center; text-transform: uppercase; }
+    .td-rich-editor h2 { font-size: 1.35rem; border-bottom: 1px solid #e5e7eb; padding-bottom: 6px; }
+    .td-rich-editor h3 { font-size: 1.08rem; color:#115e59; }
+    .td-rich-editor p { margin: 0 0 12px; }
+    .td-rich-editor ul,
+    .td-rich-editor ol { margin: 8px 0 14px 24px; }
+    .td-rich-editor table { width:100%; border-collapse: collapse; margin: 14px 0; }
+    .td-rich-editor td,
+    .td-rich-editor th { border: 1px solid #d1d5db; padding: 8px; }
+    .td-rich-editor .exam-title { text-align:center; font-weight:900; text-transform:uppercase; letter-spacing:.04em; }
+    .td-rich-editor .exercise-title { font-weight:900; color:#115e59; margin-top:18px; }
+    html[data-theme='dark'] .td-rich-editor { background: rgba(2,6,23,.72); color:#f8fafc; }
+    html[data-theme='dark'] .td-rich-editor h1,
+    html[data-theme='dark'] .td-rich-editor h2 { color:#f8fafc; }
+    html[data-theme='dark'] .td-rich-editor h3,
+    html[data-theme='dark'] .td-rich-editor .exercise-title { color:#5eead4; }
     .td-editor-submit {
         position: sticky;
         bottom: 12px;
@@ -89,6 +102,7 @@
     .td-hidden-correction { display: none; }
     .td-correction-open .td-hidden-correction { display: grid; gap: 12px; }
     .td-correction-open .td-correction-button { display: none; }
+    .td-correction-open { grid-column: 1 / -1; }
     @media (max-width: 920px) {
         .td-editor-layout { grid-template-columns: 1fr; }
         .td-editor-actions,
@@ -96,7 +110,7 @@
         .td-editor-submit .teacher-btn,
         .td-editor-side-card .teacher-btn { width: 100%; }
         .td-editor-submit { display: grid; grid-template-columns: 1fr; }
-        .td-editor-textarea { min-height: 430px; }
+        .td-rich-editor { min-height: 460px; padding: 18px; font-size: 15px; }
     }
 </style>
 @endpush
@@ -134,22 +148,28 @@
         <input type="hidden" name="correction_delay_minutes" value="{{ $td->correction_delay_minutes ?? 30 }}">
         <input type="hidden" name="status" value="{{ $td->status ?? 'draft' }}">
         <input type="hidden" name="editable_text" id="tdEditableText" value="{{ $td->editable_text }}">
+        <input type="hidden" name="editable_html" id="tdEditableHtml" value="">
+        <input type="hidden" name="correction_html" id="tdCorrectionHtml" value="">
 
         <div class="td-editor-layout" id="tdEditorLayout">
             <div class="td-editor-panel">
                 <h3>Sujet à modifier</h3>
-                <div class="td-editor-status" id="tdLoadStatus">
-                    Chargement du sujet dans l’éditeur...
-                </div>
+                <div class="td-editor-status" id="tdLoadStatus">Chargement du sujet dans l’éditeur...</div>
                 <div class="td-editor-toolbar" data-target="tdSubjectEditor">
-                    <button type="button" class="td-editor-tool" data-format="bold">Gras</button>
-                    <button type="button" class="td-editor-tool" data-format="italic">Italique</button>
-                    <button type="button" class="td-editor-tool" data-format="h3">Titre</button>
-                    <button type="button" class="td-editor-tool" data-format="ul">Liste</button>
-                    <button type="button" class="td-editor-tool" data-preview="tdSubjectPreview">Aperçu</button>
+                    <select class="td-editor-select" data-command="formatBlock">
+                        <option value="p">Paragraphe</option>
+                        <option value="h1">Grand titre</option>
+                        <option value="h2">Titre section</option>
+                        <option value="h3">Titre exercice</option>
+                    </select>
+                    <button type="button" class="td-editor-tool" data-command="bold">Gras</button>
+                    <button type="button" class="td-editor-tool" data-command="italic">Italique</button>
+                    <button type="button" class="td-editor-tool" data-command="underline">Souligner</button>
+                    <button type="button" class="td-editor-tool" data-command="insertUnorderedList">Liste</button>
+                    <button type="button" class="td-editor-tool" data-command="insertOrderedList">Numéros</button>
+                    <button type="button" class="td-editor-tool" data-action="clean">Nettoyer</button>
                 </div>
-                <textarea name="editable_html" id="tdSubjectEditor" class="td-editor-textarea" placeholder="Le sujet à modifier apparaît ici...">{{ $subjectInitial }}</textarea>
-                <div class="td-editor-preview" id="tdSubjectPreview"></div>
+                <div id="tdSubjectEditor" class="td-rich-editor" contenteditable="true">{!! $subjectInitial !!}</div>
             </div>
 
             <aside class="td-editor-side" id="tdCorrectionSide">
@@ -168,14 +188,17 @@
                 <div class="td-editor-side-card td-hidden-correction" id="tdCorrectionCard">
                     <h3>Corrigé à modifier</h3>
                     <div class="td-editor-toolbar" data-target="tdCorrectionEditor">
-                        <button type="button" class="td-editor-tool" data-format="bold">Gras</button>
-                        <button type="button" class="td-editor-tool" data-format="italic">Italique</button>
-                        <button type="button" class="td-editor-tool" data-format="h3">Titre</button>
-                        <button type="button" class="td-editor-tool" data-format="ul">Liste</button>
-                        <button type="button" class="td-editor-tool" data-preview="tdCorrectionPreview">Aperçu</button>
+                        <select class="td-editor-select" data-command="formatBlock">
+                            <option value="p">Paragraphe</option>
+                            <option value="h2">Titre</option>
+                            <option value="h3">Sous-titre</option>
+                        </select>
+                        <button type="button" class="td-editor-tool" data-command="bold">Gras</button>
+                        <button type="button" class="td-editor-tool" data-command="italic">Italique</button>
+                        <button type="button" class="td-editor-tool" data-command="insertUnorderedList">Liste</button>
+                        <button type="button" class="td-editor-tool" data-command="insertOrderedList">Numéros</button>
                     </div>
-                    <textarea name="correction_html" id="tdCorrectionEditor" class="td-editor-textarea" style="min-height:360px;" placeholder="Rédigez ou modifiez le corrigé ici...">{{ $correctionInitial }}</textarea>
-                    <div class="td-editor-preview" id="tdCorrectionPreview"></div>
+                    <div id="tdCorrectionEditor" class="td-rich-editor" contenteditable="true" style="min-height:360px;">{!! $correctionInitial !!}</div>
                 </div>
             </aside>
         </div>
@@ -195,19 +218,10 @@ document.addEventListener('DOMContentLoaded', function () {
     const documentName = @json($td->document_name ?: 'document');
     const initialHasSubject = @json(trim(strip_tags((string) $subjectInitial)) !== '');
     const editor = document.getElementById('tdSubjectEditor');
+    const correctionEditor = document.getElementById('tdCorrectionEditor');
     const statusBox = document.getElementById('tdLoadStatus');
 
     function setStatus(message) { if (statusBox) statusBox.textContent = message; }
-
-    function wrapSelection(textarea, before, after) {
-        const start = textarea.selectionStart || 0;
-        const end = textarea.selectionEnd || 0;
-        const selected = textarea.value.substring(start, end) || 'texte';
-        textarea.value = textarea.value.substring(0, start) + before + selected + after + textarea.value.substring(end);
-        textarea.focus();
-        textarea.selectionStart = start + before.length;
-        textarea.selectionEnd = start + before.length + selected.length;
-    }
 
     function escapeHtml(value) {
         return (value || '').replace(/[&<>\"]/g, function (char) {
@@ -215,29 +229,76 @@ document.addEventListener('DOMContentLoaded', function () {
         });
     }
 
-    function textToHtml(text) {
-        return (text || '').split(/\n{2,}/).map(function (part) {
-            return '<p>' + escapeHtml(part).replace(/\n/g, '<br>') + '</p>';
-        }).join('\n');
+    function normalizeText(value) {
+        return (value || '').replace(/\s+/g, ' ').trim();
+    }
+
+    function isExerciseLine(line) {
+        return /^(exercice|partie|problème|probleme|question)\s*[\w\d-]*/i.test(line)
+            || /^\d+[\).\-]\s+/.test(line);
+    }
+
+    function formatExtractedText(text) {
+        let cleaned = (text || '')
+            .replace(/<\/?p>/gi, '\n')
+            .replace(/\r/g, '\n')
+            .replace(/\s+([,.;:!?])/g, '$1')
+            .replace(/([.!?])\s+(?=(Exercice|Partie|Problème|Probleme|Question)\b)/gi, '$1\n\n')
+            .replace(/\s+(?=(Exercice\s+\d+|Partie\s+[A-Z]|Problème|Probleme)\b)/gi, '\n\n')
+            .trim();
+
+        const rawLines = cleaned.split(/\n+/).map(l => normalizeText(l)).filter(Boolean);
+        const html = [];
+
+        rawLines.forEach((line, index) => {
+            const safe = escapeHtml(line);
+            if (index === 0 && line.length < 140) {
+                html.push('<h1>' + safe + '</h1>');
+            } else if (isExerciseLine(line)) {
+                html.push('<h3 class="exercise-title">' + safe + '</h3>');
+            } else if (/^(code de suivi|durée|classe|matière|sujet)/i.test(line) && line.length < 180) {
+                html.push('<p><strong>' + safe + '</strong></p>');
+            } else {
+                html.push('<p>' + safe + '</p>');
+            }
+        });
+
+        return html.join('\n');
     }
 
     async function loadPdfText(arrayBuffer) {
         const pdfjsLib = await import('https://cdnjs.cloudflare.com/ajax/libs/pdf.js/4.2.67/pdf.min.mjs');
         pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/4.2.67/pdf.worker.min.mjs';
         const pdf = await pdfjsLib.getDocument({ data: arrayBuffer }).promise;
-        let text = '';
+        const pages = [];
+
         for (let pageNumber = 1; pageNumber <= pdf.numPages; pageNumber++) {
             const page = await pdf.getPage(pageNumber);
             const content = await page.getTextContent();
-            text += content.items.map(item => item.str || '').join(' ') + '\n\n';
+            const rows = new Map();
+
+            content.items.forEach(item => {
+                const str = normalizeText(item.str || '');
+                if (!str) return;
+                const y = Math.round((item.transform && item.transform[5] ? item.transform[5] : 0) / 3) * 3;
+                const x = item.transform && item.transform[4] ? item.transform[4] : 0;
+                if (!rows.has(y)) rows.set(y, []);
+                rows.get(y).push({x, str});
+            });
+
+            const lines = Array.from(rows.keys()).sort((a, b) => b - a).map(y => {
+                return rows.get(y).sort((a, b) => a.x - b.x).map(item => item.str).join(' ');
+            });
+
+            pages.push(lines.join('\n'));
         }
-        return text.trim();
+        return pages.join('\n\n').trim();
     }
 
     async function autoLoadSubject() {
         if (!editor) return;
-        if (initialHasSubject || editor.value.trim() !== '') {
-            setStatus('Sujet chargé dans l’éditeur. Vous pouvez modifier puis enregistrer.');
+        if (initialHasSubject || normalizeText(editor.textContent) !== '') {
+            setStatus('Sujet chargé avec mise en forme. Vous pouvez modifier directement le contenu affiché.');
             return;
         }
         if (!documentUrl) {
@@ -253,26 +314,26 @@ document.addEventListener('DOMContentLoaded', function () {
 
             if (lowerName.endsWith('.docx') && window.mammoth) {
                 const result = await window.mammoth.convertToHtml({ arrayBuffer: buffer });
-                editor.value = result.value || '';
-                setStatus('Sujet Word chargé dans l’éditeur. Vérifiez la mise en forme avant d’enregistrer.');
+                editor.innerHTML = result.value || '';
+                setStatus('Sujet Word chargé avec sa mise en forme. Vous pouvez modifier directement.');
                 return;
             }
 
             if (lowerName.endsWith('.pdf')) {
                 const text = await loadPdfText(buffer);
                 if (text.length > 30) {
-                    editor.value = textToHtml(text);
-                    setStatus('Sujet PDF texte chargé dans l’éditeur. Vérifiez la mise en forme avant d’enregistrer.');
+                    editor.innerHTML = formatExtractedText(text);
+                    setStatus('Sujet PDF texte chargé avec une mise en page automatique. Vérifiez puis enregistrez.');
                 } else {
-                    setStatus('Ce PDF semble scanné ou sans texte récupérable. Ouvrez l’original, puis copiez le contenu à modifier dans l’éditeur.');
+                    setStatus('Ce PDF semble scanné. Ouvrez l’original, puis copiez le contenu à modifier dans l’éditeur.');
                 }
                 return;
             }
 
             if (lowerName.endsWith('.txt') || lowerName.endsWith('.rtf') || lowerName.endsWith('.html') || lowerName.endsWith('.htm')) {
                 const text = new TextDecoder('utf-8').decode(buffer);
-                editor.value = lowerName.endsWith('.html') || lowerName.endsWith('.htm') ? text : textToHtml(text);
-                setStatus('Sujet chargé dans l’éditeur. Vous pouvez modifier puis enregistrer.');
+                editor.innerHTML = (lowerName.endsWith('.html') || lowerName.endsWith('.htm')) ? text : formatExtractedText(text);
+                setStatus('Sujet chargé avec mise en forme. Vous pouvez modifier directement.');
                 return;
             }
 
@@ -282,24 +343,36 @@ document.addEventListener('DOMContentLoaded', function () {
         }
     }
 
-    document.querySelectorAll('.td-editor-toolbar').forEach(function (toolbar) {
+    function focusTarget(toolbar) {
         const target = document.getElementById(toolbar.dataset.target);
-        toolbar.querySelectorAll('[data-format]').forEach(function (button) {
-            button.addEventListener('click', function () {
+        if (target) target.focus();
+        return target;
+    }
+
+    document.querySelectorAll('.td-editor-toolbar').forEach(function (toolbar) {
+        toolbar.querySelectorAll('[data-command]').forEach(function (control) {
+            control.addEventListener('click', function () {
+                const target = focusTarget(toolbar);
                 if (!target) return;
-                const format = button.dataset.format;
-                if (format === 'bold') wrapSelection(target, '<strong>', '</strong>');
-                if (format === 'italic') wrapSelection(target, '<em>', '</em>');
-                if (format === 'h3') wrapSelection(target, '<h3>', '</h3>');
-                if (format === 'ul') wrapSelection(target, '<ul><li>', '</li></ul>');
+                const command = control.dataset.command;
+                const value = control.tagName === 'SELECT' ? control.value : null;
+                if (command === 'formatBlock') {
+                    document.execCommand(command, false, value);
+                } else {
+                    document.execCommand(command, false, null);
+                }
+            });
+            control.addEventListener('change', function () {
+                const target = focusTarget(toolbar);
+                if (!target) return;
+                if (control.dataset.command === 'formatBlock') document.execCommand('formatBlock', false, control.value);
             });
         });
-        toolbar.querySelectorAll('[data-preview]').forEach(function (button) {
+        toolbar.querySelectorAll('[data-action="clean"]').forEach(function (button) {
             button.addEventListener('click', function () {
-                const preview = document.getElementById(button.dataset.preview);
-                if (!target || !preview) return;
-                preview.innerHTML = target.value || '<p class="teacher-muted">Aucun contenu.</p>';
-                preview.style.display = preview.style.display === 'block' ? 'none' : 'block';
+                const target = focusTarget(toolbar);
+                if (!target) return;
+                target.innerHTML = formatExtractedText(target.innerText || target.textContent || '');
             });
         });
     });
@@ -309,16 +382,19 @@ document.addEventListener('DOMContentLoaded', function () {
     if (openCorrectionEditor && side) {
         openCorrectionEditor.addEventListener('click', function () {
             side.classList.add('td-correction-open');
-            const correction = document.getElementById('tdCorrectionEditor');
-            if (correction) correction.focus();
+            if (correctionEditor) correctionEditor.focus();
         });
     }
 
     const form = document.getElementById('tdEditorForm');
     const hiddenText = document.getElementById('tdEditableText');
-    if (form && editor && hiddenText) {
+    const hiddenHtml = document.getElementById('tdEditableHtml');
+    const hiddenCorrection = document.getElementById('tdCorrectionHtml');
+    if (form && editor && hiddenText && hiddenHtml && hiddenCorrection) {
         form.addEventListener('submit', function () {
-            hiddenText.value = editor.value.replace(/<[^>]*>/g, ' ').replace(/\s+/g, ' ').trim();
+            hiddenHtml.value = editor.innerHTML;
+            hiddenText.value = normalizeText(editor.innerText || editor.textContent || '');
+            hiddenCorrection.value = correctionEditor ? correctionEditor.innerHTML : '';
         });
     }
 
