@@ -13,5 +13,10 @@ class VerifyCsrfToken extends Middleware
      */
     protected $except = [
         'webhook/notchpay',
+
+        // Déconnexion robuste : évite l'erreur 419 lorsque l'utilisateur
+        // passe d'un type de compte à un autre après expiration du token CSRF.
+        'logout',
+        '*/logout',
     ];
 }
