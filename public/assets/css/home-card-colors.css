@@ -130,8 +130,8 @@
 
 .home-pro .exam-mini b {
     display: flex;
-    align-items: baseline;
-    gap: 6px;
+    align-items: center;
+    gap: 8px;
     color: #ffffff;
     font-size: 2.25rem !important;
     text-shadow: 0 12px 30px rgba(0, 0, 0, .25);
@@ -143,6 +143,27 @@
     font-weight: 850;
     color: rgba(255, 255, 255, .70);
     letter-spacing: normal;
+}
+
+.home-pro .exam-mini .exam-days,
+.home-pro .exam-mini [data-days] {
+    display: inline-flex !important;
+    align-items: center;
+    justify-content: center;
+    min-width: 58px;
+    min-height: 58px;
+    padding: 0 10px !important;
+    border-radius: 18px !important;
+    background: linear-gradient(135deg, #7f1d1d, #dc2626) !important;
+    border: 2px solid rgba(254, 202, 202, .55) !important;
+    color: #ffffff !important;
+    font-size: 2.15rem !important;
+    font-weight: 1000 !important;
+    line-height: 1 !important;
+    letter-spacing: -.07em;
+    box-shadow:
+        0 14px 30px rgba(127, 29, 29, .45),
+        inset 0 1px 0 rgba(255, 255, 255, .22);
 }
 
 .home-pro .exam-mini small {
@@ -178,5 +199,12 @@
 
     .home-pro .exam-mini {
         min-height: 138px;
+    }
+
+    .home-pro .exam-mini .exam-days,
+    .home-pro .exam-mini [data-days] {
+        min-width: 52px;
+        min-height: 52px;
+        font-size: 1.85rem !important;
     }
 }
