@@ -27,6 +27,7 @@ class TdSet extends Model
         'chapter_label',
         'difficulty',
         'access_level',
+        'correction_delay_minutes',
         'status',
         'document_path',
         'document_name',
@@ -47,6 +48,7 @@ class TdSet extends Model
         'published_at' => 'datetime',
         'correction_release_at' => 'datetime',
         'has_editable_version' => 'boolean',
+        'correction_delay_minutes' => 'integer',
     ];
 
     public function schoolClass()
@@ -97,6 +99,12 @@ class TdSet extends Model
     public function hasCorrectionContent(): bool
     {
         return !empty($this->correction_html) || $this->hasCorrectionDocument();
+    }
+
+    public function correctionDelayMinutes(): int
+    {
+        $minutes = (int) ($this->correction_delay_minutes ?? 30);
+        return max(0, min(1440, $minutes));
     }
 
     public function correctionIsAvailableFor(?User $user, ?TdAttempt $attempt = null): bool
