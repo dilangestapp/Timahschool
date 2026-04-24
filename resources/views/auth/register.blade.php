@@ -1,7 +1,7 @@
 @extends('layouts.public')
 
 @section('title', 'Inscription - TIMAH ACADEMY')
-@section('meta_description', 'Créez votre compte TIMAH ACADEMY pour accéder à vos cours, quiz, TD et à votre suivi de progression.')
+@section('meta_description', 'Créez rapidement votre compte TIMAH ACADEMY avec votre nom d’utilisateur, votre classe, votre ville et votre mot de passe.')
 
 @php
     $classCount = isset($classes) ? $classes->count() : 0;
@@ -31,7 +31,7 @@
         height: 380px;
         top: -120px;
         right: -140px;
-        background: radial-gradient(circle, rgba(29, 109, 255, 0.16), transparent 70%);
+        background: radial-gradient(circle, rgba(49, 87, 255, 0.16), transparent 70%);
     }
 
     .register-page::after {
@@ -39,7 +39,7 @@
         height: 300px;
         left: -120px;
         bottom: -90px;
-        background: radial-gradient(circle, rgba(56, 189, 248, 0.12), transparent 72%);
+        background: radial-gradient(circle, rgba(15, 118, 110, 0.13), transparent 72%);
     }
 
     .register-page .container {
@@ -49,7 +49,7 @@
 
     .register-wrap {
         display: grid;
-        grid-template-columns: 1.02fr .98fr;
+        grid-template-columns: .92fr 1.08fr;
         gap: 24px;
         align-items: stretch;
     }
@@ -66,8 +66,9 @@
         padding: 30px;
         color: #eaf1ff;
         background:
-            radial-gradient(circle at top right, rgba(110, 161, 255, 0.22), transparent 30%),
-            linear-gradient(180deg, #0d1a36, #081224);
+            radial-gradient(circle at top right, rgba(45, 212, 191, 0.23), transparent 30%),
+            radial-gradient(circle at bottom left, rgba(99, 102, 241, 0.22), transparent 32%),
+            linear-gradient(135deg, #0d1a36, #081224 55%, #0f766e);
         display: grid;
         gap: 20px;
         align-content: start;
@@ -76,7 +77,7 @@
     .register-card {
         padding: 30px;
         background:
-            radial-gradient(circle at top right, rgba(29, 109, 255, 0.12), transparent 26%),
+            radial-gradient(circle at top right, rgba(49, 87, 255, 0.12), transparent 26%),
             linear-gradient(180deg, var(--panel), var(--panel-soft));
     }
 
@@ -88,23 +89,23 @@
         min-height: 36px;
         padding: 0 14px;
         border-radius: 999px;
-        border: 1px solid rgba(255,255,255,.14);
-        background: rgba(255,255,255,.06);
+        border: 1px solid rgba(255,255,255,.16);
+        background: rgba(255,255,255,.08);
         font-size: .84rem;
         font-weight: 900;
     }
 
     .register-title {
         margin: 0;
-        font-size: clamp(2rem, 3.4vw, 3.3rem);
+        font-size: clamp(2rem, 3.4vw, 3.25rem);
         line-height: 1.02;
-        letter-spacing: -0.05em;
-        max-width: 10ch;
+        letter-spacing: -0.055em;
+        max-width: 11ch;
     }
 
     .register-title .accent {
         display: block;
-        color: #8ec0ff;
+        color: #67e8f9;
     }
 
     .register-text {
@@ -117,7 +118,6 @@
 
     .register-feature-grid {
         display: grid;
-        grid-template-columns: repeat(2, minmax(0, 1fr));
         gap: 14px;
     }
 
@@ -125,7 +125,7 @@
         padding: 16px;
         border-radius: 22px;
         border: 1px solid rgba(255,255,255,.12);
-        background: rgba(255,255,255,.05);
+        background: rgba(255,255,255,.06);
     }
 
     .register-feature strong {
@@ -155,7 +155,7 @@
         padding: 14px 16px;
         border-radius: 18px;
         border: 1px solid rgba(255,255,255,.12);
-        background: rgba(255,255,255,.05);
+        background: rgba(255,255,255,.06);
     }
 
     .register-mini-stat strong {
@@ -187,8 +187,8 @@
         display: inline-flex;
         align-items: center;
         justify-content: center;
-        background: linear-gradient(135deg, var(--primary), #4f86ff);
-        box-shadow: 0 16px 30px rgba(29, 109, 255, 0.24);
+        background: linear-gradient(135deg, #3157ff, #6938ef);
+        box-shadow: 0 16px 30px rgba(49, 87, 255, 0.24);
         color: #fff;
         font-weight: 900;
         font-size: 1.1rem;
@@ -268,12 +268,6 @@
         color: var(--text);
     }
 
-    .field label .hint {
-        color: var(--muted);
-        font-size: .8rem;
-        font-weight: 700;
-    }
-
     .required {
         color: #dc2626;
     }
@@ -307,7 +301,7 @@
     .form-input,
     .form-select {
         width: 100%;
-        height: 52px;
+        height: 54px;
         border-radius: 16px;
         border: 1px solid var(--line);
         background: var(--panel);
@@ -327,7 +321,7 @@
     .form-input:focus,
     .form-select:focus {
         border-color: var(--primary);
-        box-shadow: 0 0 0 4px rgba(29, 109, 255, 0.12);
+        box-shadow: 0 0 0 4px rgba(49, 87, 255, 0.12);
     }
 
     .helper-text,
@@ -354,7 +348,7 @@
         padding: 14px 16px;
         border-radius: 18px;
         border: 1px solid var(--line);
-        background: rgba(29, 109, 255, 0.06);
+        background: rgba(49, 87, 255, 0.06);
         color: var(--muted);
         font-size: .92rem;
         line-height: 1.65;
@@ -404,10 +398,6 @@
             border-radius: 24px;
         }
 
-        .register-feature-grid {
-            grid-template-columns: 1fr;
-        }
-
         .register-title {
             max-width: none;
             font-size: clamp(2rem, 11vw, 3rem);
@@ -421,37 +411,32 @@
     <div class="container">
         <div class="register-wrap">
             <div class="register-showcase reveal">
-                <span class="register-badge">🚀 Commencez votre parcours sur TIMAH ACADEMY</span>
+                <span class="register-badge">🚀 Inscription rapide</span>
 
                 <h2 class="register-title">
                     Créez votre compte
-                    <span class="accent">et entrez dans la plateforme.</span>
+                    <span class="accent">en quelques secondes.</span>
                 </h2>
 
                 <p class="register-text">
-                    Inscrivez-vous pour accéder à une expérience claire, moderne et pensée pour la progression :
-                    cours structurés, quiz, TD corrigés et meilleur suivi du travail.
+                    TIMAH ACADEMY simplifie l’accès : choisissez votre nom d’utilisateur, votre classe,
+                    votre ville et votre mot de passe pour commencer votre essai gratuit.
                 </p>
 
                 <div class="register-feature-grid">
                     <article class="register-feature">
-                        <strong>Entrée simple</strong>
-                        <p>Choisissez votre classe et commencez sans vous perdre dans une interface compliquée.</p>
+                        <strong>Formulaire réduit</strong>
+                        <p>Seulement les informations nécessaires pour créer rapidement le compte élève.</p>
                     </article>
 
                     <article class="register-feature">
-                        <strong>Progression guidée</strong>
-                        <p>Retrouvez des contenus organisés pour travailler avec méthode et régularité.</p>
+                        <strong>Accès direct</strong>
+                        <p>Après l’inscription, l’élève arrive directement dans son espace de travail.</p>
                     </article>
 
                     <article class="register-feature">
-                        <strong>Accès utile</strong>
-                        <p>Cours, quiz, TD et suivi réunis dans un même espace cohérent.</p>
-                    </article>
-
-                    <article class="register-feature">
-                        <strong>Plateforme sérieuse</strong>
-                        <p>Un environnement pensé pour les élèves, les parents et les enseignants.</p>
+                        <strong>Classe obligatoire</strong>
+                        <p>Les TD, cours, rappels et comptes à rebours sont adaptés à la classe choisie.</p>
                     </article>
                 </div>
 
@@ -463,12 +448,7 @@
 
                     <div class="register-mini-stat">
                         <span>Inscription</span>
-                        <strong>Rapide</strong>
-                    </div>
-
-                    <div class="register-mini-stat">
-                        <span>Expérience</span>
-                        <strong>Claire et moderne</strong>
+                        <strong>4 champs</strong>
                     </div>
                 </div>
             </div>
@@ -479,12 +459,12 @@
                         <span class="register-brand__mark">TA</span>
                         <span class="register-brand__text">
                             <strong>TIMAH ACADEMY</strong>
-                            <span>Création de compte</span>
+                            <span>Création de compte élève</span>
                         </span>
                     </div>
 
                     <h1>Créer un compte</h1>
-                    <p>Remplissez les informations ci-dessous pour accéder à votre espace d’apprentissage.</p>
+                    <p>Remplissez uniquement ces informations pour accéder à votre espace.</p>
                 </div>
 
                 @if ($errors->any())
@@ -498,28 +478,6 @@
 
                     <div class="field-grid">
                         <div class="field">
-                            <label for="full_name">Nom complet <span class="required">*</span></label>
-                            <div class="input-wrap">
-                                <svg class="input-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                                    <path d="M20 21a8 8 0 0 0-16 0"></path>
-                                    <circle cx="12" cy="7" r="4"></circle>
-                                </svg>
-                                <input
-                                    class="form-input"
-                                    type="text"
-                                    id="full_name"
-                                    name="full_name"
-                                    value="{{ old('full_name') }}"
-                                    placeholder="Jean Dupont"
-                                    required
-                                >
-                            </div>
-                            @error('full_name')
-                                <div class="error-text">{{ $message }}</div>
-                            @enderror
-                        </div>
-
-                        <div class="field">
                             <label for="username">Nom d'utilisateur <span class="required">*</span></label>
                             <div class="input-wrap">
                                 <svg class="input-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
@@ -532,7 +490,7 @@
                                     id="username"
                                     name="username"
                                     value="{{ old('username') }}"
-                                    placeholder="jeandupont"
+                                    placeholder="exemple: toukam237"
                                     required
                                 >
                             </div>
@@ -542,52 +500,29 @@
                         </div>
 
                         <div class="field">
-                            <label for="email">
-                                Email <span class="hint">(optionnel)</span>
-                            </label>
+                            <label for="city">Ville <span class="required">*</span></label>
                             <div class="input-wrap">
                                 <svg class="input-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                                    <rect x="3" y="5" width="18" height="14" rx="2"></rect>
-                                    <path d="m3 7 9 6 9-6"></path>
-                                </svg>
-                                <input
-                                    class="form-input"
-                                    type="email"
-                                    id="email"
-                                    name="email"
-                                    value="{{ old('email') }}"
-                                    placeholder="jean@exemple.com"
-                                >
-                            </div>
-                            @error('email')
-                                <div class="error-text">{{ $message }}</div>
-                            @enderror
-                        </div>
-
-                        <div class="field">
-                            <label for="phone">
-                                Téléphone <span class="hint">(optionnel)</span>
-                            </label>
-                            <div class="input-wrap">
-                                <svg class="input-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                                    <path d="M22 16.92V19a2 2 0 0 1-2.18 2 19.8 19.8 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6A19.8 19.8 0 0 1 2.12 3.18 2 2 0 0 1 4.11 1h2.09a2 2 0 0 1 2 1.72c.12.9.35 1.78.68 2.62a2 2 0 0 1-.45 2.11L7.3 8.59a16 16 0 0 0 8.11 8.11l1.14-1.13a2 2 0 0 1 2.11-.45c.84.33 1.72.56 2.62.68A2 2 0 0 1 22 16.92z"></path>
+                                    <path d="M12 21s7-4.35 7-11a7 7 0 1 0-14 0c0 6.65 7 11 7 11z"></path>
+                                    <circle cx="12" cy="10" r="2.5"></circle>
                                 </svg>
                                 <input
                                     class="form-input"
                                     type="text"
-                                    id="phone"
-                                    name="phone"
-                                    value="{{ old('phone') }}"
-                                    placeholder="6XXXXXXXX"
+                                    id="city"
+                                    name="city"
+                                    value="{{ old('city') }}"
+                                    placeholder="exemple: Douala"
+                                    required
                                 >
                             </div>
-                            @error('phone')
+                            @error('city')
                                 <div class="error-text">{{ $message }}</div>
                             @enderror
                         </div>
 
                         <div class="field field--full">
-                            <label for="school_class_id">Votre classe <span class="required">*</span></label>
+                            <label for="school_class_id">Classe <span class="required">*</span></label>
                             <div class="input-wrap">
                                 <svg class="input-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                                     <path d="M3 21h18"></path>
@@ -618,7 +553,7 @@
                             @enderror
                         </div>
 
-                        <div class="field">
+                        <div class="field field--full">
                             <label for="password">Mot de passe <span class="required">*</span></label>
                             <div class="input-wrap">
                                 <svg class="input-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
@@ -630,33 +565,12 @@
                                     type="password"
                                     id="password"
                                     name="password"
-                                    placeholder="••••••••"
+                                    placeholder="Minimum 8 caractères"
                                     required
                                 >
                             </div>
-                            <div class="helper-text">Minimum 8 caractères.</div>
+                            <div class="helper-text">Retenez bien ce mot de passe pour vos prochaines connexions.</div>
                             @error('password')
-                                <div class="error-text">{{ $message }}</div>
-                            @enderror
-                        </div>
-
-                        <div class="field">
-                            <label for="password_confirmation">Confirmer le mot de passe <span class="required">*</span></label>
-                            <div class="input-wrap">
-                                <svg class="input-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                                    <rect x="3" y="11" width="18" height="11" rx="2"></rect>
-                                    <path d="M7 11V7a5 5 0 0 1 10 0v4"></path>
-                                </svg>
-                                <input
-                                    class="form-input"
-                                    type="password"
-                                    id="password_confirmation"
-                                    name="password_confirmation"
-                                    placeholder="••••••••"
-                                    required
-                                >
-                            </div>
-                            @error('password_confirmation')
                                 <div class="error-text">{{ $message }}</div>
                             @enderror
                         </div>
@@ -666,8 +580,7 @@
                         <button type="submit" class="btn btn--primary btn--full">Créer mon compte gratuitement</button>
 
                         <div class="register-note">
-                            En créant votre compte, vous pourrez choisir votre classe, accéder à vos contenus
-                            et commencer votre progression dans un environnement plus structuré.
+                            Votre compte élève sera créé avec un essai gratuit de 24h.
                         </div>
                     </div>
                 </form>
@@ -678,10 +591,7 @@
                 </div>
 
                 <div class="legal-note">
-                    En créant un compte, vous acceptez nos
-                    <a href="#">conditions d'utilisation</a>
-                    et notre
-                    <a href="#">politique de confidentialité</a>.
+                    En créant un compte, vous acceptez les conditions d’utilisation de la plateforme.
                 </div>
             </div>
         </div>
