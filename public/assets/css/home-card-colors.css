@@ -1,0 +1,224 @@
+/* Accents colorés pour la page d'accueil TIMAH ACADEMY */
+.home-lite .lite-card,
+.home-lite .lite-point,
+.home-lite .lite-side-box,
+.home-lite .exam-lite,
+.home-lite .how-card,
+.home-lite .class-summary,
+.home-lite .class-mini,
+.home-lite .price-card,
+.home-lite .faq-lite details {
+    position: relative;
+    overflow: hidden;
+}
+
+.home-lite .lite-card::before,
+.home-lite .lite-point::before,
+.home-lite .lite-side-box::before,
+.home-lite .exam-lite::after,
+.home-lite .how-card::before,
+.home-lite .class-summary::before,
+.home-lite .class-mini::before,
+.home-lite .price-card::before,
+.home-lite .faq-lite details::before {
+    content: "";
+    position: absolute;
+    inset: 0 auto 0 0;
+    width: 6px;
+    border-radius: inherit;
+    pointer-events: none;
+}
+
+.home-lite .lite-card > *,
+.home-lite .lite-point > *,
+.home-lite .lite-side-box > *,
+.home-lite .exam-lite > *,
+.home-lite .how-card > *,
+.home-lite .class-summary > *,
+.home-lite .class-mini > *,
+.home-lite .price-card > *,
+.home-lite .faq-lite details > * {
+    position: relative;
+    z-index: 1;
+}
+
+/* Gros bloc principal */
+.home-lite .lite-hero-main {
+    background:
+        radial-gradient(circle at 82% 10%, rgba(49, 87, 255, .22), transparent 34%),
+        radial-gradient(circle at 12% 92%, rgba(15, 118, 110, .13), transparent 32%),
+        linear-gradient(135deg, rgba(255,255,255,.98), rgba(238,243,255,.96));
+}
+
+.home-lite .lite-hero-side {
+    background:
+        radial-gradient(circle at 95% 10%, rgba(245, 158, 11, .14), transparent 34%),
+        linear-gradient(180deg, rgba(255,255,255,.98), rgba(245,248,255,.94));
+}
+
+/* Petites cartes du hero */
+.home-lite .lite-point:nth-child(1) {
+    background: linear-gradient(135deg, rgba(49,87,255,.11), rgba(255,255,255,.86));
+    border-color: rgba(49,87,255,.26);
+}
+.home-lite .lite-point:nth-child(1)::before { background: #3157ff; }
+.home-lite .lite-point:nth-child(2) {
+    background: linear-gradient(135deg, rgba(15,118,110,.12), rgba(255,255,255,.86));
+    border-color: rgba(15,118,110,.26);
+}
+.home-lite .lite-point:nth-child(2)::before { background: #0f766e; }
+.home-lite .lite-point:nth-child(3) {
+    background: linear-gradient(135deg, rgba(245,158,11,.15), rgba(255,255,255,.86));
+    border-color: rgba(245,158,11,.28);
+}
+.home-lite .lite-point:nth-child(3)::before { background: #f59e0b; }
+.home-lite .lite-point:nth-child(4) {
+    background: linear-gradient(135deg, rgba(124,58,237,.12), rgba(255,255,255,.86));
+    border-color: rgba(124,58,237,.25);
+}
+.home-lite .lite-point:nth-child(4)::before { background: #7c3aed; }
+
+/* Cartes statistiques de droite */
+.home-lite .lite-side-box:nth-child(1) {
+    background: linear-gradient(135deg, rgba(49,87,255,.12), rgba(255,255,255,.90));
+    border-color: rgba(49,87,255,.24);
+}
+.home-lite .lite-side-box:nth-child(1)::before { background: #3157ff; }
+.home-lite .lite-side-box:nth-child(2) {
+    background: linear-gradient(135deg, rgba(15,118,110,.12), rgba(255,255,255,.90));
+    border-color: rgba(15,118,110,.24);
+}
+.home-lite .lite-side-box:nth-child(2)::before { background: #0f766e; }
+.home-lite .lite-side-box:nth-child(3) {
+    background: linear-gradient(135deg, rgba(245,158,11,.15), rgba(255,255,255,.90));
+    border-color: rgba(245,158,11,.28);
+}
+.home-lite .lite-side-box:nth-child(3)::before { background: #f59e0b; }
+
+/* Examens */
+.home-lite .exam-lite:nth-child(1) {
+    background: linear-gradient(135deg, rgba(49,87,255,.12), rgba(255,255,255,.92));
+    border-color: rgba(49,87,255,.26);
+}
+.home-lite .exam-lite:nth-child(1)::after { background: #3157ff; }
+.home-lite .exam-lite:nth-child(2) {
+    background: linear-gradient(135deg, rgba(15,118,110,.12), rgba(255,255,255,.92));
+    border-color: rgba(15,118,110,.26);
+}
+.home-lite .exam-lite:nth-child(2)::after { background: #0f766e; }
+.home-lite .exam-lite:nth-child(3) {
+    background: linear-gradient(135deg, rgba(245,158,11,.16), rgba(255,255,255,.92));
+    border-color: rgba(245,158,11,.30);
+}
+.home-lite .exam-lite:nth-child(3)::after { background: #f59e0b; }
+.home-lite .exam-lite:nth-child(4) {
+    background: linear-gradient(135deg, rgba(124,58,237,.13), rgba(255,255,255,.92));
+    border-color: rgba(124,58,237,.26);
+}
+.home-lite .exam-lite:nth-child(4)::after { background: #7c3aed; }
+.home-lite .exam-lite .timer div {
+    background: rgba(255,255,255,.74);
+    border: 1px solid rgba(255,255,255,.65);
+}
+
+/* Comment ça marche */
+.home-lite .how-card:nth-child(1) {
+    background: linear-gradient(135deg, rgba(49,87,255,.11), rgba(255,255,255,.92));
+    border-color: rgba(49,87,255,.23);
+}
+.home-lite .how-card:nth-child(1)::before { background: #3157ff; }
+.home-lite .how-card:nth-child(2) {
+    background: linear-gradient(135deg, rgba(15,118,110,.11), rgba(255,255,255,.92));
+    border-color: rgba(15,118,110,.23);
+}
+.home-lite .how-card:nth-child(2)::before { background: #0f766e; }
+.home-lite .how-card:nth-child(3) {
+    background: linear-gradient(135deg, rgba(245,158,11,.15), rgba(255,255,255,.92));
+    border-color: rgba(245,158,11,.27);
+}
+.home-lite .how-card:nth-child(3)::before { background: #f59e0b; }
+
+/* Classes */
+.home-lite .class-summary {
+    background: linear-gradient(135deg, rgba(15,118,110,.12), rgba(255,255,255,.92));
+    border-color: rgba(15,118,110,.24);
+}
+.home-lite .class-summary::before { background: #0f766e; }
+.home-lite .class-mini:nth-child(3n+1) {
+    background: linear-gradient(135deg, rgba(49,87,255,.10), rgba(255,255,255,.90));
+    border-color: rgba(49,87,255,.20);
+}
+.home-lite .class-mini:nth-child(3n+1)::before { background: #3157ff; }
+.home-lite .class-mini:nth-child(3n+2) {
+    background: linear-gradient(135deg, rgba(15,118,110,.10), rgba(255,255,255,.90));
+    border-color: rgba(15,118,110,.20);
+}
+.home-lite .class-mini:nth-child(3n+2)::before { background: #0f766e; }
+.home-lite .class-mini:nth-child(3n+3) {
+    background: linear-gradient(135deg, rgba(124,58,237,.10), rgba(255,255,255,.90));
+    border-color: rgba(124,58,237,.20);
+}
+.home-lite .class-mini:nth-child(3n+3)::before { background: #7c3aed; }
+
+/* Abonnements */
+.home-lite .price-card:nth-child(1) {
+    background: linear-gradient(135deg, rgba(15,118,110,.12), rgba(255,255,255,.92));
+    border-color: rgba(15,118,110,.24);
+}
+.home-lite .price-card:nth-child(1)::before { background: #0f766e; }
+.home-lite .price-card:nth-child(2) {
+    background: linear-gradient(135deg, rgba(49,87,255,.12), rgba(255,255,255,.92));
+    border-color: rgba(49,87,255,.24);
+}
+.home-lite .price-card:nth-child(2)::before { background: #3157ff; }
+.home-lite .price-card:nth-child(3) {
+    background: linear-gradient(135deg, rgba(124,58,237,.12), rgba(255,255,255,.92));
+    border-color: rgba(124,58,237,.24);
+}
+.home-lite .price-card:nth-child(3)::before { background: #7c3aed; }
+
+/* FAQ */
+.home-lite .faq-lite details:nth-child(4n+1)::before { background: #3157ff; }
+.home-lite .faq-lite details:nth-child(4n+2)::before { background: #0f766e; }
+.home-lite .faq-lite details:nth-child(4n+3)::before { background: #f59e0b; }
+.home-lite .faq-lite details:nth-child(4n+4)::before { background: #7c3aed; }
+.home-lite .faq-lite details:nth-child(4n+1) { background: linear-gradient(135deg, rgba(49,87,255,.08), rgba(255,255,255,.92)); }
+.home-lite .faq-lite details:nth-child(4n+2) { background: linear-gradient(135deg, rgba(15,118,110,.08), rgba(255,255,255,.92)); }
+.home-lite .faq-lite details:nth-child(4n+3) { background: linear-gradient(135deg, rgba(245,158,11,.10), rgba(255,255,255,.92)); }
+.home-lite .faq-lite details:nth-child(4n+4) { background: linear-gradient(135deg, rgba(124,58,237,.08), rgba(255,255,255,.92)); }
+
+.home-lite .lite-point,
+.home-lite .lite-side-box,
+.home-lite .exam-lite,
+.home-lite .how-card,
+.home-lite .class-summary,
+.home-lite .class-mini,
+.home-lite .price-card,
+.home-lite .faq-lite details {
+    transition: transform .2s ease, box-shadow .2s ease, border-color .2s ease;
+}
+
+.home-lite .lite-point:hover,
+.home-lite .lite-side-box:hover,
+.home-lite .exam-lite:hover,
+.home-lite .how-card:hover,
+.home-lite .class-summary:hover,
+.home-lite .class-mini:hover,
+.home-lite .price-card:hover,
+.home-lite .faq-lite details:hover {
+    transform: translateY(-3px);
+    box-shadow: 0 18px 42px rgba(15, 23, 42, .12);
+}
+
+html[data-theme='dark'] .home-lite .lite-hero-main,
+html[data-theme='dark'] .home-lite .lite-hero-side,
+html[data-theme='dark'] .home-lite .lite-point,
+html[data-theme='dark'] .home-lite .lite-side-box,
+html[data-theme='dark'] .home-lite .exam-lite,
+html[data-theme='dark'] .home-lite .how-card,
+html[data-theme='dark'] .home-lite .class-summary,
+html[data-theme='dark'] .home-lite .class-mini,
+html[data-theme='dark'] .home-lite .price-card,
+html[data-theme='dark'] .home-lite .faq-lite details {
+    background: linear-gradient(135deg, rgba(15,23,42,.86), rgba(30,41,59,.72));
+}
