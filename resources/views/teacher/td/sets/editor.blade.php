@@ -1,81 +1,131 @@
 @extends('layouts.teacher')
 
-@section('title', 'Éditeur du TD')
-@section('page_title', 'Éditeur du TD')
-@section('page_subtitle', 'Modifiez directement le contenu du sujet et du corrigé sans passer par le formulaire complet.')
+@section('title', 'Modifier le TD')
+@section('page_title', 'Modifier le TD')
+@section('page_subtitle', 'Le sujet est chargé directement dans l’éditeur. Vous pouvez aussi ouvrir l’original, consulter le corrigé et modifier le corrigé.')
 
 @push('styles')
 <style>
-    .quick-editor-shell { display: grid; gap: 18px; }
-    .quick-editor-hero, .quick-editor-card {
-        background: rgba(255,255,255,.86);
-        border: 1px solid rgba(148,163,184,.25);
+    .td-editor-page { display: grid; gap: 18px; }
+    .td-editor-hero,
+    .td-editor-panel,
+    .td-editor-side-card {
+        background: rgba(255,255,255,.88);
+        border: 1px solid rgba(148,163,184,.24);
         border-radius: 24px;
         box-shadow: 0 18px 42px rgba(15,23,42,.08);
+    }
+    html[data-theme='dark'] .td-editor-hero,
+    html[data-theme='dark'] .td-editor-panel,
+    html[data-theme='dark'] .td-editor-side-card { background: rgba(15,23,42,.78); }
+    .td-editor-hero { padding: 18px; display: flex; justify-content: space-between; gap: 14px; flex-wrap: wrap; align-items: flex-start; }
+    .td-editor-hero h2 { margin: 0 0 8px; letter-spacing: -.04em; }
+    .td-editor-meta { color: var(--teacher-muted, #64748b); font-weight: 800; line-height: 1.45; }
+    .td-editor-actions { display: flex; gap: 10px; flex-wrap: wrap; align-items: center; }
+    .td-editor-layout { display: grid; grid-template-columns: minmax(0, 1fr) 330px; gap: 16px; align-items: start; }
+    .td-editor-panel { padding: 18px; display: grid; gap: 12px; }
+    .td-editor-side { display: grid; gap: 14px; }
+    .td-editor-side-card { padding: 16px; display: grid; gap: 12px; }
+    .td-editor-side-card h3,
+    .td-editor-panel h3 { margin: 0; letter-spacing: -.03em; }
+    .td-editor-status {
+        border-radius: 16px;
+        padding: 12px 14px;
+        background: rgba(15,118,110,.08);
+        color: #115e59;
+        font-weight: 850;
+        line-height: 1.45;
+    }
+    html[data-theme='dark'] .td-editor-status { background: rgba(45,212,191,.12); color: #99f6e4; }
+    .td-editor-toolbar { display: flex; gap: 8px; flex-wrap: wrap; }
+    .td-editor-tool {
+        border: 1px solid rgba(148,163,184,.28);
+        border-radius: 999px;
+        background: rgba(255,255,255,.92);
+        padding: 8px 12px;
+        font-weight: 900;
+        cursor: pointer;
+        color: var(--teacher-text, #0f172a);
+    }
+    html[data-theme='dark'] .td-editor-tool { background: rgba(15,23,42,.86); color: #f8fafc; }
+    .td-editor-textarea {
+        width: 100%;
+        min-height: 620px;
+        border-radius: 18px;
+        border: 1px solid rgba(148,163,184,.28);
         padding: 18px;
+        background: rgba(248,250,252,.92);
+        color: var(--teacher-text, #0f172a);
+        font: 500 15px/1.65 Inter, system-ui, sans-serif;
+        resize: vertical;
+        outline: none;
     }
-    html[data-theme='dark'] .quick-editor-hero,
-    html[data-theme='dark'] .quick-editor-card { background: rgba(15,23,42,.78); }
-    .quick-editor-hero { display: flex; align-items: flex-start; justify-content: space-between; gap: 14px; flex-wrap: wrap; }
-    .quick-editor-hero h2 { margin: 0 0 8px; letter-spacing: -.04em; }
-    .quick-editor-meta { color: var(--teacher-muted, #64748b); font-weight: 800; line-height: 1.45; }
-    .quick-editor-actions { display: flex; gap: 10px; flex-wrap: wrap; align-items: center; }
-    .quick-editor-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
-    .quick-editor-card h3 { margin: 0 0 8px; letter-spacing: -.03em; }
-    .quick-editor-card textarea {
-        width: 100%; min-height: 460px; border-radius: 18px; border: 1px solid rgba(148,163,184,.28);
-        padding: 16px; background: rgba(248,250,252,.86); color: var(--teacher-text, #0f172a);
-        font: 500 15px/1.6 Inter, system-ui, sans-serif; resize: vertical;
+    .td-editor-textarea:focus { border-color: rgba(15,118,110,.45); box-shadow: 0 0 0 4px rgba(15,118,110,.12); }
+    html[data-theme='dark'] .td-editor-textarea { background: rgba(2,6,23,.44); color: #f8fafc; }
+    .td-editor-preview {
+        display: none;
+        min-height: 260px;
+        border-radius: 18px;
+        border: 1px dashed rgba(15,118,110,.35);
+        background: rgba(15,118,110,.05);
+        padding: 16px;
+        overflow: auto;
     }
-    html[data-theme='dark'] .quick-editor-card textarea { background: rgba(2,6,23,.44); color: #f8fafc; }
-    .quick-editor-toolbar { display: flex; gap: 8px; flex-wrap: wrap; margin-bottom: 12px; }
-    .quick-editor-tool {
-        border: 1px solid rgba(148,163,184,.28); border-radius: 999px; background: rgba(255,255,255,.9);
-        padding: 8px 12px; font-weight: 900; cursor: pointer;
+    .td-editor-submit {
+        position: sticky;
+        bottom: 12px;
+        z-index: 10;
+        display: flex;
+        justify-content: flex-end;
+        gap: 10px;
+        padding: 12px;
+        border-radius: 20px;
+        background: rgba(255,255,255,.88);
+        border: 1px solid rgba(148,163,184,.24);
+        backdrop-filter: blur(14px);
+        box-shadow: 0 18px 40px rgba(15,23,42,.10);
     }
-    html[data-theme='dark'] .quick-editor-tool { background: rgba(15,23,42,.86); color: #f8fafc; }
-    .quick-editor-preview { min-height: 220px; border-radius: 18px; border: 1px dashed rgba(15,118,110,.35); background: rgba(15,118,110,.05); padding: 16px; overflow: auto; }
-    .quick-editor-notice { border-radius: 18px; padding: 12px 14px; background: rgba(15,118,110,.08); color: #115e59; font-weight: 800; line-height: 1.45; }
-    html[data-theme='dark'] .quick-editor-notice { background: rgba(45,212,191,.12); color: #99f6e4; }
-    .quick-editor-submit {
-        position: sticky; bottom: 12px; z-index: 10; display: flex; justify-content: flex-end; gap: 10px; padding: 12px;
-        border-radius: 20px; background: rgba(255,255,255,.86); border: 1px solid rgba(148,163,184,.24); backdrop-filter: blur(14px); box-shadow: 0 18px 40px rgba(15,23,42,.10);
-    }
-    html[data-theme='dark'] .quick-editor-submit { background: rgba(15,23,42,.86); }
-    @media (max-width: 900px) {
-        .quick-editor-grid { grid-template-columns: 1fr; }
-        .quick-editor-card textarea { min-height: 360px; }
-        .quick-editor-actions, .quick-editor-submit, .quick-editor-submit .teacher-btn { width: 100%; }
-        .quick-editor-submit { display: grid; grid-template-columns: 1fr; }
+    html[data-theme='dark'] .td-editor-submit { background: rgba(15,23,42,.86); }
+    .td-hidden-correction { display: none; }
+    .td-correction-open .td-hidden-correction { display: grid; gap: 12px; }
+    .td-correction-open .td-correction-button { display: none; }
+    @media (max-width: 920px) {
+        .td-editor-layout { grid-template-columns: 1fr; }
+        .td-editor-actions,
+        .td-editor-submit,
+        .td-editor-submit .teacher-btn,
+        .td-editor-side-card .teacher-btn { width: 100%; }
+        .td-editor-submit { display: grid; grid-template-columns: 1fr; }
+        .td-editor-textarea { min-height: 430px; }
     }
 </style>
 @endpush
 
 @section('content')
 @php
-    $subjectInitial = old('editable_html', $td->editable_html);
-    $correctionInitial = old('correction_html', $td->correction_html);
+    $subjectInitial = old('editable_html', $td->editable_html ?: '');
+    $correctionInitial = old('correction_html', $td->correction_html ?: '');
 @endphp
 
-<section class="quick-editor-shell">
-    <div class="quick-editor-hero">
+<section class="td-editor-page">
+    <div class="td-editor-hero">
         <div>
             <h2>{{ $td->title }}</h2>
-            <div class="quick-editor-meta">{{ $td->schoolClass->name ?? '-' }} · {{ $td->subject->name ?? '-' }} · {{ $td->chapter_label ?: 'Sans chapitre' }}</div>
-            <div class="quick-editor-meta">Temps avant corrigé : {{ $td->correction_delay_minutes ?? 30 }} minute(s)</div>
+            <div class="td-editor-meta">{{ $td->schoolClass->name ?? '-' }} · {{ $td->subject->name ?? '-' }} · {{ $td->chapter_label ?: 'Sans chapitre' }}</div>
+            <div class="td-editor-meta">Temps avant corrigé : {{ $td->correction_delay_minutes ?? 30 }} minute(s)</div>
         </div>
-        <div class="quick-editor-actions">
+        <div class="td-editor-actions">
             @if($td->document_path)
-                <a class="teacher-btn teacher-btn--ghost" href="{{ route('teacher.td.sets.document', $td) }}">Ouvrir le sujet original</a>
+                <a class="teacher-btn teacher-btn--ghost" href="{{ route('teacher.td.sets.document', $td) }}">Ouvrir l’original</a>
             @endif
             @if($td->correction_document_path)
-                <a class="teacher-btn teacher-btn--ghost" href="{{ route('teacher.td.sets.correction_document', $td) }}">Ouvrir le corrigé original</a>
+                <a class="teacher-btn teacher-btn--ghost" href="{{ route('teacher.td.sets.correction_document', $td) }}">Ouvrir le corrigé</a>
             @endif
-            <a class="teacher-btn teacher-btn--ghost" href="{{ route('teacher.td.sets.edit', $td) }}">Formulaire complet</a>
+            <a class="teacher-btn teacher-btn--ghost" href="{{ route('teacher.td.sets.edit', $td) }}">Paramètres / fichiers</a>
         </div>
     </div>
 
-    <form method="POST" action="{{ route('teacher.td.sets.update', $td) }}" enctype="multipart/form-data" class="quick-editor-shell" id="quickTdEditorForm">
+    <form method="POST" action="{{ route('teacher.td.sets.update', $td) }}" enctype="multipart/form-data" class="td-editor-page" id="tdEditorForm">
         @csrf
         <input type="hidden" name="title" value="{{ $td->title }}">
         <input type="hidden" name="chapter_label" value="{{ $td->chapter_label }}">
@@ -83,55 +133,71 @@
         <input type="hidden" name="access_level" value="{{ $td->access_level ?? 'free' }}">
         <input type="hidden" name="correction_delay_minutes" value="{{ $td->correction_delay_minutes ?? 30 }}">
         <input type="hidden" name="status" value="{{ $td->status ?? 'draft' }}">
-        <input type="hidden" name="editable_text" id="quickEditableText" value="{{ $td->editable_text }}">
+        <input type="hidden" name="editable_text" id="tdEditableText" value="{{ $td->editable_text }}">
 
-        @if(empty(trim((string) $subjectInitial)) && $td->document_path)
-            <div class="quick-editor-notice" id="quickAutoLoadNotice">
-                Chargement automatique du document dans l’éditeur en cours. Si le fichier est un PDF scanné ou une image, ouvrez le sujet original puis copiez le texte à corriger dans l’éditeur.
-            </div>
-        @endif
-
-        <div class="quick-editor-grid">
-            <div class="quick-editor-card">
-                <h3>Sujet du TD</h3>
-                <p class="teacher-muted">Le contenu existant du TD est chargé ici automatiquement quand une version éditable existe. Sinon, la plateforme tente de charger le document texte/PDF directement.</p>
-                <div class="quick-editor-toolbar" data-target="quickSubjectEditor">
-                    <button type="button" class="quick-editor-tool" data-format="bold">Gras</button>
-                    <button type="button" class="quick-editor-tool" data-format="italic">Italique</button>
-                    <button type="button" class="quick-editor-tool" data-format="h3">Titre</button>
-                    <button type="button" class="quick-editor-tool" data-format="ul">Liste</button>
-                    <button type="button" class="quick-editor-tool" data-preview="quickSubjectPreview">Aperçu</button>
+        <div class="td-editor-layout" id="tdEditorLayout">
+            <div class="td-editor-panel">
+                <h3>Sujet à modifier</h3>
+                <div class="td-editor-status" id="tdLoadStatus">
+                    Chargement du sujet dans l’éditeur...
                 </div>
-                <textarea name="editable_html" id="quickSubjectEditor" placeholder="Rédigez ou collez le contenu du TD ici...">{{ $subjectInitial }}</textarea>
-                <div class="quick-editor-preview" id="quickSubjectPreview" style="display:none;"></div>
+                <div class="td-editor-toolbar" data-target="tdSubjectEditor">
+                    <button type="button" class="td-editor-tool" data-format="bold">Gras</button>
+                    <button type="button" class="td-editor-tool" data-format="italic">Italique</button>
+                    <button type="button" class="td-editor-tool" data-format="h3">Titre</button>
+                    <button type="button" class="td-editor-tool" data-format="ul">Liste</button>
+                    <button type="button" class="td-editor-tool" data-preview="tdSubjectPreview">Aperçu</button>
+                </div>
+                <textarea name="editable_html" id="tdSubjectEditor" class="td-editor-textarea" placeholder="Le sujet à modifier apparaît ici...">{{ $subjectInitial }}</textarea>
+                <div class="td-editor-preview" id="tdSubjectPreview"></div>
             </div>
 
-            <div class="quick-editor-card" id="correction-zone">
-                <h3>Corrigé du TD</h3>
-                <p class="teacher-muted">Le corrigé texte existant est chargé ici. Vous pouvez le modifier directement.</p>
-                <div class="quick-editor-toolbar" data-target="quickCorrectionEditor">
-                    <button type="button" class="quick-editor-tool" data-format="bold">Gras</button>
-                    <button type="button" class="quick-editor-tool" data-format="italic">Italique</button>
-                    <button type="button" class="quick-editor-tool" data-format="h3">Titre</button>
-                    <button type="button" class="quick-editor-tool" data-format="ul">Liste</button>
-                    <button type="button" class="quick-editor-tool" data-preview="quickCorrectionPreview">Aperçu</button>
+            <aside class="td-editor-side" id="tdCorrectionSide">
+                <div class="td-editor-side-card">
+                    <h3>Actions</h3>
+                    @if($td->document_path)
+                        <a class="teacher-btn teacher-btn--ghost" href="{{ route('teacher.td.sets.document', $td) }}">Ouvrir l’original</a>
+                    @endif
+                    @if($td->correction_document_path)
+                        <a class="teacher-btn teacher-btn--ghost" href="{{ route('teacher.td.sets.correction_document', $td) }}">Ouvrir le corrigé</a>
+                    @endif
+                    <button type="button" class="teacher-btn teacher-btn--primary td-correction-button" id="openCorrectionEditor">Modifier le corrigé</button>
+                    <a class="teacher-btn teacher-btn--ghost" href="{{ route('teacher.td.sets.index') }}">Retour aux TD</a>
                 </div>
-                <textarea name="correction_html" id="quickCorrectionEditor" placeholder="Rédigez ou collez le corrigé ici...">{{ $correctionInitial }}</textarea>
-                <div class="quick-editor-preview" id="quickCorrectionPreview" style="display:none;"></div>
-            </div>
+
+                <div class="td-editor-side-card td-hidden-correction" id="tdCorrectionCard">
+                    <h3>Corrigé à modifier</h3>
+                    <div class="td-editor-toolbar" data-target="tdCorrectionEditor">
+                        <button type="button" class="td-editor-tool" data-format="bold">Gras</button>
+                        <button type="button" class="td-editor-tool" data-format="italic">Italique</button>
+                        <button type="button" class="td-editor-tool" data-format="h3">Titre</button>
+                        <button type="button" class="td-editor-tool" data-format="ul">Liste</button>
+                        <button type="button" class="td-editor-tool" data-preview="tdCorrectionPreview">Aperçu</button>
+                    </div>
+                    <textarea name="correction_html" id="tdCorrectionEditor" class="td-editor-textarea" style="min-height:360px;" placeholder="Rédigez ou modifiez le corrigé ici...">{{ $correctionInitial }}</textarea>
+                    <div class="td-editor-preview" id="tdCorrectionPreview"></div>
+                </div>
+            </aside>
         </div>
 
-        <div class="quick-editor-submit">
-            <a href="{{ route('teacher.td.sets.index') }}" class="teacher-btn teacher-btn--ghost">Retour aux TD</a>
-            <button type="submit" class="teacher-btn teacher-btn--primary">Enregistrer le TD</button>
+        <div class="td-editor-submit">
+            <a href="{{ route('teacher.td.sets.index') }}" class="teacher-btn teacher-btn--ghost">Annuler</a>
+            <button type="submit" class="teacher-btn teacher-btn--primary">Enregistrer les modifications</button>
         </div>
     </form>
 </section>
 
+<script src="https://unpkg.com/mammoth@1.7.2/mammoth.browser.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/4.2.67/pdf.min.mjs" type="module"></script>
 <script>
 document.addEventListener('DOMContentLoaded', function () {
     const documentUrl = @json($td->document_path ? route('teacher.td.sets.document', $td) : null);
     const documentName = @json($td->document_name ?: 'document');
+    const initialHasSubject = @json(trim(strip_tags((string) $subjectInitial)) !== '');
+    const editor = document.getElementById('tdSubjectEditor');
+    const statusBox = document.getElementById('tdLoadStatus');
+
+    function setStatus(message) { if (statusBox) statusBox.textContent = message; }
 
     function wrapSelection(textarea, before, after) {
         const start = textarea.selectionStart || 0;
@@ -155,45 +221,68 @@ document.addEventListener('DOMContentLoaded', function () {
         }).join('\n');
     }
 
-    function setNotice(message) {
-        const notice = document.getElementById('quickAutoLoadNotice');
-        if (notice) notice.textContent = message;
+    async function loadPdfText(arrayBuffer) {
+        const pdfjsLib = await import('https://cdnjs.cloudflare.com/ajax/libs/pdf.js/4.2.67/pdf.min.mjs');
+        pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/4.2.67/pdf.worker.min.mjs';
+        const pdf = await pdfjsLib.getDocument({ data: arrayBuffer }).promise;
+        let text = '';
+        for (let pageNumber = 1; pageNumber <= pdf.numPages; pageNumber++) {
+            const page = await pdf.getPage(pageNumber);
+            const content = await page.getTextContent();
+            text += content.items.map(item => item.str || '').join(' ') + '\n\n';
+        }
+        return text.trim();
     }
 
-    async function autoLoadDocumentIfEditorEmpty() {
-        const editor = document.getElementById('quickSubjectEditor');
-        if (!editor || editor.value.trim() !== '' || !documentUrl) return;
+    async function autoLoadSubject() {
+        if (!editor) return;
+        if (initialHasSubject || editor.value.trim() !== '') {
+            setStatus('Sujet chargé dans l’éditeur. Vous pouvez modifier puis enregistrer.');
+            return;
+        }
+        if (!documentUrl) {
+            setStatus('Aucun sujet original n’est joint. Rédigez directement le sujet dans l’éditeur.');
+            return;
+        }
 
         const lowerName = (documentName || '').toLowerCase();
-
         try {
             const response = await fetch(documentUrl, { credentials: 'same-origin' });
-            if (!response.ok) throw new Error('Document inaccessible');
+            if (!response.ok) throw new Error('document inaccessible');
+            const buffer = await response.arrayBuffer();
 
-            if (lowerName.endsWith('.txt') || lowerName.endsWith('.html') || lowerName.endsWith('.htm') || lowerName.endsWith('.rtf')) {
-                const text = await response.text();
-                editor.value = lowerName.endsWith('.html') || lowerName.endsWith('.htm') ? text : textToHtml(text);
-                setNotice('Document chargé automatiquement dans l’éditeur. Vérifiez la mise en forme avant d’enregistrer.');
+            if (lowerName.endsWith('.docx') && window.mammoth) {
+                const result = await window.mammoth.convertToHtml({ arrayBuffer: buffer });
+                editor.value = result.value || '';
+                setStatus('Sujet Word chargé dans l’éditeur. Vérifiez la mise en forme avant d’enregistrer.');
                 return;
             }
 
             if (lowerName.endsWith('.pdf')) {
-                setNotice('Le TD est un PDF. Pour le modifier en texte, utilisez le formulaire complet et cliquez sur « Convertir le document actuel dans l’éditeur », ou collez le contenu ici.');
+                const text = await loadPdfText(buffer);
+                if (text.length > 30) {
+                    editor.value = textToHtml(text);
+                    setStatus('Sujet PDF texte chargé dans l’éditeur. Vérifiez la mise en forme avant d’enregistrer.');
+                } else {
+                    setStatus('Ce PDF semble scanné ou sans texte récupérable. Ouvrez l’original, puis copiez le contenu à modifier dans l’éditeur.');
+                }
                 return;
             }
 
-            if (lowerName.endsWith('.docx') || lowerName.endsWith('.doc')) {
-                setNotice('Le TD est un document Word. Utilisez le formulaire complet pour convertir le document actuel dans l’éditeur, puis revenez ici pour modifier rapidement.');
+            if (lowerName.endsWith('.txt') || lowerName.endsWith('.rtf') || lowerName.endsWith('.html') || lowerName.endsWith('.htm')) {
+                const text = new TextDecoder('utf-8').decode(buffer);
+                editor.value = lowerName.endsWith('.html') || lowerName.endsWith('.htm') ? text : textToHtml(text);
+                setStatus('Sujet chargé dans l’éditeur. Vous pouvez modifier puis enregistrer.');
                 return;
             }
 
-            setNotice('Document original disponible, mais ce format ne peut pas être chargé automatiquement en texte. Ouvrez le sujet original puis copiez le contenu à modifier.');
+            setStatus('Format non convertible automatiquement. Ouvrez l’original, puis copiez le contenu à modifier dans l’éditeur.');
         } catch (error) {
-            setNotice('Impossible de charger automatiquement le document. Ouvrez le sujet original puis copiez le contenu à modifier.');
+            setStatus('Chargement automatique impossible. Ouvrez l’original, puis copiez le contenu à modifier dans l’éditeur.');
         }
     }
 
-    document.querySelectorAll('.quick-editor-toolbar').forEach(function (toolbar) {
+    document.querySelectorAll('.td-editor-toolbar').forEach(function (toolbar) {
         const target = document.getElementById(toolbar.dataset.target);
         toolbar.querySelectorAll('[data-format]').forEach(function (button) {
             button.addEventListener('click', function () {
@@ -210,21 +299,30 @@ document.addEventListener('DOMContentLoaded', function () {
                 const preview = document.getElementById(button.dataset.preview);
                 if (!target || !preview) return;
                 preview.innerHTML = target.value || '<p class="teacher-muted">Aucun contenu.</p>';
-                preview.style.display = preview.style.display === 'none' ? 'block' : 'none';
+                preview.style.display = preview.style.display === 'block' ? 'none' : 'block';
             });
         });
     });
 
-    const form = document.getElementById('quickTdEditorForm');
-    const subject = document.getElementById('quickSubjectEditor');
-    const hiddenText = document.getElementById('quickEditableText');
-    if (form && subject && hiddenText) {
-        form.addEventListener('submit', function () {
-            hiddenText.value = subject.value.replace(/<[^>]*>/g, ' ').replace(/\s+/g, ' ').trim();
+    const openCorrectionEditor = document.getElementById('openCorrectionEditor');
+    const side = document.getElementById('tdCorrectionSide');
+    if (openCorrectionEditor && side) {
+        openCorrectionEditor.addEventListener('click', function () {
+            side.classList.add('td-correction-open');
+            const correction = document.getElementById('tdCorrectionEditor');
+            if (correction) correction.focus();
         });
     }
 
-    autoLoadDocumentIfEditorEmpty();
+    const form = document.getElementById('tdEditorForm');
+    const hiddenText = document.getElementById('tdEditableText');
+    if (form && editor && hiddenText) {
+        form.addEventListener('submit', function () {
+            hiddenText.value = editor.value.replace(/<[^>]*>/g, ' ').replace(/\s+/g, ' ').trim();
+        });
+    }
+
+    autoLoadSubject();
 });
 </script>
 @endsection
