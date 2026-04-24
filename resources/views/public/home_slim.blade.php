@@ -72,14 +72,14 @@
     @if($examItems->isNotEmpty())
         <section class="exam-bar section" id="exam-countdowns">
             <div class="exam-bar-head">
-                <div><h2>Examens officiels 2026</h2><p>Un bandeau compact pour voir rapidement les échéances.</p></div>
+                <div><h2>Examens officiels 2026</h2><p>Dates officielles des épreuves — préparez-vous maintenant.</p></div>
             </div>
             <div class="exam-mini-grid">
                 @foreach($examItems as $exam)
                     <article class="exam-mini" data-home-exam data-target="{{ $exam['target_iso'] }}">
                         <span>{{ $exam['badge'] }}</span>
                         <strong>{{ $exam['short_label'] }}</strong>
-                        <b><span data-days>{{ $exam['days'] }}</span> j</b>
+                        <b><span class="exam-days" data-days>{{ $exam['days'] }}</span> j</b>
                         <small>{{ $exam['hours'] }} h · {{ $exam['minutes'] }} min · début {{ $exam['start_label'] }}</small>
                     </article>
                 @endforeach
