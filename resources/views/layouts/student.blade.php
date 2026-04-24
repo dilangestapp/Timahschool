@@ -382,6 +382,7 @@
     </style>
 
     <style>{!! file_get_contents(public_path('assets/css/ui-groups.css')) !!}</style>
+    <link rel="stylesheet" href="{{ asset('assets/css/timah-mobile-polish.css') }}">
     @stack('styles')
 </head>
 <body data-ui-group="@yield('ui_group', 'workspace')" data-ui-role="student">
