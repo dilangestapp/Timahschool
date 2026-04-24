@@ -6,6 +6,7 @@ use App\Http\Controllers\Controller;
 use App\Models\HomepageMessage;
 use App\Models\HomepageSetting;
 use App\Models\SchoolClass;
+use App\Support\ExamCountdown;
 use Throwable;
 use Illuminate\Support\Facades\Schema;
 
@@ -65,6 +66,8 @@ class HomeController extends Controller
             ? $classes->whereIn('id', $featuredClassIds)->values()
             : $classes->take(9)->values();
 
-        return view('public.home', compact('classes', 'classGroups', 'classGroupLabels', 'homepage', 'messages', 'featuredClasses'));
+        $examCountdowns = ExamCountdown::all();
+
+        return view('public.home', compact('classes', 'classGroups', 'classGroupLabels', 'homepage', 'messages', 'featuredClasses', 'examCountdowns'));
     }
 }
