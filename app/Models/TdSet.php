@@ -109,8 +109,12 @@ class TdSet extends Model
             return false;
         }
 
-        if (($this->correction_mode ?? null) === 'after_submit') {
-            return (bool) ($attempt && in_array($attempt->status, [TdAttempt::STATUS_COMPLETED], true));
+        if (!$attempt || $attempt->status !== TdAttempt::STATUS_COMPLETED) {
+            return false;
+        }
+
+        if (!$attempt->correction_unlocked_at || now()->lessThan($attempt->correction_unlocked_at)) {
+            return false;
         }
 
         if (($this->correction_mode ?? null) === 'scheduled' && !empty($this->correction_release_at)) {
