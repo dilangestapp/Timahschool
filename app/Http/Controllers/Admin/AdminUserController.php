@@ -5,6 +5,8 @@ namespace App\Http\Controllers\Admin;
 use App\Http\Controllers\Admin\Concerns\FiltersTableColumns;
 use App\Http\Controllers\Controller;
 use App\Models\Role;
+use App\Models\SchoolClass;
+use App\Models\SubscriptionPlan;
 use App\Models\User;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
@@ -22,11 +24,13 @@ class AdminUserController extends Controller
         $tableMissing = !$this->hasTableSafe('users');
 
         $roles = $this->hasTableSafe('roles') ? Role::query()->orderByRaw('COALESCE(display_name, name) asc')->get() : collect();
+        $classes = $this->hasTableSafe('school_classes') ? SchoolClass::query()->orderBy('order')->orderBy('name')->get() : collect();
+        $plans = $this->hasTableSafe('subscription_plans') ? SubscriptionPlan::query()->orderBy('order')->orderBy('price')->get() : collect();
 
         $users = $tableMissing
             ? collect()
             : User::query()
-                ->with(['roles', 'role'])
+                ->with(['roles', 'role', 'studentProfile.schoolClass', 'subscriptions.plan'])
                 ->when($search !== '', function ($query) use ($search) {
                     $query->where(function ($sub) use ($search) {
                         foreach (['name', 'full_name', 'username', 'email', 'phone', 'status'] as $column) {
@@ -46,7 +50,7 @@ class AdminUserController extends Controller
                 ->sortByDesc('id')
                 ->values();
 
-        return view('admin.users.index', compact('search', 'roleFilter', 'roles', 'users', 'tableMissing'));
+        return view('admin.users.index', compact('search', 'roleFilter', 'roles', 'classes', 'plans', 'users', 'tableMissing'));
     }
 
     public function store(Request $request)
