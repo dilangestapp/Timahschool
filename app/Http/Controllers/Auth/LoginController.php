@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\Auth;
 
 use App\Http\Controllers\Controller;
+use App\Support\UserActivityRecorder;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Schema;
@@ -57,7 +58,7 @@ class LoginController extends Controller
                 $user->forceFill($updates)->save();
             }
         } catch (\Throwable $e) {
-            // Ne pas bloquer la connexion
+            // Ne pas bloquer la connexion.
         }
 
         if ($user && method_exists($user, 'isAdmin') && $user->isAdmin()) {
@@ -70,6 +71,8 @@ class LoginController extends Controller
             ]);
         }
 
+        UserActivityRecorder::record($user, $request, 'login', 'web');
+
         if ($user && method_exists($user, 'isTeacher') && $user->isTeacher()) {
             return redirect()->route('teacher.dashboard');
         }
@@ -79,6 +82,9 @@ class LoginController extends Controller
 
     public function logout(Request $request)
     {
+        $user = Auth::user();
+        UserActivityRecorder::record($user, $request, 'logout', 'web');
+
         Auth::logout();
 
         $request->session()->invalidate();
