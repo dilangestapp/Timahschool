@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Admin\Auth;
 
 use App\Http\Controllers\Controller;
 use App\Models\User;
+use App\Support\UserActivityRecorder;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Hash;
@@ -77,11 +78,14 @@ class AdminLoginController extends Controller
             // Ne pas bloquer la connexion admin si ces colonnes n'existent pas.
         }
 
+        UserActivityRecorder::record($user, $request, 'login', 'admin');
+
         return redirect()->intended(route('admin.dashboard'));
     }
 
     public function logout(Request $request)
     {
+        UserActivityRecorder::record(Auth::user(), $request, 'logout', 'admin');
         $this->clearCurrentSession($request);
 
         return redirect()->route('admin.login');
