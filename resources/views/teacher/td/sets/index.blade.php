@@ -234,7 +234,7 @@
                                 @if($td->correction_document_path)
                                     <a href="{{ route('teacher.td.sets.correction_document', $td) }}" class="teacher-btn teacher-btn--ghost">Ouvrir le corrigé</a>
                                 @else
-                                    <a href="{{ route('teacher.td.sets.edit', $td) }}#correction-zone" class="teacher-btn teacher-btn--ghost">Voir le corrigé texte</a>
+                                    <a href="{{ route('teacher.td.sets.editor', $td) }}#correction-zone" class="teacher-btn teacher-btn--ghost">Voir le corrigé texte</a>
                                 @endif
                             @else
                                 <span class="teacher-muted">Aucun corrigé lié.</span>
@@ -262,10 +262,10 @@
                 <div class="td-info-box">
                     <span class="td-info-box__label">Modification du TD</span>
                     <div class="td-main-actions">
-                        <a href="{{ route('teacher.td.sets.edit', $td) }}?mode=editor#editor-zone" class="teacher-btn teacher-btn--primary">Modifier dans l’éditeur</a>
+                        <a href="{{ route('teacher.td.sets.editor', $td) }}" class="teacher-btn teacher-btn--primary">Modifier dans l’éditeur</a>
                         <a href="{{ route('teacher.td.sets.edit', $td) }}" class="teacher-btn teacher-btn--ghost">Modifier les infos</a>
                     </div>
-                    <div class="teacher-muted">L’éditeur intégré permet de corriger le contenu, reformuler le sujet, ajouter le corrigé texte et remplacer les documents joints.</div>
+                    <div class="teacher-muted">Le bouton principal ouvre directement l’éditeur de texte du sujet et du corrigé. Le formulaire complet reste disponible pour changer les documents et les paramètres.</div>
                 </div>
 
                 <div class="td-action-danger-zone">
