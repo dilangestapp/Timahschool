@@ -152,7 +152,8 @@
     color: var(--admin-ink);
 }
 
-.admin-collapse-box > summary::-webkit-details-marker {
+.admin-collapse-box > summary::-webkit-details-marker,
+.admin-subscription-manage > summary::-webkit-details-marker {
     display: none;
 }
 
@@ -271,6 +272,8 @@
     color: #4f46e5;
     font-size: .78rem;
     font-weight: 950;
+    margin-right: 5px;
+    margin-top: 4px;
 }
 
 .admin-badge--success,
@@ -313,12 +316,14 @@
     font-weight: 950;
     background: linear-gradient(135deg, #3157ff, #0f766e);
     box-shadow: 0 12px 24px rgba(49, 87, 255, .20);
+    flex: 0 0 44px;
 }
 
 .admin-title-with-avatar {
     display: flex;
     gap: 12px;
     align-items: center;
+    min-width: 0;
 }
 
 .admin-period-pill {
@@ -370,10 +375,6 @@
     align-items: center;
 }
 
-.admin-subscription-manage > summary::-webkit-details-marker {
-    display: none;
-}
-
 .admin-subscription-manage > summary::after {
     content: 'ouvrir';
     min-height: 30px;
@@ -391,16 +392,59 @@
     content: 'fermer';
 }
 
-.admin-subscription-form {
+.admin-subscription-form,
+.admin-td-form {
     padding: 0 18px 18px;
 }
 
-.admin-subscription-form .admin-form-grid {
+.admin-subscription-form .admin-form-grid,
+.admin-td-form .admin-form-grid {
     grid-template-columns: repeat(3, minmax(0, 1fr));
 }
 
-.admin-subscription-form .form-group--check {
+.admin-subscription-form .form-group--check,
+.admin-td-form .form-group--check {
     align-content: end;
+}
+
+.admin-td-card {
+    border-bottom: 1px solid rgba(148, 163, 184, .12);
+    background: rgba(255, 255, 255, .58);
+}
+
+.admin-td-card:last-child {
+    border-bottom: 0;
+}
+
+.admin-td-card__main {
+    padding: 18px 24px;
+    display: grid;
+    grid-template-columns: minmax(280px, 1.05fr) minmax(240px, .8fr) minmax(190px, .65fr) 210px;
+    gap: 18px;
+    align-items: center;
+}
+
+.admin-td-docs,
+.admin-td-actions {
+    display: grid;
+    gap: 8px;
+}
+
+.admin-td-docs .btn,
+.admin-td-actions .btn,
+.admin-td-actions form,
+.admin-td-actions button {
+    width: 100%;
+}
+
+.admin-td-manage {
+    margin: 0 24px 18px;
+}
+
+.admin-td-form textarea {
+    min-height: 170px !important;
+    font-family: inherit;
+    line-height: 1.6;
 }
 
 html[data-theme='dark'] .admin-summary-card,
@@ -416,12 +460,26 @@ html[data-theme='dark'] .admin-list-panel__head {
     background: linear-gradient(135deg, rgba(18, 22, 32, .92), rgba(30, 41, 59, .64));
 }
 
-html[data-theme='dark'] .admin-clean-row {
+html[data-theme='dark'] .admin-clean-row,
+html[data-theme='dark'] .admin-td-card {
     background: rgba(18, 22, 32, .52);
 }
 
-html[data-theme='dark'] .admin-clean-row:hover {
+html[data-theme='dark'] .admin-clean-row:hover,
+html[data-theme='dark'] .admin-td-card:hover {
     background: rgba(30, 41, 59, .52);
+}
+
+@media (max-width: 1300px) {
+    .admin-td-card__main {
+        grid-template-columns: 1fr 1fr;
+        align-items: start;
+    }
+
+    .admin-td-docs,
+    .admin-td-actions {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
 }
 
 @media (max-width: 1200px) {
@@ -434,7 +492,8 @@ html[data-theme='dark'] .admin-clean-row:hover {
         grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
     }
 
-    .admin-subscription-form .admin-form-grid {
+    .admin-subscription-form .admin-form-grid,
+    .admin-td-form .admin-form-grid {
         grid-template-columns: repeat(2, minmax(0, 1fr));
     }
 }
@@ -445,7 +504,8 @@ html[data-theme='dark'] .admin-clean-row:hover {
     }
 
     .admin-clean-row,
-    .admin-subscription-row {
+    .admin-subscription-row,
+    .admin-td-card__main {
         grid-template-columns: 1fr;
         align-items: start;
     }
@@ -455,8 +515,15 @@ html[data-theme='dark'] .admin-clean-row:hover {
     }
 
     .admin-subscription-actions,
-    .admin-subscription-form .admin-form-grid {
+    .admin-subscription-form .admin-form-grid,
+    .admin-td-docs,
+    .admin-td-actions,
+    .admin-td-form .admin-form-grid {
         grid-template-columns: 1fr !important;
+    }
+
+    .admin-td-manage {
+        margin: 0 18px 16px;
     }
 }
 
@@ -470,7 +537,8 @@ html[data-theme='dark'] .admin-clean-row:hover {
         padding: 18px;
     }
 
-    .admin-clean-row {
+    .admin-clean-row,
+    .admin-td-card__main {
         padding: 16px 18px;
     }
 }
