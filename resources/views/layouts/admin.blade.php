@@ -14,9 +14,14 @@
     <link rel="icon" type="image/svg+xml" href="{{ asset('assets/brand/timah-academy-favicon.svg') }}">
     <style>{!! file_get_contents(public_path('assets/css/admin.css')) !!}</style>
     <style>{!! file_get_contents(public_path('assets/css/ui-groups.css')) !!}</style>
+    @if(file_exists(public_path('assets/css/admin-navigation.css')))
+        <style>{!! file_get_contents(public_path('assets/css/admin-navigation.css')) !!}</style>
+    @endif
     @stack('styles')
 </head>
 <body data-ui-group="@yield('ui_group', 'control')" data-ui-role="admin">
+<button type="button" class="admin-mobile-nav-toggle" data-admin-nav-toggle aria-label="Ouvrir le menu admin">☰</button>
+<div class="admin-nav-overlay" data-admin-nav-close></div>
 <div class="admin-shell">
     <aside class="admin-sidebar">
         <div class="admin-sidebar__top">
@@ -54,7 +59,7 @@
         </nav>
 
         <div class="admin-sidebar__bottom">
-            <a href="{{ route('home') }}" class="admin-link admin-link--bottom">← Retour au site</a>
+            <a href="{{ route('home') }}" class="admin-link admin-link--bottom">Retour au site</a>
             <form method="POST" action="{{ route('admin.logout') }}">
                 @csrf
                 <button type="submit" class="admin-logout">Déconnexion admin</button>
@@ -90,6 +95,9 @@
         <main class="admin-content">
             @if(session('success'))
                 <div class="admin-alert admin-alert--success">{{ session('success') }}</div>
+            @endif
+            @if(session('warning'))
+                <div class="admin-alert admin-alert--success">{{ session('warning') }}</div>
             @endif
             @if(session('error'))
                 <div class="admin-alert admin-alert--error">{{ session('error') }}</div>
@@ -137,6 +145,15 @@
             applyTheme(value);
             updateToggleLabels();
         });
+    });
+
+    const openNav = () => document.body.classList.add('admin-nav-open');
+    const closeNav = () => document.body.classList.remove('admin-nav-open');
+    document.querySelectorAll('[data-admin-nav-toggle]').forEach((button) => button.addEventListener('click', openNav));
+    document.querySelectorAll('[data-admin-nav-close]').forEach((item) => item.addEventListener('click', closeNav));
+    document.querySelectorAll('.admin-sidebar .admin-link').forEach((link) => link.addEventListener('click', closeNav));
+    document.addEventListener('keydown', (event) => {
+        if (event.key === 'Escape') closeNav();
     });
 })();
 </script>
