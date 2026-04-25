@@ -5,7 +5,7 @@
    $platformLogo = \App\Models\PlatformSetting::logoUrl($generalSettings['logo_path'] ?? null);
 @endphp
 <!DOCTYPE html>
-<html lang="fr" data-theme="auto">
+<html lang="fr" data-theme="light">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -116,31 +116,18 @@
 <script>
 (() => {
     const root = document.documentElement;
-    const storageKey = 'timah-theme';
-    const media = window.matchMedia('(prefers-color-scheme: dark)');
-    const prefersDark = () => media.matches;
+    const storageKey = 'timah-admin-theme';
     const getStoredTheme = () => localStorage.getItem(storageKey);
-    const applyTheme = (theme) => root.setAttribute('data-theme', theme || 'auto');
-    const currentEffectiveTheme = () => {
-        const active = root.getAttribute('data-theme') || 'auto';
-        return active === 'auto' ? (prefersDark() ? 'dark' : 'light') : active;
-    };
-    const nextTheme = () => {
-        const active = root.getAttribute('data-theme') || 'auto';
-        if (active === 'auto') return prefersDark() ? 'light' : 'dark';
-        return active === 'dark' ? 'light' : 'dark';
-    };
+    const applyTheme = (theme) => root.setAttribute('data-theme', theme === 'dark' ? 'dark' : 'light');
+    const nextTheme = () => (root.getAttribute('data-theme') === 'dark' ? 'light' : 'dark');
     const updateToggleLabels = () => {
-        const effective = currentEffectiveTheme();
+        const active = root.getAttribute('data-theme') || 'light';
         document.querySelectorAll('[data-theme-toggle]').forEach((button) => {
-            button.textContent = effective === 'dark' ? '☀️ Clair' : '🌙 Sombre';
+            button.textContent = active === 'dark' ? '☀️ Clair' : '🌙 Sombre';
         });
     };
-    applyTheme(getStoredTheme() || 'auto');
+    applyTheme(getStoredTheme() || 'light');
     updateToggleLabels();
-    media.addEventListener('change', () => {
-        if ((root.getAttribute('data-theme') || 'auto') === 'auto') updateToggleLabels();
-    });
     document.querySelectorAll('[data-theme-toggle]').forEach((button) => {
         button.addEventListener('click', () => {
             const value = nextTheme();
