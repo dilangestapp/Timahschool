@@ -3,6 +3,7 @@
     $platformName = $generalSettings['platform_name'] ?? 'TIMAH ACADEMY';
     $platformSlogan = $generalSettings['platform_slogan'] ?? 'Plateforme éducative moderne et premium';
     $platformLogo = \App\Models\PlatformSetting::logoUrl($generalSettings['logo_path'] ?? null);
+    $defaultLogo = \App\Models\PlatformSetting::defaultLogoUrl();
 @endphp
 <!DOCTYPE html>
 <html lang="fr">
@@ -50,7 +51,7 @@
         .public-header__inner { min-height: var(--header-height); display: grid; grid-template-columns: minmax(260px, 360px) minmax(320px, 1fr) auto; align-items: center; gap: 18px; }
         .brand { display: inline-flex; align-items: center; gap: 12px; min-width: 0; }
         .brand__mark { width: 48px; height: 48px; flex: 0 0 48px; border-radius: 16px; display: inline-flex; align-items: center; justify-content: center; font-weight: 950; color: #fff; background: linear-gradient(135deg, #0f172a, #3157ff 58%, #0f766e); box-shadow: 0 14px 28px rgba(49, 87, 255, 0.24); letter-spacing: -0.04em; }
-        .brand__logo { width: 52px; height: 52px; flex: 0 0 52px; border-radius: 16px; object-fit: contain; background: rgba(255,255,255,.74); border: 1px solid var(--line); padding: 5px; }
+        .brand__logo { width: 54px; height: 54px; flex: 0 0 54px; border-radius: 17px; object-fit: contain; background: rgba(255,255,255,.86); border: 1px solid var(--line); padding: 5px; box-shadow: 0 12px 26px rgba(49, 87, 255, .12); }
         .brand__logo.is-hidden { display: none; } .brand__logo:not(.is-hidden) + .brand__mark { display: none; }
         .brand__text { display: flex; flex-direction: column; min-width: 0; }
         .brand__title { font-size: 1.05rem; font-weight: 950; line-height: 1.1; letter-spacing: -0.03em; white-space: nowrap; color: var(--text); }
@@ -88,12 +89,8 @@
     <header class="public-header" id="publicHeader">
         <div class="container public-header__inner">
             <a href="{{ url('/') }}" class="brand">
-                @if($platformLogo)
-                    <img src="{{ $platformLogo }}" alt="" class="brand__logo" onerror="this.classList.add('is-hidden')">
-                    <span class="brand__mark">TA</span>
-                @else
-                    <span class="brand__mark">TA</span>
-                @endif
+                <img src="{{ $platformLogo ?: $defaultLogo }}" alt="{{ $platformName }}" class="brand__logo" onerror="this.onerror=null;this.src='{{ $defaultLogo }}';this.classList.remove('is-hidden')">
+                <span class="brand__mark">TA</span>
                 <span class="brand__text"><span class="brand__title">{{ $platformName }}</span><span class="brand__subtitle">{{ $platformSlogan }}</span></span>
             </a>
 
