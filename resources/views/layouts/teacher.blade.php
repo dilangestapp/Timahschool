@@ -17,6 +17,9 @@
     @if(file_exists(public_path('assets/css/theme-stability.css')))
         <style>{!! file_get_contents(public_path('assets/css/theme-stability.css')) !!}</style>
     @endif
+    @if(file_exists(public_path('assets/css/td-file-preview.css')))
+        <style>{!! file_get_contents(public_path('assets/css/td-file-preview.css')) !!}</style>
+    @endif
     <link rel="stylesheet" href="{{ asset('assets/css/timah-mobile-polish.css') }}">
     <style>
         :root { color-scheme: light; }
@@ -164,7 +167,9 @@
     window.addEventListener('resize', () => { if (window.innerWidth > 1100) closeDrawer(); });
 })();
 </script>
-
+@if(file_exists(public_path('assets/js/td-file-preview.js')))
+    <script>{!! file_get_contents(public_path('assets/js/td-file-preview.js')) !!}</script>
+@endif
 @stack('scripts')
 </body>
 </html>
