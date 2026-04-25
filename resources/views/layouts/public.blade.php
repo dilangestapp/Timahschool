@@ -6,7 +6,7 @@
     $defaultLogo = \App\Models\PlatformSetting::defaultLogoUrl();
 @endphp
 <!DOCTYPE html>
-<html lang="fr">
+<html lang="fr" data-theme="light">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -17,15 +17,16 @@
         (function () {
             try {
                 var savedTheme = localStorage.getItem('timah-theme');
-                if (savedTheme === 'dark' || savedTheme === 'light') {
-                    document.documentElement.setAttribute('data-theme', savedTheme);
-                }
-            } catch (e) {}
+                document.documentElement.setAttribute('data-theme', savedTheme === 'dark' ? 'dark' : 'light');
+            } catch (e) {
+                document.documentElement.setAttribute('data-theme', 'light');
+            }
         })();
     </script>
 
     <style>
         :root {
+            color-scheme: light;
             --bg: #f4f7fb; --bg-soft: #edf3ff; --panel: #ffffff; --panel-soft: #f7faff; --panel-strong: #eaf1ff;
             --text: #0f172a; --muted: #64748b; --line: #dbe5f2; --line-strong: #c9d7ea;
             --primary: #3157ff; --primary-dark: #1734b7; --primary-soft: rgba(49, 87, 255, 0.10);
@@ -34,19 +35,20 @@
             --radius-xs: 12px; --radius-sm: 16px; --radius: 22px; --radius-lg: 30px; --container: 1240px; --header-height: 88px;
         }
         html[data-theme='dark'] {
-            --bg: #07111f; --bg-soft: #0b1729; --panel: #0e1b31; --panel-soft: #10203a; --panel-strong: #142641;
-            --text: #e8eefb; --muted: #9fb0cc; --line: rgba(190, 207, 238, 0.12); --line-strong: rgba(190, 207, 238, 0.18);
-            --primary: #8aaeff; --primary-dark: #b8ccff; --primary-soft: rgba(138, 174, 255, 0.12);
-            --success: #35c47b; --warning: #fbbf24; --danger: #f87171;
-            --shadow-xs: 0 6px 16px rgba(0, 0, 0, 0.18); --shadow: 0 14px 34px rgba(0, 0, 0, 0.28); --shadow-lg: 0 24px 60px rgba(0, 0, 0, 0.35);
+            color-scheme: light;
+            --bg: #f4f7fb; --bg-soft: #edf3ff; --panel: #ffffff; --panel-soft: #f7faff; --panel-strong: #eaf1ff;
+            --text: #0f172a; --muted: #64748b; --line: #dbe5f2; --line-strong: #c9d7ea;
+            --primary: #3157ff; --primary-dark: #1734b7; --primary-soft: rgba(49, 87, 255, 0.10);
+            --success: #0f9d58; --warning: #f59e0b; --danger: #ef4444;
+            --shadow-xs: 0 6px 16px rgba(15, 23, 42, 0.04); --shadow: 0 14px 34px rgba(15, 23, 42, 0.08); --shadow-lg: 0 24px 60px rgba(15, 23, 42, 0.14);
         }
         * { box-sizing: border-box; } html { scroll-behavior: smooth; }
         body { margin: 0; font-family: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif; color: var(--text); background: radial-gradient(circle at top left, rgba(49, 87, 255, 0.10), transparent 30%), radial-gradient(circle at top right, rgba(15, 118, 110, 0.08), transparent 28%), linear-gradient(180deg, var(--bg-soft), var(--bg)); line-height: 1.6; transition: background .25s ease, color .25s ease; }
-        a { color: inherit; text-decoration: none; } img { max-width: 100%; display: block; } button, input, textarea, select { font: inherit; }
+        a { color: inherit; text-decoration: none; } img { max-width: 100%; display: block; } button, input, textarea, select { font: inherit; color-scheme: light; }
         .container { width: min(var(--container), calc(100% - 32px)); margin: 0 auto; }
         .public-shell { min-height: 100vh; display: flex; flex-direction: column; }
         .public-header { position: sticky; top: 0; z-index: 60; backdrop-filter: blur(18px); background: rgba(244, 247, 251, 0.88); border-bottom: 1px solid var(--line); transition: background .25s ease, border-color .25s ease, box-shadow .25s ease; }
-        html[data-theme='dark'] .public-header { background: rgba(7, 17, 31, 0.82); }
+        html[data-theme='dark'] .public-header { background: rgba(244, 247, 251, 0.88); }
         .public-header.is-scrolled { box-shadow: var(--shadow-xs); }
         .public-header__inner { min-height: var(--header-height); display: grid; grid-template-columns: minmax(260px, 360px) minmax(320px, 1fr) auto; align-items: center; gap: 18px; }
         .brand { display: inline-flex; align-items: center; gap: 12px; min-width: 0; }
@@ -64,7 +66,7 @@
         .btn, .theme-toggle { display: inline-flex; align-items: center; justify-content: center; gap: 8px; min-height: 46px; padding: 0 18px; border-radius: 999px; border: 1px solid var(--line); background: var(--panel); color: var(--text); font-weight: 900; cursor: pointer; transition: transform .2s ease, box-shadow .2s ease, border-color .2s ease, background .2s ease, color .2s ease; box-shadow: none; white-space: nowrap; }
         .btn:hover, .theme-toggle:hover { transform: translateY(-1px); box-shadow: var(--shadow-xs); }
         .btn--primary { color: #fff; border-color: transparent; background: linear-gradient(135deg, #3157ff, #6938ef); box-shadow: 0 14px 28px rgba(49, 87, 255, 0.24); }
-        .btn--ghost { background: rgba(255, 255, 255, 0.76); } html[data-theme='dark'] .btn--ghost { background: rgba(14, 27, 49, 0.92); }
+        .btn--ghost { background: rgba(255, 255, 255, 0.76); } html[data-theme='dark'] .btn--ghost { background: rgba(255, 255, 255, 0.76); }
         .theme-toggle { width: 46px; min-width: 46px; padding: 0; font-size: 1rem; }
         .public-main { flex: 1; }
         .public-footer { margin-top: 26px; color: #d7e2f8; background: linear-gradient(135deg, #07101f, #0b1630 52%, #0f766e); border-top: 1px solid rgba(255,255,255,.08); }
@@ -74,11 +76,15 @@
         .footer-brand-mini span, .footer-meta-mini { color: rgba(231,238,252,.74); font-size: .86rem; line-height: 1.45; }
         .footer-meta-mini { display: flex; align-items: center; gap: 12px; flex-wrap: wrap; justify-content: flex-end; }
         .footer-dot { width: 4px; height: 4px; border-radius: 999px; background: rgba(231,238,252,.45); display: inline-flex; }
+        @media (prefers-color-scheme: dark) { :root, html, body, input, textarea, select, button { color-scheme: light; } }
         @media (max-width: 1180px) { .public-header__inner { grid-template-columns: 1fr auto; padding: 14px 0; min-height: auto; } .public-nav { grid-column: 1 / -1; grid-row: 2; justify-content: flex-start; padding-top: 2px; } .header-tools { grid-column: 2; grid-row: 1; } }
         @media (max-width: 720px) { :root { --header-height: 76px; } .container { width: min(var(--container), calc(100% - 22px)); } .public-header__inner { grid-template-columns: 1fr; gap: 12px; } .brand__subtitle { white-space: normal; max-width: none; } .public-nav { justify-content: flex-start; overflow-x: auto; flex-wrap: nowrap; padding-bottom: 2px; } .nav-link { padding: 9px 12px; font-size: .88rem; } .header-tools { justify-content: flex-start; flex-wrap: wrap; grid-column: auto; grid-row: auto; } .btn, .theme-toggle { min-height: 44px; } .public-footer { margin-top: 22px; } .public-footer__bar { align-items: flex-start; justify-content: flex-start; } .footer-meta-mini { justify-content: flex-start; gap: 8px; } }
     </style>
 
     <style>{!! file_get_contents(public_path('assets/css/ui-groups.css')) !!}</style>
+    @if(file_exists(public_path('assets/css/theme-stability.css')))
+        <style>{!! file_get_contents(public_path('assets/css/theme-stability.css')) !!}</style>
+    @endif
     @if(file_exists(public_path('assets/css/home-card-colors.css')))
         <style>{!! file_get_contents(public_path('assets/css/home-card-colors.css')) !!}</style>
     @endif
@@ -134,8 +140,9 @@
         var root = document.documentElement; var toggle = document.getElementById('themeToggle'); var header = document.getElementById('publicHeader');
         function getCurrentTheme() { return root.getAttribute('data-theme') === 'dark' ? 'dark' : 'light'; }
         function refreshThemeButton() { if (!toggle) return; toggle.textContent = getCurrentTheme() === 'dark' ? '☀️' : '🌙'; toggle.setAttribute('aria-label', getCurrentTheme() === 'dark' ? 'Activer le thème clair' : 'Activer le thème sombre'); }
-        function applyTheme(theme) { root.setAttribute('data-theme', theme); try { localStorage.setItem('timah-theme', theme); } catch (e) {} refreshThemeButton(); }
-        if (toggle) { refreshThemeButton(); toggle.addEventListener('click', function () { applyTheme(getCurrentTheme() === 'dark' ? 'light' : 'dark'); }); }
+        function applyTheme(theme) { root.setAttribute('data-theme', theme === 'dark' ? 'dark' : 'light'); try { localStorage.setItem('timah-theme', theme === 'dark' ? 'dark' : 'light'); } catch (e) {} refreshThemeButton(); }
+        refreshThemeButton();
+        if (toggle) { toggle.addEventListener('click', function () { applyTheme(getCurrentTheme() === 'dark' ? 'light' : 'dark'); }); }
         function updateHeaderState() { if (!header) return; if (window.scrollY > 12) header.classList.add('is-scrolled'); else header.classList.remove('is-scrolled'); }
         updateHeaderState(); window.addEventListener('scroll', updateHeaderState, { passive: true });
     })();
