@@ -75,62 +75,63 @@
                             <span><b>Fin :</b> {{ !empty($item->ends_at) ? \Illuminate\Support\Carbon::parse($item->ends_at)->format('d/m/Y H:i') : '—' }}</span>
                         </div>
 
-                        <div class="admin-row-actions">
-                            <details class="admin-edit-panel">
-                                <summary>Gérer</summary>
-                                <form method="POST" action="{{ route('admin.subscriptions.update', $item->id) }}" class="admin-form">
-                                    @csrf
-                                    <div class="admin-form-grid">
-                                        <div class="form-group">
-                                            <label>Plan existant</label>
-                                            <select name="subscription_plan_id">
-                                                <option value="">Aucun plan lié / manuel</option>
-                                                @foreach($plans as $plan)
-                                                    <option value="{{ $plan->id }}" @selected((int)($item->subscription_plan_id ?? 0) === (int)$plan->id)>
-                                                        {{ $plan->name }} — {{ $plan->formatted_price ?? number_format((float) $plan->price, 0, ',', ' ') . ' ' . ($plan->currency ?? 'XAF') }}
-                                                    </option>
-                                                @endforeach
-                                            </select>
-                                        </div>
-                                        <div class="form-group">
-                                            <label>Nom du plan manuel</label>
-                                            <input type="text" name="plan_name" value="{{ old('plan_name', $item->plan_name) }}" placeholder="Ex: Essentiel Mensuel">
-                                        </div>
-                                        <div class="form-group">
-                                            <label>Statut</label>
-                                            <select name="status" required>
-                                                @foreach(['trial' => 'Essai', 'pending' => 'En attente', 'active' => 'Actif', 'expired' => 'Expiré', 'cancelled' => 'Annulé', 'failed' => 'Échoué'] as $value => $label)
-                                                    <option value="{{ $value }}" @selected(($item->status ?? '') === $value)>{{ $label }}</option>
-                                                @endforeach
-                                            </select>
-                                        </div>
-                                        <div class="form-group form-group--check">
-                                            <label><input type="checkbox" name="is_trial" value="1" @checked($item->is_trial)> Marquer comme essai gratuit</label>
-                                        </div>
-                                        <div class="form-group">
-                                            <label>Début</label>
-                                            <input type="datetime-local" name="starts_at" value="{{ $item->starts_at ? $item->starts_at->format('Y-m-d\\TH:i') : '' }}">
-                                        </div>
-                                        <div class="form-group">
-                                            <label>Fin</label>
-                                            <input type="datetime-local" name="ends_at" value="{{ $item->ends_at ? $item->ends_at->format('Y-m-d\\TH:i') : '' }}">
-                                        </div>
-                                        <div class="form-group admin-form-grid__full">
-                                            <label>Note / raison</label>
-                                            <input type="text" name="cancellation_reason" value="{{ old('cancellation_reason', $item->cancellation_reason) }}" placeholder="Note interne facultative">
-                                        </div>
-                                    </div>
-                                    <div class="admin-actions">
-                                        <button type="submit" class="btn btn--primary">Enregistrer l’abonnement</button>
-                                    </div>
-                                </form>
-                            </details>
-
+                        <div class="admin-row-actions admin-subscription-actions">
+                            <a href="#subscription-manage-{{ $item->id }}" class="btn btn--primary" onclick="document.getElementById('subscription-manage-{{ $item->id }}').open = true;">Gérer</a>
                             <form method="POST" action="{{ route('admin.subscriptions.delete', $item->id) }}" onsubmit="return confirm('Supprimer cet abonnement ?');">
                                 @csrf
                                 <button type="submit" class="btn btn--ghost admin-btn-danger">Supprimer</button>
                             </form>
                         </div>
+
+                        <details class="admin-subscription-manage" id="subscription-manage-{{ $item->id }}">
+                            <summary>Modifier manuellement l’abonnement de {{ $userName }}</summary>
+                            <form method="POST" action="{{ route('admin.subscriptions.update', $item->id) }}" class="admin-form admin-subscription-form">
+                                @csrf
+                                <div class="admin-form-grid">
+                                    <div class="form-group">
+                                        <label>Plan existant</label>
+                                        <select name="subscription_plan_id">
+                                            <option value="">Aucun plan lié / manuel</option>
+                                            @foreach($plans as $plan)
+                                                <option value="{{ $plan->id }}" @selected((int)($item->subscription_plan_id ?? 0) === (int)$plan->id)>
+                                                    {{ $plan->name }} — {{ $plan->formatted_price ?? number_format((float) $plan->price, 0, ',', ' ') . ' ' . ($plan->currency ?? 'XAF') }}
+                                                </option>
+                                            @endforeach
+                                        </select>
+                                    </div>
+                                    <div class="form-group">
+                                        <label>Nom du plan manuel</label>
+                                        <input type="text" name="plan_name" value="{{ old('plan_name', $item->plan_name) }}" placeholder="Ex: Essentiel Mensuel">
+                                    </div>
+                                    <div class="form-group">
+                                        <label>Statut</label>
+                                        <select name="status" required>
+                                            @foreach(['trial' => 'Essai', 'pending' => 'En attente', 'active' => 'Actif', 'expired' => 'Expiré', 'cancelled' => 'Annulé', 'failed' => 'Échoué'] as $value => $label)
+                                                <option value="{{ $value }}" @selected(($item->status ?? '') === $value)>{{ $label }}</option>
+                                            @endforeach
+                                        </select>
+                                    </div>
+                                    <div class="form-group form-group--check">
+                                        <label><input type="checkbox" name="is_trial" value="1" @checked($item->is_trial)> Marquer comme essai gratuit</label>
+                                    </div>
+                                    <div class="form-group">
+                                        <label>Début</label>
+                                        <input type="datetime-local" name="starts_at" value="{{ $item->starts_at ? $item->starts_at->format('Y-m-d\\TH:i') : '' }}">
+                                    </div>
+                                    <div class="form-group">
+                                        <label>Fin</label>
+                                        <input type="datetime-local" name="ends_at" value="{{ $item->ends_at ? $item->ends_at->format('Y-m-d\\TH:i') : '' }}">
+                                    </div>
+                                    <div class="form-group admin-form-grid__full">
+                                        <label>Note / raison</label>
+                                        <input type="text" name="cancellation_reason" value="{{ old('cancellation_reason', $item->cancellation_reason) }}" placeholder="Note interne facultative">
+                                    </div>
+                                </div>
+                                <div class="admin-actions">
+                                    <button type="submit" class="btn btn--primary">Enregistrer l’abonnement</button>
+                                </div>
+                            </form>
+                        </details>
                     </article>
                 @empty
                     <div class="admin-empty-box">Aucun abonnement trouvé.</div>
