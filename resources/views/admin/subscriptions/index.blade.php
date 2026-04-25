@@ -2,7 +2,7 @@
 
 @section('title', 'Abonnements')
 @section('page_title', 'Suivi des abonnements')
-@section('page_subtitle', 'Supervisez les accès payants, les essais et les abonnements expirés dans une liste plus claire.')
+@section('page_subtitle', 'Supervisez les accès payants, les essais et les abonnements expirés dans une interface claire et professionnelle.')
 
 @section('content')
 <div class="admin-compact-page">
@@ -12,7 +12,7 @@
         <div class="admin-summary-strip">
             <div class="admin-summary-card"><strong>{{ $items->count() }}</strong><span>abonnements affichés</span></div>
             <div class="admin-summary-card"><strong>{{ $items->where('status', 'active')->count() }}</strong><span>actifs</span></div>
-            <div class="admin-summary-card"><strong>{{ $items->where('status', 'trial')->count() }}</strong><span>essais</span></div>
+            <div class="admin-summary-card"><strong>{{ $items->where('status', 'trial')->count() }}</strong><span>essais gratuits</span></div>
             <div class="admin-summary-card"><strong>{{ $items->where('status', 'expired')->count() }}</strong><span>expirés</span></div>
         </div>
 
@@ -33,24 +33,45 @@
             <div class="admin-list-panel__head">
                 <div>
                     <h2>Liste des abonnements</h2>
-                    <p>Une ligne par abonnement avec l’utilisateur, le plan, le statut et la période.</p>
+                    <p>Une vue plus lisible avec l’utilisateur, la formule, le statut et la période d’accès.</p>
                 </div>
             </div>
 
             <div class="admin-clean-list">
                 @forelse($items as $item)
-                    <article class="admin-clean-row">
-                        <div class="admin-clean-title">
-                            <strong>{{ $item->user_name ?? 'Utilisateur inconnu' }}</strong>
-                            <span>#{{ $item->id }} {{ $item->user_email ? '· ' . $item->user_email : '' }}</span>
+                    @php
+                        $userName = $item->user_name ?? 'Utilisateur inconnu';
+                        $initial = mb_strtoupper(mb_substr($userName, 0, 1));
+                        $status = $item->status ?? '—';
+                        $statusClass = match($status) {
+                            'active' => 'admin-badge--success',
+                            'trial' => 'admin-badge--trial',
+                            'expired', 'cancelled', 'failed' => 'admin-badge--warning',
+                            default => '',
+                        };
+                    @endphp
+                    <article class="admin-clean-row admin-subscription-row">
+                        <div class="admin-title-with-avatar">
+                            <div class="admin-subscription-avatar">{{ $initial }}</div>
+                            <div class="admin-clean-title">
+                                <strong>{{ $userName }}</strong>
+                                <span>#{{ $item->id }} {{ $item->user_email ? '· ' . $item->user_email : '' }}</span>
+                            </div>
                         </div>
+
                         <div class="admin-clean-meta">
                             <strong>{{ $item->plan_name ?? 'Plan non défini' }}</strong><br>
-                            <span class="admin-badge admin-badge--status">{{ $item->status ?? '—' }}</span>
+                            <span class="admin-badge {{ $statusClass }}">{{ $status }}</span>
                         </div>
+
+                        <div class="admin-period-pill">
+                            <span><b>Début :</b> {{ !empty($item->starts_at) ? \Illuminate\Support\Carbon::parse($item->starts_at)->format('d/m/Y H:i') : '—' }}</span>
+                            <span><b>Fin :</b> {{ !empty($item->ends_at) ? \Illuminate\Support\Carbon::parse($item->ends_at)->format('d/m/Y H:i') : '—' }}</span>
+                        </div>
+
                         <div class="admin-clean-meta">
-                            Début : {{ !empty($item->starts_at) ? \Illuminate\Support\Carbon::parse($item->starts_at)->format('d/m/Y H:i') : '—' }}<br>
-                            Fin : {{ !empty($item->ends_at) ? \Illuminate\Support\Carbon::parse($item->ends_at)->format('d/m/Y H:i') : '—' }}
+                            <span>Créé le</span><br>
+                            <strong>{{ !empty($item->created_at) ? \Illuminate\Support\Carbon::parse($item->created_at)->format('d/m/Y') : '—' }}</strong>
                         </div>
                     </article>
                 @empty
