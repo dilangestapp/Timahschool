@@ -140,6 +140,8 @@ Route::prefix($adminPath)->name('admin.')->group(function () {
         Route::post('/td/sets/{td}/publish', [AdminTdController::class, 'publish'])->name('td.publish');
         Route::post('/td/sets/{td}/archive', [AdminTdController::class, 'archive'])->name('td.archive');
         Route::post('/td/sets/{td}/delete', [AdminTdController::class, 'delete'])->name('td.delete');
+        Route::get('/td/sets/{td}/document', [AdminTdController::class, 'document'])->name('td.document');
+        Route::get('/td/sets/{td}/correction-document', [AdminTdController::class, 'correctionDocument'])->name('td.correction_document');
 
         Route::get('/plans', [AdminPlanController::class, 'index'])->name('plans.index');
         Route::post('/plans', [AdminPlanController::class, 'store'])->name('plans.store');
