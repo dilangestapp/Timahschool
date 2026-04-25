@@ -9,6 +9,7 @@ use App\Models\User;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Hash;
+use Illuminate\Support\Str;
 
 class AdminTeacherController extends Controller
 {
@@ -46,12 +47,25 @@ class AdminTeacherController extends Controller
         ]);
 
         DB::transaction(function () use ($request) {
+            $username = trim((string) $request->username);
+            $email = trim((string) $request->email);
+
+            if ($email === '') {
+                $base = Str::slug($username, '.');
+                if ($base === '') {
+                    $base = 'enseignant-' . now()->timestamp;
+                }
+                $email = mb_strtolower($base) . '@timahschool.local';
+            }
+
+            $phone = trim((string) $request->phone);
+
             $teacher = User::query()->create($this->onlyExistingColumns('users', [
                 'name' => $request->full_name,
                 'full_name' => $request->full_name,
-                'username' => $request->username,
-                'email' => $request->email,
-                'phone' => $request->phone,
+                'username' => $username,
+                'email' => $email,
+                'phone' => $phone,
                 'status' => 'active',
                 'password' => Hash::make($request->password),
             ]));
