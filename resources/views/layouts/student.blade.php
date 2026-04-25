@@ -12,6 +12,7 @@
 
     <style>
         :root {
+            color-scheme: light;
             --bg: #f5f7fb;
             --bg-soft: #eef3ff;
             --panel: #ffffff;
@@ -34,20 +35,24 @@
         }
 
         html[data-theme='dark'] {
-            --bg: #08111f;
-            --bg-soft: #0c1728;
-            --panel: #101c31;
-            --panel-soft: #13233b;
-            --text: #e8eefb;
-            --muted: #9db0cb;
-            --line: rgba(190, 207, 238, 0.12);
-            --line-strong: rgba(190, 207, 238, 0.18);
-            --primary: #6ea1ff;
-            --primary-strong: #8bb4ff;
-            --primary-soft: rgba(110, 161, 255, 0.12);
-            --shadow-xs: 0 6px 18px rgba(0, 0, 0, 0.18);
-            --shadow: 0 18px 36px rgba(0, 0, 0, 0.26);
-            --shadow-lg: 0 24px 58px rgba(0, 0, 0, 0.34);
+            color-scheme: light;
+            --bg: #f5f7fb;
+            --bg-soft: #eef3ff;
+            --panel: #ffffff;
+            --panel-soft: #f9fbff;
+            --text: #0f172a;
+            --muted: #64748b;
+            --line: #dbe5f2;
+            --line-strong: #c9d7ea;
+            --primary: #2563eb;
+            --primary-strong: #1d4ed8;
+            --primary-soft: rgba(37, 99, 235, 0.10);
+            --success: #16a34a;
+            --warning: #f59e0b;
+            --danger: #ef4444;
+            --shadow-xs: 0 6px 16px rgba(15, 23, 42, 0.04);
+            --shadow: 0 16px 34px rgba(15, 23, 42, 0.08);
+            --shadow-lg: 0 22px 52px rgba(15, 23, 42, 0.12);
         }
 
         * { box-sizing: border-box; }
@@ -65,7 +70,7 @@
         }
 
         a { color: inherit; text-decoration: none; }
-        button, input, textarea, select { font: inherit; }
+        button, input, textarea, select { font: inherit; color-scheme: light; }
 
         .student-app {
             min-height: 100vh;
@@ -88,7 +93,7 @@
         }
 
         html[data-theme='dark'] .student-sidebar {
-            background: rgba(8, 17, 31, 0.76);
+            background: rgba(255, 255, 255, 0.74);
         }
 
         .student-main {
@@ -114,7 +119,7 @@
         }
 
         html[data-theme='dark'] .student-topbar {
-            background: rgba(8, 17, 31, 0.82);
+            background: rgba(245, 247, 251, 0.82);
         }
 
         .student-content {
@@ -228,9 +233,9 @@
         }
 
         html[data-theme='dark'] .student-logout {
-            color: #fecaca;
-            background: rgba(127, 29, 29, 0.24);
-            border-color: rgba(248, 113, 113, 0.24);
+            color: #b91c1c;
+            background: rgba(239, 68, 68, 0.08);
+            border-color: rgba(239, 68, 68, 0.18);
         }
 
         .topbar-left,
@@ -312,16 +317,18 @@
         }
 
         html[data-theme='dark'] .alert {
-            background: rgba(5, 46, 22, 0.34);
-            border-color: rgba(34, 197, 94, 0.24);
-            color: #bbf7d0;
+            background: #ecfdf3;
+            border-color: #bbf7d0;
+            color: #166534;
         }
 
         html[data-theme='dark'] .alert--error {
-            color: #fecaca;
-            border-color: rgba(248, 113, 113, 0.24);
-            background: rgba(127, 29, 29, 0.24);
+            color: #b91c1c;
+            border-color: rgba(239, 68, 68, 0.18);
+            background: rgba(239, 68, 68, 0.08);
         }
+
+        @media (prefers-color-scheme: dark) { :root, html, body, input, textarea, select, button { color-scheme: light; } }
 
         @media (max-width: 1024px) {
             .student-sidebar {
@@ -382,6 +389,9 @@
     </style>
 
     <style>{!! file_get_contents(public_path('assets/css/ui-groups.css')) !!}</style>
+    @if(file_exists(public_path('assets/css/theme-stability.css')))
+        <style>{!! file_get_contents(public_path('assets/css/theme-stability.css')) !!}</style>
+    @endif
     <link rel="stylesheet" href="{{ asset('assets/css/timah-mobile-polish.css') }}">
     @stack('styles')
 </head>
@@ -506,19 +516,17 @@
     const app = document.getElementById('studentApp');
     const overlay = document.getElementById('mobileOverlay');
     const menuBtn = document.getElementById('mobileMenuBtn');
-    const media = window.matchMedia('(prefers-color-scheme: dark)');
-
-    const getPreferredTheme = () => media.matches ? 'dark' : 'light';
 
     const applyTheme = (theme) => {
-        root.setAttribute('data-theme', theme);
+        const safeTheme = theme === 'dark' ? 'dark' : 'light';
+        root.setAttribute('data-theme', safeTheme);
         document.querySelectorAll('[data-theme-toggle]').forEach((btn) => {
-            btn.innerHTML = theme === 'dark' ? '☀️ Thème' : '🌙 Thème';
+            btn.innerHTML = safeTheme === 'dark' ? '☀️ Thème' : '🌙 Thème';
         });
     };
 
     const storedTheme = localStorage.getItem(storageKey);
-    applyTheme(storedTheme || getPreferredTheme());
+    applyTheme(storedTheme || 'light');
 
     document.querySelectorAll('[data-theme-toggle]').forEach((btn) => {
         btn.addEventListener('click', () => {
@@ -526,12 +534,6 @@
             localStorage.setItem(storageKey, next);
             applyTheme(next);
         });
-    });
-
-    media.addEventListener('change', () => {
-        if (!localStorage.getItem(storageKey)) {
-            applyTheme(getPreferredTheme());
-        }
     });
 
     const closeSidebar = () => app.classList.remove('is-sidebar-open');
