@@ -42,12 +42,15 @@ class RegisterController extends Controller
         ]);
 
         $user = DB::transaction(function () use ($validated) {
+            $username = trim($validated['username']);
+            $generatedEmail = mb_strtolower($username) . '@timahschool.local';
+
             $userData = [
-                'name' => $validated['username'],
-                'username' => $validated['username'],
-                'full_name' => $validated['username'],
-                'email' => null,
-                'phone' => null,
+                'name' => $username,
+                'username' => $username,
+                'full_name' => $username,
+                'email' => $generatedEmail,
+                'phone' => '',
                 'status' => 'active',
                 'password' => Hash::make($validated['password']),
             ];
