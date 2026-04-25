@@ -2,15 +2,28 @@
     $generalSettings = \App\Models\PlatformSetting::group('general');
     $platformName = $generalSettings['platform_name'] ?? 'TIMAH ACADEMY';
     $platformSlogan = $generalSettings['platform_slogan'] ?? 'Plateforme éducative moderne et premium';
-   $platformLogo = \App\Models\PlatformSetting::logoUrl($generalSettings['logo_path'] ?? null);
+    $platformLogo = \App\Models\PlatformSetting::logoUrl($generalSettings['logo_path'] ?? null);
+    $initialTheme = request()->cookie('timah-admin-theme', 'light') === 'dark' ? 'dark' : 'light';
 @endphp
 <!DOCTYPE html>
-<html lang="fr" data-theme="light">
+<html lang="fr" data-theme="{{ $initialTheme }}">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta name="description" content="Portail administrateur {{ $platformName }}">
     <title>@yield('title', 'Admin') - {{ $platformName }}</title>
+    <script>
+        (function () {
+            try {
+                var savedTheme = localStorage.getItem('timah-admin-theme');
+                var safeTheme = savedTheme === 'dark' ? 'dark' : 'light';
+                document.documentElement.setAttribute('data-theme', safeTheme);
+                document.cookie = 'timah-admin-theme=' + safeTheme + '; path=/; max-age=31536000; SameSite=Lax';
+            } catch (e) {
+                document.documentElement.setAttribute('data-theme', '{{ $initialTheme }}');
+            }
+        })();
+    </script>
     <link rel="icon" type="image/svg+xml" href="{{ asset('assets/brand/timah-academy-favicon.svg') }}">
     <style>{!! file_get_contents(public_path('assets/css/admin.css')) !!}</style>
     <style>{!! file_get_contents(public_path('assets/css/ui-groups.css')) !!}</style>
@@ -21,6 +34,9 @@
         <style>{!! file_get_contents(public_path('assets/css/admin-readability.css')) !!}</style>
     @endif
     @stack('styles')
+    @if(file_exists(public_path('assets/css/theme-stability.css')))
+        <style>{!! file_get_contents(public_path('assets/css/theme-stability.css')) !!}</style>
+    @endif
 </head>
 <body data-ui-group="@yield('ui_group', 'control')" data-ui-role="admin">
 <button type="button" class="admin-mobile-nav-toggle" data-admin-nav-toggle aria-label="Ouvrir le menu admin">☰</button>
@@ -118,7 +134,12 @@
     const root = document.documentElement;
     const storageKey = 'timah-admin-theme';
     const getStoredTheme = () => localStorage.getItem(storageKey);
-    const applyTheme = (theme) => root.setAttribute('data-theme', theme === 'dark' ? 'dark' : 'light');
+    const applyTheme = (theme) => {
+        const safeTheme = theme === 'dark' ? 'dark' : 'light';
+        root.setAttribute('data-theme', safeTheme);
+        localStorage.setItem(storageKey, safeTheme);
+        document.cookie = storageKey + '=' + safeTheme + '; path=/; max-age=31536000; SameSite=Lax';
+    };
     const nextTheme = () => (root.getAttribute('data-theme') === 'dark' ? 'light' : 'dark');
     const updateToggleLabels = () => {
         const active = root.getAttribute('data-theme') || 'light';
@@ -126,13 +147,11 @@
             button.textContent = active === 'dark' ? '☀️ Clair' : '🌙 Sombre';
         });
     };
-    applyTheme(getStoredTheme() || 'light');
+    applyTheme(getStoredTheme() || root.getAttribute('data-theme') || 'light');
     updateToggleLabels();
     document.querySelectorAll('[data-theme-toggle]').forEach((button) => {
         button.addEventListener('click', () => {
-            const value = nextTheme();
-            localStorage.setItem(storageKey, value);
-            applyTheme(value);
+            applyTheme(nextTheme());
             updateToggleLabels();
         });
     });
