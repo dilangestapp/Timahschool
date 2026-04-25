@@ -17,6 +17,9 @@
     @if(file_exists(public_path('assets/css/admin-navigation.css')))
         <style>{!! file_get_contents(public_path('assets/css/admin-navigation.css')) !!}</style>
     @endif
+    @if(file_exists(public_path('assets/css/admin-readability.css')))
+        <style>{!! file_get_contents(public_path('assets/css/admin-readability.css')) !!}</style>
+    @endif
     @stack('styles')
 </head>
 <body data-ui-group="@yield('ui_group', 'control')" data-ui-role="admin">
@@ -97,7 +100,7 @@
                 <div class="admin-alert admin-alert--success">{{ session('success') }}</div>
             @endif
             @if(session('warning'))
-                <div class="admin-alert admin-alert--success">{{ session('warning') }}</div>
+                <div class="admin-alert admin-alert--warning">{{ session('warning') }}</div>
             @endif
             @if(session('error'))
                 <div class="admin-alert admin-alert--error">{{ session('error') }}</div>
