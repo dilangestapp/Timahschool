@@ -5,7 +5,7 @@
    $platformLogo = \App\Models\PlatformSetting::logoUrl($generalSettings['logo_path'] ?? null);
 @endphp
 <!DOCTYPE html>
-<html lang="fr" data-theme="auto">
+<html lang="fr" data-theme="light">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -14,8 +14,13 @@
     <link rel="icon" type="image/svg+xml" href="{{ asset('assets/brand/timah-academy-favicon.svg') }}">
     <style>{!! file_get_contents(public_path('assets/css/teacher.css')) !!}</style>
     <style>{!! file_get_contents(public_path('assets/css/ui-groups.css')) !!}</style>
+    @if(file_exists(public_path('assets/css/theme-stability.css')))
+        <style>{!! file_get_contents(public_path('assets/css/theme-stability.css')) !!}</style>
+    @endif
     <link rel="stylesheet" href="{{ asset('assets/css/timah-mobile-polish.css') }}">
     <style>
+        :root { color-scheme: light; }
+        html[data-theme='dark'] { color-scheme: light; }
         .teacher-layout-body { min-height: 100vh; }
         .teacher-drawer-toggle {
             display: none; width: 44px; height: 44px; border-radius: 14px;
@@ -27,6 +32,7 @@
         .teacher-topbar__left { display: flex; align-items: flex-start; gap: 12px; min-width: 0; }
         .teacher-topbar__left > div:last-child { min-width: 0; }
         .teacher-topbar__actions { display: flex; align-items: center; gap: 12px; flex-wrap: wrap; }
+        @media (prefers-color-scheme: dark) { :root, html, body, input, textarea, select, button { color-scheme: light; } }
         @media (max-width: 1100px) {
             .teacher-shell { display: block !important; }
             .teacher-sidebar {
@@ -43,7 +49,7 @@
                 position: sticky; top: 0; z-index: 100; background: rgba(244,248,253,.92);
                 backdrop-filter: blur(10px); padding: 14px 16px 0 !important; margin-bottom: 0;
             }
-            html[data-theme='dark'] .teacher-topbar { background: rgba(10,13,20,.92); }
+            html[data-theme='dark'] .teacher-topbar { background: rgba(244,248,253,.92); }
             .teacher-content { padding: 16px !important; }
             .teacher-userbox { padding: 10px 12px !important; border-radius: 14px !important; }
             .teacher-topbar__actions { width: 100%; justify-content: space-between; }
@@ -107,7 +113,7 @@
                     <strong>{{ auth()->user()->full_name ?? auth()->user()->name ?? auth()->user()->username }}</strong>
                     <small>Compte enseignant</small>
                 </div>
-                <button type="button" class="teacher-btn teacher-btn--ghost theme-toggle" data-theme-toggle>🌗 Thème</button>
+                <button type="button" class="teacher-btn teacher-btn--ghost theme-toggle" data-theme-toggle>🌙 Thème</button>
             </div>
         </header>
 
@@ -130,33 +136,20 @@
 (() => {
     const root = document.documentElement;
     const body = document.body;
-    const storageKey = 'timah-theme';
-    const media = window.matchMedia('(prefers-color-scheme: dark)');
-    const prefersDark = () => media.matches;
+    const storageKey = 'timah-teacher-theme';
     const getStoredTheme = () => localStorage.getItem(storageKey);
-    const applyTheme = (theme) => root.setAttribute('data-theme', theme || 'auto');
-    const currentEffectiveTheme = () => {
-        const active = root.getAttribute('data-theme') || 'auto';
-        return active === 'auto' ? (prefersDark() ? 'dark' : 'light') : active;
-    };
-    const nextTheme = () => {
-        const active = root.getAttribute('data-theme') || 'auto';
-        if (active === 'auto') return prefersDark() ? 'light' : 'dark';
-        return active === 'dark' ? 'light' : 'dark';
-    };
+    const applyTheme = (theme) => root.setAttribute('data-theme', theme === 'dark' ? 'dark' : 'light');
+    const nextTheme = () => root.getAttribute('data-theme') === 'dark' ? 'light' : 'dark';
     const updateToggleLabels = () => {
-        const effective = currentEffectiveTheme();
+        const active = root.getAttribute('data-theme') || 'light';
         document.querySelectorAll('[data-theme-toggle]').forEach((button) => {
-            button.textContent = effective === 'dark' ? '☀️ Clair' : '🌙 Sombre';
+            button.textContent = active === 'dark' ? '☀️ Clair' : '🌙 Sombre';
         });
     };
     const closeDrawer = () => body.classList.remove('teacher-drawer-open');
     const openDrawer = () => body.classList.add('teacher-drawer-open');
-    applyTheme(getStoredTheme() || 'auto');
+    applyTheme(getStoredTheme() || 'light');
     updateToggleLabels();
-    media.addEventListener('change', () => {
-        if ((root.getAttribute('data-theme') || 'auto') === 'auto') updateToggleLabels();
-    });
     document.querySelectorAll('[data-theme-toggle]').forEach((button) => {
         button.addEventListener('click', () => {
             const value = nextTheme();
