@@ -33,6 +33,9 @@
     @if(file_exists(public_path('assets/css/admin-readability.css')))
         <style>{!! file_get_contents(public_path('assets/css/admin-readability.css')) !!}</style>
     @endif
+    @if(file_exists(public_path('assets/css/td-file-preview.css')))
+        <style>{!! file_get_contents(public_path('assets/css/td-file-preview.css')) !!}</style>
+    @endif
     @stack('styles')
     @if(file_exists(public_path('assets/css/theme-stability.css')))
         <style>{!! file_get_contents(public_path('assets/css/theme-stability.css')) !!}</style>
@@ -166,6 +169,9 @@
     });
 })();
 </script>
+@if(file_exists(public_path('assets/js/td-file-preview.js')))
+    <script>{!! file_get_contents(public_path('assets/js/td-file-preview.js')) !!}</script>
+@endif
 @stack('scripts')
 </body>
 </html>
