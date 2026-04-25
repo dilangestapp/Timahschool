@@ -6,6 +6,8 @@ use App\Http\Controllers\Admin\Concerns\FiltersTableColumns;
 use App\Http\Controllers\Controller;
 use App\Models\SchoolClass;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Schema;
 use Illuminate\Support\Str;
 use Illuminate\Validation\Rule;
 
@@ -83,8 +85,55 @@ class AdminClassController extends Controller
     public function delete(int $id)
     {
         $class = SchoolClass::query()->findOrFail($id);
+        $linkedCounts = $this->linkedCounts($class->id);
+        $totalLinks = array_sum($linkedCounts);
+
+        if ($totalLinks > 0) {
+            if ($this->hasColumnSafe('school_classes', 'is_active')) {
+                $class->update(['is_active' => false]);
+            }
+
+            $details = [];
+            if (($linkedCounts['students'] ?? 0) > 0) {
+                $details[] = $linkedCounts['students'] . ' élève(s)';
+            }
+            if (($linkedCounts['assignments'] ?? 0) > 0) {
+                $details[] = $linkedCounts['assignments'] . ' affectation(s) enseignant';
+            }
+            if (($linkedCounts['courses'] ?? 0) > 0) {
+                $details[] = $linkedCounts['courses'] . ' cours';
+            }
+            if (($linkedCounts['td'] ?? 0) > 0) {
+                $details[] = $linkedCounts['td'] . ' TD';
+            }
+
+            return back()->with(
+                'warning',
+                'Impossible de supprimer cette classe car elle est encore liée à ' . implode(', ', $details) . '. Elle a été désactivée pour éviter de casser les comptes existants.'
+            );
+        }
+
         $class->delete();
 
         return back()->with('success', 'Classe supprimée.');
+    }
+
+    protected function linkedCounts(int $classId): array
+    {
+        return [
+            'students' => $this->countTableLinks('student_profiles', 'school_class_id', $classId),
+            'assignments' => $this->countTableLinks('teacher_assignments', 'school_class_id', $classId),
+            'courses' => $this->countTableLinks('courses', 'school_class_id', $classId),
+            'td' => $this->countTableLinks('td_sets', 'school_class_id', $classId),
+        ];
+    }
+
+    protected function countTableLinks(string $table, string $column, int $classId): int
+    {
+        if (!Schema::hasTable($table) || !Schema::hasColumn($table, $column)) {
+            return 0;
+        }
+
+        return (int) DB::table($table)->where($column, $classId)->count();
     }
 }
