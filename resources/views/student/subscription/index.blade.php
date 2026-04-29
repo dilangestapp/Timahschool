@@ -4,6 +4,8 @@
 
 @section('content')
 @php
+    $completedPayments = $completedPayments ?? collect();
+
     $groupedPlans = collect($plans ?? [])->filter(function ($plan) {
         return is_object($plan) && isset($plan->name);
     })->groupBy(function ($plan) {
@@ -47,6 +49,41 @@
         <div class="alert" style="background:#fffbeb; border:1px solid #fde68a; color:#92400e; margin-bottom:24px;">
             <strong>Aucun abonnement actif</strong><br>
             Souscrivez à une formule pour accéder à tous les cours et quiz.
+        </div>
+    @endif
+
+    @if($completedPayments->isNotEmpty())
+        <div style="border:1px solid #dbe7ff; background:#f8fbff; border-radius:24px; padding:22px; margin-bottom:26px;">
+            <div style="display:flex; align-items:flex-start; justify-content:space-between; gap:16px; flex-wrap:wrap; margin-bottom:16px;">
+                <div>
+                    <h2 style="margin:0 0 6px; font-size:1.15rem;">Mes reçus de paiement</h2>
+                    <div class="muted">Retrouvez ici les derniers reçus générés après vos paiements confirmés.</div>
+                </div>
+            </div>
+
+            <div style="display:grid; gap:12px;">
+                @foreach($completedPayments as $payment)
+                    <div style="display:flex; justify-content:space-between; align-items:center; gap:14px; flex-wrap:wrap; border:1px solid #e2e8f0; background:#ffffff; border-radius:18px; padding:14px 16px;">
+                        <div>
+                            <strong style="display:block; margin-bottom:4px;">
+                                Reçu TA-{{ str_pad((string) $payment->id, 6, '0', STR_PAD_LEFT) }}
+                            </strong>
+
+                            <span class="muted">
+                                {{ $payment->plan->name ?? 'Abonnement TIMAH ACADEMY' }}
+                                · {{ number_format((float) $payment->amount, 0, ',', ' ') }} {{ $payment->currency ?? 'XAF' }}
+                                @if($payment->paid_at)
+                                    · {{ $payment->paid_at->format('d/m/Y à H:i') }}
+                                @endif
+                            </span>
+                        </div>
+
+                        <a href="{{ route('student.subscription.receipt', $payment) }}" class="btn btn--primary">
+                            Voir le reçu
+                        </a>
+                    </div>
+                @endforeach
+            </div>
         </div>
     @endif
 
