@@ -213,6 +213,7 @@ Route::middleware(['auth', 'no.cache', EnsureStudent::class])->prefix('student')
         Route::get('/expired', [SubscriptionController::class, 'expired'])->name('expired');
         Route::get('/required', [SubscriptionController::class, 'required'])->name('required');
         Route::get('/pending', [SubscriptionController::class, 'pending'])->name('pending');
+        Route::get('/receipt/{payment}', [SubscriptionController::class, 'receipt'])->name('receipt');
         Route::get('/checkout/{plan}', [SubscriptionController::class, 'checkout'])->name('checkout');
         Route::post('/pay/{plan}', [SubscriptionController::class, 'processPayment'])->name('pay');
     });
