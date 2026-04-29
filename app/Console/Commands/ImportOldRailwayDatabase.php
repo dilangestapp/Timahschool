@@ -5,6 +5,7 @@ namespace App\Console\Commands;
 use Illuminate\Console\Command;
 use Illuminate\Support\Facades\DB;
 use PDO;
+use PDOException;
 use Throwable;
 
 class ImportOldRailwayDatabase extends Command
@@ -13,11 +14,13 @@ class ImportOldRailwayDatabase extends Command
 
     protected $description = 'Importe les données de l\'ancienne base Railway vers la base active.';
 
+    protected string $oldUrl = '';
+
     public function handle(): int
     {
-        $oldUrl = env('OLD_DATABASE_URL');
+        $this->oldUrl = (string) env('OLD_DATABASE_URL');
 
-        if (!$oldUrl) {
+        if (!$this->oldUrl) {
             $this->error('OLD_DATABASE_URL est absent. Ajoutez la variable dans Railway avant de relancer.');
             return self::FAILURE;
         }
@@ -27,8 +30,8 @@ class ImportOldRailwayDatabase extends Command
             return self::SUCCESS;
         }
 
-        $old = $this->makeOldPdo($oldUrl);
-        $new = DB::connection()->getPdo();
+        $old = $this->makeOldPdo();
+        $new = $this->makeNewPdo();
 
         $this->info('Connexion ancienne base : OK');
         $this->info('Connexion nouvelle base : OK');
@@ -47,12 +50,22 @@ class ImportOldRailwayDatabase extends Command
         $new->exec('SET FOREIGN_KEY_CHECKS=0');
 
         foreach ($tables as $table) {
-            $new->exec('TRUNCATE TABLE '.$this->qi($table));
+            $this->line('Nettoyage : '.$table);
+            $new = $this->retryPdo(function () use ($new, $table) {
+                $new->exec('TRUNCATE TABLE '.$this->qi($table));
+                return $new;
+            }, $new, true);
         }
 
         $totalRows = 0;
 
         foreach ($tables as $table) {
+            $this->line('Import table : '.$table);
+
+            $old = $this->makeOldPdo();
+            $new = $this->makeNewPdo();
+            $new->exec('SET FOREIGN_KEY_CHECKS=0');
+
             $oldColumns = $this->columns($old, $table);
             $newColumns = $this->columns($new, $table);
             $columns = array_values(array_intersect($oldColumns, $newColumns));
@@ -62,7 +75,9 @@ class ImportOldRailwayDatabase extends Command
                 continue;
             }
 
-            $count = (int) $old->query('SELECT COUNT(*) FROM '.$this->qi($table))->fetchColumn();
+            $count = (int) $this->retryPdo(function () use ($old, $table) {
+                return $old->query('SELECT COUNT(*) FROM '.$this->qi($table))->fetchColumn();
+            }, $old, false);
 
             if ($count === 0) {
                 $this->line("{$table} : 0 ligne");
@@ -70,34 +85,57 @@ class ImportOldRailwayDatabase extends Command
             }
 
             $inserted = 0;
-            $limit = 300;
+            $limit = 50;
 
             for ($offset = 0; $offset < $count; $offset += $limit) {
-                $selectSql = 'SELECT '.implode(',', array_map([$this, 'qi'], $columns)).' FROM '.$this->qi($table).' LIMIT '.$limit.' OFFSET '.$offset;
-                $rows = $old->query($selectSql)->fetchAll(PDO::FETCH_ASSOC);
+                $attempt = 1;
 
-                if (!$rows) {
-                    continue;
-                }
+                while (true) {
+                    try {
+                        $old = $this->pingOrReconnect($old, false);
+                        $new = $this->pingOrReconnect($new, true);
+                        $new->exec('SET FOREIGN_KEY_CHECKS=0');
 
-                $placeholders = '(' . implode(',', array_fill(0, count($columns), '?')) . ')';
-                $insertSql = 'INSERT INTO '.$this->qi($table).' ('.implode(',', array_map([$this, 'qi'], $columns)).') VALUES '.$placeholders;
-                $stmt = $new->prepare($insertSql);
+                        $selectSql = 'SELECT '.implode(',', array_map([$this, 'qi'], $columns)).' FROM '.$this->qi($table).' LIMIT '.$limit.' OFFSET '.$offset;
+                        $rows = $old->query($selectSql)->fetchAll(PDO::FETCH_ASSOC);
 
-                foreach ($rows as $row) {
-                    $values = [];
-                    foreach ($columns as $column) {
-                        $values[] = $row[$column] ?? null;
+                        if (!$rows) {
+                            break;
+                        }
+
+                        $placeholders = '(' . implode(',', array_fill(0, count($columns), '?')) . ')';
+                        $insertSql = 'REPLACE INTO '.$this->qi($table).' ('.implode(',', array_map([$this, 'qi'], $columns)).') VALUES '.$placeholders;
+                        $stmt = $new->prepare($insertSql);
+
+                        foreach ($rows as $row) {
+                            $values = [];
+                            foreach ($columns as $column) {
+                                $values[] = $row[$column] ?? null;
+                            }
+                            $stmt->execute($values);
+                        }
+
+                        $inserted += count($rows);
+                        $totalRows += count($rows);
+                        break;
+                    } catch (Throwable $e) {
+                        if (!$this->isConnectionLost($e) || $attempt >= 5) {
+                            throw $e;
+                        }
+
+                        $this->warn("Connexion MySQL perdue sur {$table} offset {$offset}. Reconnexion tentative {$attempt}/5...");
+                        sleep(2);
+                        $old = $this->makeOldPdo();
+                        $new = $this->makeNewPdo();
+                        $attempt++;
                     }
-                    $stmt->execute($values);
-                    $inserted++;
-                    $totalRows++;
                 }
             }
 
             $this->line("{$table} : {$inserted} ligne(s) importée(s)");
         }
 
+        $new = $this->makeNewPdo();
         $new->exec('SET FOREIGN_KEY_CHECKS=1');
 
         $this->info('Import terminé. Total lignes importées : '.$totalRows);
@@ -105,9 +143,9 @@ class ImportOldRailwayDatabase extends Command
         return self::SUCCESS;
     }
 
-    protected function makeOldPdo(string $url): PDO
+    protected function makeOldPdo(): PDO
     {
-        $parts = parse_url($url);
+        $parts = parse_url($this->oldUrl);
 
         if (!$parts || empty($parts['host'])) {
             throw new \RuntimeException('OLD_DATABASE_URL invalide.');
@@ -123,13 +161,83 @@ class ImportOldRailwayDatabase extends Command
             $database = 'railway';
         }
 
+        return $this->newPdo($host, (string) $port, $database, $user, $pass);
+    }
+
+    protected function makeNewPdo(): PDO
+    {
+        $connection = config('database.connections.mysql');
+
+        return $this->newPdo(
+            (string) $connection['host'],
+            (string) $connection['port'],
+            (string) $connection['database'],
+            (string) $connection['username'],
+            (string) $connection['password']
+        );
+    }
+
+    protected function newPdo(string $host, string $port, string $database, string $user, string $pass): PDO
+    {
         $dsn = "mysql:host={$host};port={$port};dbname={$database};charset=utf8mb4";
 
-        return new PDO($dsn, $user, $pass, [
+        $pdo = new PDO($dsn, $user, $pass, [
             PDO::ATTR_ERRMODE => PDO::ERRMODE_EXCEPTION,
             PDO::ATTR_DEFAULT_FETCH_MODE => PDO::FETCH_ASSOC,
-            PDO::ATTR_TIMEOUT => 20,
+            PDO::ATTR_TIMEOUT => 30,
+            PDO::MYSQL_ATTR_USE_BUFFERED_QUERY => true,
         ]);
+
+        try {
+            $pdo->exec('SET SESSION wait_timeout=28800');
+            $pdo->exec('SET SESSION interactive_timeout=28800');
+        } catch (Throwable $e) {
+            // Certains hébergeurs refusent ces réglages. On continue.
+        }
+
+        return $pdo;
+    }
+
+    protected function pingOrReconnect(PDO $pdo, bool $new): PDO
+    {
+        try {
+            $pdo->query('SELECT 1')->fetchColumn();
+            return $pdo;
+        } catch (Throwable $e) {
+            return $new ? $this->makeNewPdo() : $this->makeOldPdo();
+        }
+    }
+
+    protected function retryPdo(callable $callback, PDO $pdo, bool $new)
+    {
+        $attempt = 1;
+
+        while (true) {
+            try {
+                $pdo = $this->pingOrReconnect($pdo, $new);
+                return $callback();
+            } catch (Throwable $e) {
+                if (!$this->isConnectionLost($e) || $attempt >= 5) {
+                    throw $e;
+                }
+
+                sleep(2);
+                $pdo = $new ? $this->makeNewPdo() : $this->makeOldPdo();
+                $attempt++;
+            }
+        }
+    }
+
+    protected function isConnectionLost(Throwable $e): bool
+    {
+        $message = strtolower($e->getMessage());
+
+        return str_contains($message, 'server has gone away')
+            || str_contains($message, 'lost connection')
+            || str_contains($message, 'connection refused')
+            || str_contains($message, 'connection timed out')
+            || str_contains($message, 'broken pipe')
+            || str_contains($message, 'mysql not ready');
     }
 
     protected function tables(PDO $pdo): array
