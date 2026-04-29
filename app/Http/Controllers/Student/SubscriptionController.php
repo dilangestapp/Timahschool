@@ -17,11 +17,20 @@ class SubscriptionController extends Controller
 
     public function index()
     {
-        $user                = auth()->user();
+        $user = auth()->user();
         $currentSubscription = $user->activeSubscription;
-        $plans               = SubscriptionPlan::query()->orderBy('id')->get();
+        $plans = SubscriptionPlan::query()->orderBy('id')->get();
 
-        return view('student.subscription.index', compact('currentSubscription', 'plans'));
+        $completedPayments = Payment::query()
+            ->with(['plan'])
+            ->where('user_id', $user->id)
+            ->where('status', Payment::STATUS_COMPLETED)
+            ->latest('paid_at')
+            ->latest('id')
+            ->take(6)
+            ->get();
+
+        return view('student.subscription.index', compact('currentSubscription', 'plans', 'completedPayments'));
     }
 
     public function checkout(SubscriptionPlan $plan)
@@ -49,8 +58,8 @@ class SubscriptionController extends Controller
             'channel.in'       => 'Le moyen de paiement choisi est invalide.',
         ]);
 
-        $user               = auth()->user();
-        $merchantReference  = $this->notchPay->generateReference($user->id, $plan->id);
+        $user = auth()->user();
+        $merchantReference = $this->notchPay->generateReference($user->id, $plan->id);
 
         $channelMap = [
             'mtn_momo'     => 'cm.mobile',
@@ -67,6 +76,7 @@ class SubscriptionController extends Controller
                 'amount'               => $plan->price,
                 'currency'             => $plan->currency ?? 'XAF',
                 'status'               => defined(Payment::class . '::STATUS_PENDING') ? Payment::STATUS_PENDING : 'pending',
+                'payment_method'       => $request->channel,
                 'phone_number'         => $request->phone,
                 'ip_address'           => $request->ip(),
                 'user_agent'           => $request->userAgent(),
@@ -87,7 +97,7 @@ class SubscriptionController extends Controller
                 'email'       => $user->email,
                 'phone'       => $request->phone,
                 'reference'   => $merchantReference,
-                'description' => "Abonnement {$plan->name} - TIMAH SCHOOL",
+                'description' => "Abonnement {$plan->name} - TIMAH ACADEMY",
                 'name'        => $user->name ?? $user->full_name ?? $user->username ?? 'Client',
                 'channel'     => $channelMap[$request->channel] ?? 'cm.mobile',
                 'country'     => 'CM',
@@ -99,7 +109,7 @@ class SubscriptionController extends Controller
 
             if (!($response['success'] ?? false)) {
                 $errorMessage = $response['message'] ?? 'Erreur lors de l\'initialisation du paiement.';
-                $statusCode   = $response['status_code'] ?? null;
+                $statusCode = $response['status_code'] ?? null;
 
                 $payment->update([
                     'status'         => defined(Payment::class . '::STATUS_FAILED') ? Payment::STATUS_FAILED : 'failed',
@@ -218,8 +228,9 @@ class SubscriptionController extends Controller
         if ($status === 'complete') {
             $this->activateSubscription($payment, $verificationData);
 
-            return redirect()->route('student.dashboard')
-                ->with('success', 'Paiement réussi. Votre abonnement est maintenant actif.');
+            return redirect()
+                ->route('student.subscription.receipt', $payment)
+                ->with('success', 'Paiement réussi. Votre abonnement est maintenant actif et votre reçu a été généré.');
         }
 
         if (in_array($status, ['failed', 'canceled', 'cancelled', 'rejected', 'abandoned', 'expired'], true)) {
@@ -248,6 +259,30 @@ class SubscriptionController extends Controller
             ->with('info', 'Votre paiement est en cours de traitement. Vous recevrez une confirmation sous peu.');
     }
 
+    public function receipt(Payment $payment)
+    {
+        $user = auth()->user();
+
+        abort_unless((int) $payment->user_id === (int) $user->id, 403);
+        abort_unless($payment->status === Payment::STATUS_COMPLETED, 404);
+
+        $payment->load(['user', 'plan']);
+
+        $subscription = Subscription::query()
+            ->where('payment_id', $payment->id)
+            ->where('user_id', $user->id)
+            ->latest('id')
+            ->first();
+
+        $receiptNumber = 'TA-' . str_pad((string) $payment->id, 6, '0', STR_PAD_LEFT);
+
+        return view('student.subscription.receipt', [
+            'payment' => $payment,
+            'subscription' => $subscription,
+            'receiptNumber' => $receiptNumber,
+        ]);
+    }
+
     public function expired()
     {
         return view('student.subscription.expired');
@@ -266,12 +301,24 @@ class SubscriptionController extends Controller
     protected function activateSubscription(Payment $payment, array $notchpayData): void
     {
         DB::transaction(function () use ($payment, $notchpayData) {
+            $transactionId = data_get($notchpayData, 'transaction.reference')
+                ?? data_get($notchpayData, 'transaction.id')
+                ?? data_get($notchpayData, 'reference')
+                ?? data_get($notchpayData, 'id');
+
             if (method_exists($payment, 'markAsCompleted')) {
                 $payment->markAsCompleted($notchpayData);
             } else {
                 $payment->update([
                     'status'            => defined(Payment::class . '::STATUS_COMPLETED') ? Payment::STATUS_COMPLETED : 'completed',
+                    'paid_at'           => now(),
                     'notchpay_response' => $notchpayData,
+                ]);
+            }
+
+            if ($transactionId) {
+                $payment->update([
+                    'notchpay_transaction_id' => $transactionId,
                 ]);
             }
 
