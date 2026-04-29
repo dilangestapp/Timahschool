@@ -4,14 +4,45 @@ set -eu
 echo "=== TIMAH ACADEMY Railway start ==="
 
 # Normalisation robuste des variables Railway.
-# Si les références DB_* ne sont pas résolues par l'interface Railway mobile,
-# on reprend les variables natives MYSQL* ou le DNS privé Railway du service MySQL.
+# L'interface mobile peut parfois enregistrer une référence non résolue ou un mauvais alias.
+# On force alors les valeurs natives MySQL ou le DNS privé Railway.
 export DB_CONNECTION="${DB_CONNECTION:-mysql}"
-export DB_HOST="${DB_HOST:-${MYSQLHOST:-mysql.railway.internal}}"
-export DB_PORT="${DB_PORT:-${MYSQLPORT:-3306}}"
-export DB_DATABASE="${DB_DATABASE:-${MYSQLDATABASE:-railway}}"
-export DB_USERNAME="${DB_USERNAME:-${MYSQLUSER:-root}}"
-export DB_PASSWORD="${DB_PASSWORD:-${MYSQLPASSWORD:-}}"
+export DB_HOST="${DB_HOST:-}"
+export DB_PORT="${DB_PORT:-}"
+export DB_DATABASE="${DB_DATABASE:-}"
+export DB_USERNAME="${DB_USERNAME:-}"
+export DB_PASSWORD="${DB_PASSWORD:-}"
+
+case "$DB_HOST" in
+    ""|*'${{'*|*'}}'*|*MySQL.*)
+        export DB_HOST="${MYSQLHOST:-mysql.railway.internal}"
+        ;;
+esac
+
+case "$DB_PORT" in
+    ""|*'${{'*|*'}}'*|*MySQL.*)
+        export DB_PORT="${MYSQLPORT:-3306}"
+        ;;
+esac
+
+case "$DB_DATABASE" in
+    ""|*'${{'*|*'}}'*|*MySQL.*)
+        export DB_DATABASE="${MYSQLDATABASE:-railway}"
+        ;;
+esac
+
+case "$DB_USERNAME" in
+    ""|*'${{'*|*'}}'*|*MySQL.*)
+        export DB_USERNAME="${MYSQLUSER:-root}"
+        ;;
+esac
+
+case "$DB_PASSWORD" in
+    ""|*'${{'*|*'}}'*|*MySQL.*)
+        export DB_PASSWORD="${MYSQLPASSWORD:-}"
+        ;;
+esac
+
 export CACHE_DRIVER="${CACHE_DRIVER:-file}"
 export SESSION_DRIVER="${SESSION_DRIVER:-file}"
 export QUEUE_CONNECTION="${QUEUE_CONNECTION:-sync}"
@@ -31,9 +62,9 @@ php artisan cache:clear || true
 php artisan route:clear || true
 php artisan view:clear || true
 
-# Attente active de MySQL : évite que Laravel tente les migrations avant que la DB soit prête.
 echo "Waiting for MySQL connection..."
 ATTEMPT=1
+MYSQL_READY=0
 until php -r '
 $host=getenv("DB_HOST");
 $port=getenv("DB_PORT") ?: "3306";
@@ -51,6 +82,7 @@ try {
 '; do
     if [ "$ATTEMPT" -ge 30 ]; then
         echo "MySQL connection failed after ${ATTEMPT} attempts. Starting app without migrations to keep service alive."
+        MYSQL_READY=0
         break
     fi
     echo "Retry ${ATTEMPT}/30 in 3s..."
@@ -59,6 +91,10 @@ try {
 done
 
 if [ "$ATTEMPT" -lt 30 ]; then
+    MYSQL_READY=1
+fi
+
+if [ "$MYSQL_READY" = "1" ]; then
     echo "Running database migrations..."
     php artisan migrate --force -vvv
 
