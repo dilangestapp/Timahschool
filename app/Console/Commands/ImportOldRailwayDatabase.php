@@ -5,7 +5,6 @@ namespace App\Console\Commands;
 use Illuminate\Console\Command;
 use Illuminate\Support\Facades\DB;
 use PDO;
-use PDOException;
 use Throwable;
 
 class ImportOldRailwayDatabase extends Command
@@ -85,7 +84,7 @@ class ImportOldRailwayDatabase extends Command
             }
 
             $inserted = 0;
-            $limit = 50;
+            $limit = 20;
 
             for ($offset = 0; $offset < $count; $offset += $limit) {
                 $attempt = 1;
@@ -119,12 +118,12 @@ class ImportOldRailwayDatabase extends Command
                         $totalRows += count($rows);
                         break;
                     } catch (Throwable $e) {
-                        if (!$this->isConnectionLost($e) || $attempt >= 5) {
+                        if (!$this->isConnectionLost($e) || $attempt >= 10) {
                             throw $e;
                         }
 
-                        $this->warn("Connexion MySQL perdue sur {$table} offset {$offset}. Reconnexion tentative {$attempt}/5...");
-                        sleep(2);
+                        $this->warn("Connexion MySQL perdue sur {$table} offset {$offset}. Reconnexion tentative {$attempt}/10...");
+                        sleep(3);
                         $old = $this->makeOldPdo();
                         $new = $this->makeNewPdo();
                         $attempt++;
@@ -152,7 +151,7 @@ class ImportOldRailwayDatabase extends Command
         }
 
         $host = $parts['host'];
-        $port = $parts['port'] ?? 3306;
+        $port = (string) ($parts['port'] ?? 3306);
         $user = urldecode($parts['user'] ?? 'root');
         $pass = urldecode($parts['pass'] ?? '');
         $database = ltrim($parts['path'] ?? '', '/');
@@ -161,20 +160,44 @@ class ImportOldRailwayDatabase extends Command
             $database = 'railway';
         }
 
-        return $this->newPdo($host, (string) $port, $database, $user, $pass);
+        return $this->connectWithRetry($host, $port, $database, $user, $pass, false);
     }
 
     protected function makeNewPdo(): PDO
     {
         $connection = config('database.connections.mysql');
 
-        return $this->newPdo(
+        return $this->connectWithRetry(
             (string) $connection['host'],
             (string) $connection['port'],
             (string) $connection['database'],
             (string) $connection['username'],
-            (string) $connection['password']
+            (string) $connection['password'],
+            true
         );
+    }
+
+    protected function connectWithRetry(string $host, string $port, string $database, string $user, string $pass, bool $new): PDO
+    {
+        $last = null;
+
+        for ($attempt = 1; $attempt <= 20; $attempt++) {
+            try {
+                return $this->newPdo($host, $port, $database, $user, $pass);
+            } catch (Throwable $e) {
+                $last = $e;
+
+                if (!$this->isConnectionLost($e) && $attempt >= 3) {
+                    throw $e;
+                }
+
+                $label = $new ? 'nouvelle base' : 'ancienne base';
+                $this->warn("Connexion {$label} impossible tentative {$attempt}/20 : ".$e->getMessage());
+                sleep(3);
+            }
+        }
+
+        throw $last ?: new \RuntimeException('Connexion MySQL impossible.');
     }
 
     protected function newPdo(string $host, string $port, string $database, string $user, string $pass): PDO
@@ -184,13 +207,15 @@ class ImportOldRailwayDatabase extends Command
         $pdo = new PDO($dsn, $user, $pass, [
             PDO::ATTR_ERRMODE => PDO::ERRMODE_EXCEPTION,
             PDO::ATTR_DEFAULT_FETCH_MODE => PDO::FETCH_ASSOC,
-            PDO::ATTR_TIMEOUT => 30,
+            PDO::ATTR_TIMEOUT => 45,
             PDO::MYSQL_ATTR_USE_BUFFERED_QUERY => true,
         ]);
 
         try {
             $pdo->exec('SET SESSION wait_timeout=28800');
             $pdo->exec('SET SESSION interactive_timeout=28800');
+            $pdo->exec('SET SESSION net_read_timeout=120');
+            $pdo->exec('SET SESSION net_write_timeout=120');
         } catch (Throwable $e) {
             // Certains hébergeurs refusent ces réglages. On continue.
         }
@@ -217,11 +242,11 @@ class ImportOldRailwayDatabase extends Command
                 $pdo = $this->pingOrReconnect($pdo, $new);
                 return $callback();
             } catch (Throwable $e) {
-                if (!$this->isConnectionLost($e) || $attempt >= 5) {
+                if (!$this->isConnectionLost($e) || $attempt >= 10) {
                     throw $e;
                 }
 
-                sleep(2);
+                sleep(3);
                 $pdo = $new ? $this->makeNewPdo() : $this->makeOldPdo();
                 $attempt++;
             }
@@ -237,7 +262,9 @@ class ImportOldRailwayDatabase extends Command
             || str_contains($message, 'connection refused')
             || str_contains($message, 'connection timed out')
             || str_contains($message, 'broken pipe')
-            || str_contains($message, 'mysql not ready');
+            || str_contains($message, 'mysql not ready')
+            || str_contains($message, 'reading initial communication packet')
+            || str_contains($message, 'connection reset');
     }
 
     protected function tables(PDO $pdo): array
