@@ -53,7 +53,7 @@ class AppServiceProvider extends ServiceProvider
                 Route::get('/diagnostic/result', [DiagnosticController::class, 'result'])->name('diagnostic.result');
             });
 
-        Route::middleware(['web', 'no.cache'])
+        Route::middleware(['api'])
             ->prefix('__timah/internal')
             ->name('timah.internal.')
             ->group(function () {
