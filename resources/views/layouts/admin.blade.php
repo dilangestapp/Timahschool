@@ -40,6 +40,9 @@
     @if(file_exists(public_path('assets/css/theme-stability.css')))
         <style>{!! file_get_contents(public_path('assets/css/theme-stability.css')) !!}</style>
     @endif
+    @if(file_exists(public_path('assets/css/admin-mobile-fix.css')))
+        <style>{!! file_get_contents(public_path('assets/css/admin-mobile-fix.css')) !!}</style>
+    @endif
 </head>
 <body data-ui-group="@yield('ui_group', 'control')" data-ui-role="admin">
 <button type="button" class="admin-mobile-nav-toggle" data-admin-nav-toggle aria-label="Ouvrir le menu admin">☰</button>
