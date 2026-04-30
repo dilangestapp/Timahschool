@@ -24,6 +24,7 @@ use App\Http\Controllers\Student\DashboardController;
 use App\Http\Controllers\Student\MessageController as StudentMessageController;
 use App\Http\Controllers\Student\SubscriptionController;
 use App\Http\Controllers\Student\TdController as StudentTdController;
+use App\Http\Controllers\TdPdfDocumentController;
 use App\Http\Controllers\Teacher\ClassController as TeacherClassController;
 use App\Http\Controllers\Teacher\CourseController as TeacherCourseController;
 use App\Http\Controllers\Teacher\DashboardController as TeacherDashboardController;
@@ -169,6 +170,8 @@ Route::prefix($adminPath)->name('admin.')->group(function () {
         Route::post('/td/sets/{td}/delete', [AdminTdController::class, 'delete'])->name('td.delete');
         Route::get('/td/sets/{td}/document', [AdminTdController::class, 'document'])->name('td.document');
         Route::get('/td/sets/{td}/correction-document', [AdminTdController::class, 'correctionDocument'])->name('td.correction_document');
+        Route::get('/td/sets/{td}/pdf', [TdPdfDocumentController::class, 'adminDocument'])->name('td.pdf');
+        Route::get('/td/sets/{td}/correction-pdf', [TdPdfDocumentController::class, 'adminCorrection'])->name('td.correction_pdf');
 
         Route::get('/plans', [AdminPlanController::class, 'index'])->name('plans.index');
         Route::post('/plans', [AdminPlanController::class, 'store'])->name('plans.store');
@@ -212,6 +215,8 @@ Route::middleware(['auth', 'no.cache', EnsureTeacher::class])->prefix('teacher')
     Route::post('/td/sets/{td}/delete', [TeacherTdSetController::class, 'destroy'])->name('td.sets.delete');
     Route::get('/td/sets/{td}/document', [TeacherTdSetController::class, 'document'])->name('td.sets.document');
     Route::get('/td/sets/{td}/correction-document', [TeacherTdSetController::class, 'correctionDocument'])->name('td.sets.correction_document');
+    Route::get('/td/sets/{td}/pdf', [TdPdfDocumentController::class, 'adminDocument'])->name('td.sets.pdf');
+    Route::get('/td/sets/{td}/correction-pdf', [TdPdfDocumentController::class, 'adminCorrection'])->name('td.sets.correction_pdf');
 
     Route::get('/td/questions', [TeacherTdQuestionController::class, 'index'])->name('td.questions.index');
     Route::get('/td/questions/{thread}', [TeacherTdQuestionController::class, 'show'])->name('td.questions.show');
@@ -257,6 +262,8 @@ Route::middleware(['auth', 'no.cache', EnsureStudent::class])->prefix('student')
         Route::post('/td/{td}/ask', [StudentTdController::class, 'ask'])->name('td.ask');
         Route::get('/td/{td}/document', [StudentTdController::class, 'document'])->name('td.document');
         Route::get('/td/{td}/correction-document', [StudentTdController::class, 'correctionDocument'])->name('td.correction_document');
+        Route::get('/td/{td}/pdf', [TdPdfDocumentController::class, 'studentDocument'])->name('td.pdf');
+        Route::get('/td/{td}/correction-pdf', [TdPdfDocumentController::class, 'studentCorrection'])->name('td.correction_pdf');
         Route::get('/td/messages/{message}/attachment', [StudentTdController::class, 'attachment'])->name('td.attachment');
     });
 
