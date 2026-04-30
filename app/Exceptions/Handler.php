@@ -4,6 +4,7 @@ namespace App\Exceptions;
 
 use Illuminate\Foundation\Exceptions\Handler as ExceptionHandler;
 use Illuminate\Session\TokenMismatchException;
+use Symfony\Component\HttpKernel\Exception\HttpExceptionInterface;
 use Throwable;
 
 class Handler extends ExceptionHandler
@@ -47,15 +48,44 @@ class Handler extends ExceptionHandler
         });
 
         $this->renderable(function (TokenMismatchException $e, $request) {
-            if ($request->is('logout') || $request->is('*/logout')) {
-                if ($request->is('*/logout') && !$request->is('logout')) {
-                    return redirect()->route('admin.login')
-                        ->with('info', 'Session expirée. Reconnectez-vous pour continuer.');
-                }
-
-                return redirect()->route('login')
-                    ->with('info', 'Session expirée. Utilisez le bouton de déconnexion depuis une page active.');
-            }
+            return $this->redirectExpiredSession($request);
         });
+    }
+
+    public function render($request, Throwable $e)
+    {
+        if ($e instanceof HttpExceptionInterface && $e->getStatusCode() === 419) {
+            return $this->redirectExpiredSession($request);
+        }
+
+        return parent::render($request, $e);
+    }
+
+    private function redirectExpiredSession($request)
+    {
+        if ($request->expectsJson() || $request->is('__timah/internal/*')) {
+            return response()->json([
+                'status' => 'session_expired',
+                'message' => 'Session expirée. Rechargez la page puis recommencez.',
+            ], 419);
+        }
+
+        if ($request->is('backoffice-access') || $request->is('backoffice-access/*')) {
+            return redirect()->route('admin.login')
+                ->with('error', 'La session avait expiré. Reconnectez-vous simplement.');
+        }
+
+        if ($request->is('teacher') || $request->is('teacher/*')) {
+            return redirect()->route('login')
+                ->with('error', 'La session avait expiré. Reconnectez-vous simplement.');
+        }
+
+        if ($request->is('student') || $request->is('student/*')) {
+            return redirect()->route('login')
+                ->with('error', 'La session avait expiré. Reconnectez-vous simplement.');
+        }
+
+        return redirect()->route('login')
+            ->with('error', 'La session avait expiré. Rechargez la page puis reconnectez-vous.');
     }
 }
