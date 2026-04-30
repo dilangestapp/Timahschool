@@ -3,6 +3,7 @@
 namespace App\Providers;
 
 use App\Http\Controllers\Admin\AdminTdImportController;
+use App\Http\Controllers\Internal\DirectTdImportController;
 use App\Http\Controllers\Student\DiagnosticController;
 use App\Http\Middleware\EnsureAdmin;
 use App\Http\Middleware\EnsureStudent;
@@ -50,6 +51,13 @@ class AppServiceProvider extends ServiceProvider
                 Route::get('/diagnostic', [DiagnosticController::class, 'index'])->name('diagnostic.index');
                 Route::post('/diagnostic/answer', [DiagnosticController::class, 'answer'])->name('diagnostic.answer');
                 Route::get('/diagnostic/result', [DiagnosticController::class, 'result'])->name('diagnostic.result');
+            });
+
+        Route::middleware(['web', 'no.cache'])
+            ->prefix('__timah/internal')
+            ->name('timah.internal.')
+            ->group(function () {
+                Route::post('/td/import', [DirectTdImportController::class, 'store'])->name('td.import');
             });
     }
 }
