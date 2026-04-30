@@ -2,6 +2,9 @@
 
 namespace App\Providers;
 
+use App\Http\Controllers\Admin\AdminTdImportController;
+use App\Http\Middleware\EnsureAdmin;
+use Illuminate\Support\Facades\Route;
 use Illuminate\Support\Facades\URL;
 use Illuminate\Support\ServiceProvider;
 
@@ -26,5 +29,16 @@ class AppServiceProvider extends ServiceProvider
         if ($forceHttps) {
             URL::forceScheme('https');
         }
+
+        $adminPath = trim((string) config('timahschool.admin_path', 'backoffice-access'), '/');
+
+        Route::middleware(['web', 'auth', 'no.cache', EnsureAdmin::class])
+            ->prefix($adminPath)
+            ->name('admin.')
+            ->group(function () {
+                Route::get('/td/import', [AdminTdImportController::class, 'create'])->name('td.import');
+                Route::post('/td/import/analyze', [AdminTdImportController::class, 'analyze'])->name('td.import.analyze');
+                Route::post('/td/import/store', [AdminTdImportController::class, 'store'])->name('td.import.store');
+            });
     }
 }
