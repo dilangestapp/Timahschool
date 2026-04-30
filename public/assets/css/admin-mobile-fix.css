@@ -1,0 +1,169 @@
+@media (max-width: 860px) {
+    body[data-ui-role='admin'] .admin-topbar {
+        position: sticky !important;
+        top: 0 !important;
+        z-index: 45 !important;
+        display: block !important;
+        min-height: 0 !important;
+        padding: 12px 12px 10px 76px !important;
+        margin: 0 !important;
+        border-bottom: 1px solid rgba(219, 230, 243, .82) !important;
+        background: rgba(244, 248, 253, .96) !important;
+        backdrop-filter: blur(16px) !important;
+    }
+
+    body[data-ui-role='admin'] .admin-topbar > div:first-child { min-width: 0 !important; }
+
+    body[data-ui-role='admin'] .admin-topbar h1 {
+        margin: 0 !important;
+        font-size: 1.22rem !important;
+        line-height: 1.08 !important;
+        letter-spacing: -0.035em !important;
+    }
+
+    body[data-ui-role='admin'] .admin-topbar p {
+        margin-top: 4px !important;
+        max-width: 100% !important;
+        font-size: .78rem !important;
+        line-height: 1.35 !important;
+        color: var(--admin-muted) !important;
+    }
+
+    body[data-ui-role='admin'] .admin-topbar__actions {
+        display: flex !important;
+        flex-wrap: nowrap !important;
+        align-items: center !important;
+        justify-content: flex-start !important;
+        gap: 8px !important;
+        width: calc(100vw - 88px) !important;
+        max-width: calc(100vw - 88px) !important;
+        margin-top: 8px !important;
+        padding: 0 0 2px !important;
+        overflow-x: auto !important;
+        overflow-y: hidden !important;
+        -webkit-overflow-scrolling: touch !important;
+        scrollbar-width: none !important;
+    }
+
+    body[data-ui-role='admin'] .admin-topbar__actions::-webkit-scrollbar { display: none !important; }
+
+    body[data-ui-role='admin'] .admin-topbar__actions > .btn:nth-child(1),
+    body[data-ui-role='admin'] .admin-topbar__actions > .btn:nth-child(2),
+    body[data-ui-role='admin'] .admin-topbar__actions > .btn:nth-child(3),
+    body[data-ui-role='admin'] .admin-topbar__actions > .btn:nth-child(4),
+    body[data-ui-role='admin'] .admin-topbar__actions > .btn:nth-child(5) {
+        display: none !important;
+    }
+
+    body[data-ui-role='admin'] .admin-topbar__actions > .btn,
+    body[data-ui-role='admin'] .admin-topbar__actions > .theme-toggle {
+        flex: 0 0 auto !important;
+        width: auto !important;
+        min-width: max-content !important;
+        min-height: 36px !important;
+        height: 36px !important;
+        padding: 0 12px !important;
+        border-radius: 999px !important;
+        font-size: .80rem !important;
+        line-height: 1 !important;
+        white-space: nowrap !important;
+    }
+
+    body[data-ui-role='admin'] .admin-userbox {
+        flex: 0 0 auto !important;
+        width: auto !important;
+        min-width: 118px !important;
+        max-width: 170px !important;
+        padding: 7px 10px !important;
+        border-radius: 14px !important;
+        box-shadow: none !important;
+    }
+
+    body[data-ui-role='admin'] .admin-userbox strong {
+        font-size: .86rem !important;
+        line-height: 1.1 !important;
+        white-space: nowrap !important;
+        overflow: hidden !important;
+        text-overflow: ellipsis !important;
+    }
+
+    body[data-ui-role='admin'] .admin-userbox small {
+        display: block !important;
+        margin-top: 2px !important;
+        font-size: .68rem !important;
+        line-height: 1.1 !important;
+        white-space: nowrap !important;
+        overflow: hidden !important;
+        text-overflow: ellipsis !important;
+    }
+
+    body[data-ui-role='admin'] .admin-content {
+        padding: 14px 12px 82px !important;
+        overflow-x: hidden !important;
+    }
+
+    body[data-ui-role='admin'] .admin-compact-page,
+    body[data-ui-role='admin'] .admin-list-panel,
+    body[data-ui-role='admin'] .admin-clean-list,
+    body[data-ui-role='admin'] .admin-td-card,
+    body[data-ui-role='admin'] .admin-section,
+    body[data-ui-role='admin'] .admin-panel {
+        max-width: 100% !important;
+        min-width: 0 !important;
+    }
+
+    body[data-ui-role='admin'] .admin-summary-strip {
+        display: grid !important;
+        grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+        gap: 10px !important;
+        margin-bottom: 14px !important;
+    }
+
+    body[data-ui-role='admin'] .admin-summary-card {
+        min-height: 92px !important;
+        padding: 16px !important;
+        border-radius: 18px !important;
+        overflow: hidden !important;
+    }
+
+    body[data-ui-role='admin'] .admin-summary-card strong {
+        display: block !important;
+        font-size: 2rem !important;
+        line-height: 1 !important;
+        margin-bottom: 8px !important;
+    }
+
+    body[data-ui-role='admin'] .admin-summary-card span {
+        display: block !important;
+        font-size: .78rem !important;
+        line-height: 1.25 !important;
+        word-break: normal !important;
+    }
+
+    body[data-ui-role='admin'] .admin-list-panel,
+    body[data-ui-role='admin'] .admin-collapse-box,
+    body[data-ui-role='admin'] .admin-td-card {
+        border-radius: 20px !important;
+    }
+
+    body[data-ui-role='admin'] .admin-list-panel__head {
+        display: grid !important;
+        gap: 10px !important;
+    }
+
+    body[data-ui-role='admin'] .admin-list-panel__head .btn { width: 100% !important; }
+
+    body[data-ui-role='admin'] .admin-mobile-nav-toggle {
+        left: 14px !important;
+        bottom: 16px !important;
+        width: 54px !important;
+        height: 54px !important;
+        border-radius: 18px !important;
+    }
+}
+
+@media (max-width: 420px) {
+    body[data-ui-role='admin'] .admin-summary-strip { grid-template-columns: 1fr !important; }
+    body[data-ui-role='admin'] .admin-topbar h1 { font-size: 1.12rem !important; }
+    body[data-ui-role='admin'] .admin-topbar p { font-size: .74rem !important; }
+}
