@@ -20,13 +20,11 @@
         </div>
     </div>
     <div class="panel__body td-show-body">
-        @if($td->document_path)
-            <div class="td-doc-box">
-                <strong>Document source du TD</strong>
-                <div class="muted">{{ $td->document_name }} — {{ $td->humanDocumentSize() }}</div>
-                <div class="td-inline-actions"><a class="btn btn--ghost" href="{{ route('student.td.document', $td) }}">Ouvrir / télécharger</a></div>
-            </div>
-        @endif
+        <div class="td-doc-box">
+            <strong>Document PDF du TD</strong>
+            <div class="muted">Ouvre le sujet en PDF pour lire, télécharger ou imprimer.</div>
+            <div class="td-inline-actions"><a class="btn btn--primary" href="{{ route('student.td.pdf', $td) }}" target="_blank">Ouvrir le TD en PDF</a></div>
+        </div>
 
         @if($td->hasCorrectionContent() && !$canSeeCorrection)
             <div class="td-countdown-card" data-countdown-seconds="{{ $remainingSeconds }}">
@@ -44,12 +42,6 @@
             </div>
         @endif
 
-        @if($td->has_editable_version && $td->editable_html)
-            <div class="td-content sun-editor-editable">{!! $td->editable_html !!}</div>
-        @elseif(!$td->document_path)
-            <div class="empty-state">Aucun contenu rédigé ni document joint pour ce TD.</div>
-        @endif
-
         <div class="td-inline-actions" style="margin-top:20px;">
             @if($isCompleted)
                 <span class="td-completed-pill">TD déjà marqué comme terminé</span>
@@ -64,16 +56,11 @@
 <section class="panel td-show-panel">
     <div class="panel__head"><h2>Corrigé</h2></div>
     <div class="panel__body">
-        @if($td->correction_html)
-            <div class="td-content sun-editor-editable">{!! $td->correction_html !!}</div>
-        @endif
-        @if($td->correction_document_path)
-            <div class="td-doc-box" style="margin-top:18px;">
-                <strong>Document corrigé</strong>
-                <div class="muted">{{ $td->correction_document_name }} — {{ $td->humanCorrectionDocumentSize() }}</div>
-                <div class="td-inline-actions"><a class="btn btn--ghost" href="{{ route('student.td.correction_document', $td) }}">Ouvrir / télécharger</a></div>
-            </div>
-        @endif
+        <div class="td-doc-box">
+            <strong>Document PDF du corrigé</strong>
+            <div class="muted">Ouvre le corrigé en PDF pour lire, télécharger ou imprimer.</div>
+            <div class="td-inline-actions"><a class="btn btn--primary" href="{{ route('student.td.correction_pdf', $td) }}" target="_blank">Ouvrir le corrigé en PDF</a></div>
+        </div>
     </div>
 </section>
 @elseif($td->hasCorrectionContent())
@@ -148,16 +135,8 @@
         background: #ccfbf1;
     }
 
-    .td-countdown-card h3 {
-        margin: 10px 0 6px;
-        font-size: 1.1rem;
-    }
-
-    .td-countdown-card p {
-        margin: 0;
-        color: var(--muted, #64748b);
-        line-height: 1.55;
-    }
+    .td-countdown-card h3 { margin: 10px 0 6px; font-size: 1.1rem; }
+    .td-countdown-card p { margin: 0; color: var(--muted, #64748b); line-height: 1.55; }
 
     .td-countdown-timer {
         min-width: 132px;
@@ -168,28 +147,12 @@
         border: 1px solid rgba(255,255,255,.62);
     }
 
-    .td-countdown-timer strong {
-        display: block;
-        font-size: 1.55rem;
-        letter-spacing: -.04em;
-        color: #0f766e;
-    }
-
-    .td-countdown-timer span {
-        display: block;
-        margin-top: 4px;
-        font-size: .78rem;
-        color: #475569;
-        font-weight: 800;
-    }
+    .td-countdown-timer strong { display: block; font-size: 1.55rem; letter-spacing: -.04em; color: #0f766e; }
+    .td-countdown-timer span { display: block; margin-top: 4px; font-size: .78rem; color: #475569; font-weight: 800; }
 
     @media (max-width: 720px) {
-        .td-countdown-card {
-            grid-template-columns: 1fr;
-        }
-        .td-countdown-timer {
-            width: 100%;
-        }
+        .td-countdown-card { grid-template-columns: 1fr; }
+        .td-countdown-timer { width: 100%; }
     }
 </style>
 
@@ -222,6 +185,4 @@
     tick();
 })();
 </script>
-
-<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/suneditor@2.47.0/dist/css/suneditor.min.css">
 @endsection
