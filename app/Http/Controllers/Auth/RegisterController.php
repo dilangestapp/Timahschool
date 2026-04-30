@@ -87,7 +87,7 @@ class RegisterController extends Controller
 
         Auth::login($user);
 
-        return redirect()->route('student.dashboard')
-            ->with('success', 'Bienvenue sur TIMAH ACADEMY ! Votre essai gratuit de 24h commence maintenant.');
+        return redirect()->route('student.diagnostic.index')
+            ->with('success', 'Bienvenue sur TIMAH ACADEMY ! Réponds à quelques questions rapides pour personnaliser ton accompagnement.');
     }
 }
