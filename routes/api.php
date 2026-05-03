@@ -1,7 +1,7 @@
 <?php
 
 use App\Http\Controllers\Api\MobileAuthController;
-use Illuminate\Http\Request;
+use App\Http\Controllers\Api\MobileContentController;
 use Illuminate\Support\Facades\Artisan;
 use Illuminate\Support\Facades\Route;
 
@@ -40,13 +40,13 @@ Route::prefix('mobile')->name('api.mobile.')->group(function () {
     Route::post('/register', [MobileAuthController::class, 'register'])->name('register');
     Route::post('/login', [MobileAuthController::class, 'login'])->name('login');
 
-    Route::middleware('auth:sanctum')->group(function () {
-        Route::get('/me', [MobileAuthController::class, 'me'])->name('me');
-        Route::get('/subscription', [MobileAuthController::class, 'subscription'])->name('subscription');
-        Route::post('/logout', [MobileAuthController::class, 'logout'])->name('logout');
-    });
-});
+    Route::get('/me', [MobileAuthController::class, 'me'])->name('me');
+    Route::get('/subscription', [MobileAuthController::class, 'subscription'])->name('subscription');
+    Route::post('/logout', [MobileAuthController::class, 'logout'])->name('logout');
 
-Route::middleware('auth:sanctum')->get('/user', function (Request $request) {
-    return $request->user();
+    Route::get('/home', [MobileContentController::class, 'home'])->name('home');
+    Route::get('/program', [MobileContentController::class, 'program'])->name('program');
+    Route::get('/board', [MobileContentController::class, 'board'])->name('board');
+    Route::get('/reports', [MobileContentController::class, 'reports'])->name('reports');
+    Route::get('/evaluations', [MobileContentController::class, 'evaluations'])->name('evaluations');
 });
