@@ -2,6 +2,7 @@
 
 use App\Http\Controllers\Api\MobileAuthController;
 use App\Http\Controllers\Api\MobileContentController;
+use App\Http\Controllers\Api\MobileLearningController;
 use Illuminate\Support\Facades\Artisan;
 use Illuminate\Support\Facades\Route;
 
@@ -49,4 +50,16 @@ Route::prefix('mobile')->name('api.mobile.')->group(function () {
     Route::get('/board', [MobileContentController::class, 'board'])->name('board');
     Route::get('/reports', [MobileContentController::class, 'reports'])->name('reports');
     Route::get('/evaluations', [MobileContentController::class, 'evaluations'])->name('evaluations');
+
+    Route::get('/program/{id}', [MobileLearningController::class, 'programDetail'])->whereNumber('id')->name('program.detail');
+    Route::post('/program/{id}/complete', [MobileLearningController::class, 'completeProgram'])->whereNumber('id')->name('program.complete');
+    Route::get('/board/{id}', [MobileLearningController::class, 'boardDetail'])->whereNumber('id')->name('board.detail');
+    Route::get('/evaluations/{id}', [MobileLearningController::class, 'evaluationDetail'])->whereNumber('id')->name('evaluations.detail');
+    Route::get('/reports/{id}', [MobileLearningController::class, 'reportDetail'])->whereNumber('id')->name('reports.detail');
+
+    Route::get('/quizzes', [MobileLearningController::class, 'quizzes'])->name('quizzes.index');
+    Route::get('/quizzes/{id}', [MobileLearningController::class, 'quizDetail'])->whereNumber('id')->name('quizzes.show');
+    Route::post('/quizzes/{id}/submit', [MobileLearningController::class, 'submitQuiz'])->whereNumber('id')->name('quizzes.submit');
+    Route::get('/quizzes-history', [MobileLearningController::class, 'quizHistory'])->name('quizzes.history');
+    Route::get('/notifications', [MobileLearningController::class, 'notifications'])->name('notifications');
 });
