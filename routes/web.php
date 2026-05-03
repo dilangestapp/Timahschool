@@ -3,7 +3,10 @@
 use App\Http\Controllers\Admin\AdminClassController;
 use App\Http\Controllers\Admin\AdminCourseController;
 use App\Http\Controllers\Admin\AdminDashboardController;
+use App\Http\Controllers\Admin\AdminDigitalBoardController;
 use App\Http\Controllers\Admin\AdminHomepageController;
+use App\Http\Controllers\Admin\AdminLearningProgramController;
+use App\Http\Controllers\Admin\AdminMobileDeviceController;
 use App\Http\Controllers\Admin\AdminPaymentController;
 use App\Http\Controllers\Admin\AdminPlanController;
 use App\Http\Controllers\Admin\AdminPlatformSettingsController;
@@ -172,6 +175,21 @@ Route::prefix($adminPath)->name('admin.')->group(function () {
         Route::get('/td/sets/{td}/correction-document', [AdminTdController::class, 'correctionDocument'])->name('td.correction_document');
         Route::get('/td/sets/{td}/pdf', [TdPdfDocumentController::class, 'adminDocument'])->name('td.pdf');
         Route::get('/td/sets/{td}/correction-pdf', [TdPdfDocumentController::class, 'adminCorrection'])->name('td.correction_pdf');
+
+        Route::get('/learning-program', [AdminLearningProgramController::class, 'index'])->name('learning-program.index');
+        Route::post('/learning-program', [AdminLearningProgramController::class, 'store'])->name('learning-program.store');
+        Route::post('/learning-program/{schedule}/update', [AdminLearningProgramController::class, 'update'])->name('learning-program.update');
+        Route::post('/learning-program/{schedule}/delete', [AdminLearningProgramController::class, 'delete'])->name('learning-program.delete');
+
+        Route::get('/digital-board', [AdminDigitalBoardController::class, 'index'])->name('digital-board.index');
+        Route::post('/digital-board', [AdminDigitalBoardController::class, 'store'])->name('digital-board.store');
+        Route::post('/digital-board/{post}/publish', [AdminDigitalBoardController::class, 'publish'])->name('digital-board.publish');
+        Route::post('/digital-board/{post}/archive', [AdminDigitalBoardController::class, 'archive'])->name('digital-board.archive');
+        Route::post('/digital-board/{post}/delete', [AdminDigitalBoardController::class, 'delete'])->name('digital-board.delete');
+
+        Route::get('/mobile-devices', [AdminMobileDeviceController::class, 'index'])->name('mobile-devices.index');
+        Route::post('/mobile-devices/{device}/replace', [AdminMobileDeviceController::class, 'replace'])->name('mobile-devices.replace');
+        Route::post('/mobile-devices/{device}/block', [AdminMobileDeviceController::class, 'block'])->name('mobile-devices.block');
 
         Route::get('/plans', [AdminPlanController::class, 'index'])->name('plans.index');
         Route::post('/plans', [AdminPlanController::class, 'store'])->name('plans.store');
