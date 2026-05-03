@@ -465,11 +465,14 @@ class MobileAuthController extends Controller
             ->whereRaw('LOWER(name) IN (?, ?, ?)', ['student', 'eleve', 'élève'])
             ->first();
 
-        if ($role) {
-            $user->roles()->syncWithoutDetaching([$role->id]);
-            if (!$user->role_id) {
-                $user->update(['role_id' => $role->id]);
-            }
+        if (!$role) {
+            return;
+        }
+
+        $user->roles()->syncWithoutDetaching([$role->id]);
+
+        if (Schema::hasColumn('users', 'role_id') && empty($user->role_id)) {
+            $user->forceFill(['role_id' => $role->id])->save();
         }
     }
 
