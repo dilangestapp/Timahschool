@@ -76,8 +76,11 @@
             <a href="{{ route('admin.subjects.index') }}" class="admin-link {{ request()->routeIs('admin.subjects.*') ? 'is-active' : '' }}">Matières</a>
             <a href="{{ route('admin.courses.index') }}" class="admin-link {{ request()->routeIs('admin.courses.*') ? 'is-active' : '' }}">Cours</a>
             <a href="{{ route('admin.td.index') }}" class="admin-link {{ request()->routeIs('admin.td.*') ? 'is-active' : '' }}">TD</a>
+            <a href="{{ route('admin.learning-program.index') }}" class="admin-link {{ request()->routeIs('admin.learning-program.*') ? 'is-active' : '' }}">Programme</a>
+            <a href="{{ route('admin.digital-board.index') }}" class="admin-link {{ request()->routeIs('admin.digital-board.*') ? 'is-active' : '' }}">Babillard</a>
 
             <div class="admin-nav__group-label">Business</div>
+            <a href="{{ route('admin.mobile-devices.index') }}" class="admin-link {{ request()->routeIs('admin.mobile-devices.*') ? 'is-active' : '' }}">Appareils mobiles</a>
             <a href="{{ route('admin.plans.index') }}" class="admin-link {{ request()->routeIs('admin.plans.*') ? 'is-active' : '' }}">Plans</a>
             <a href="{{ route('admin.subscriptions.index') }}" class="admin-link {{ request()->routeIs('admin.subscriptions.*') ? 'is-active' : '' }}">Abonnements</a>
             <a href="{{ route('admin.payments.index') }}" class="admin-link {{ request()->routeIs('admin.payments.*') ? 'is-active' : '' }}">Paiements</a>
@@ -99,11 +102,9 @@
                 <p>@yield('page_subtitle', 'Portail d’administration central de ' . $platformName . '.')</p>
             </div>
             <div class="admin-topbar__actions">
-                <a href="{{ route('admin.settings.edit') }}" class="btn btn--ghost">Paramètres</a>
-                <a href="{{ route('admin.homepage.edit') }}" class="btn btn--ghost">Homepage</a>
-                <a href="{{ route('admin.users.activity') }}" class="btn btn--ghost">Connexions</a>
-                <a href="{{ route('admin.teachers.index') }}" class="btn btn--ghost">+ Enseignant</a>
-                <a href="{{ route('admin.assignments.index') }}" class="btn btn--ghost">+ Affectation</a>
+                <a href="{{ route('admin.learning-program.index') }}" class="btn btn--ghost">Programme</a>
+                <a href="{{ route('admin.digital-board.index') }}" class="btn btn--ghost">Babillard</a>
+                <a href="{{ route('admin.mobile-devices.index') }}" class="btn btn--ghost">Mobile</a>
                 <button type="button" class="btn btn--ghost theme-toggle" data-theme-toggle>🌗 Thème</button>
                 @if(request()->routeIs('admin.td.*'))
                     <a href="{{ route('admin.td.create') }}" class="btn btn--primary">+ Nouveau TD</a>
