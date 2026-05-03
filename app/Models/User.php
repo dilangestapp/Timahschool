@@ -61,6 +61,21 @@ class User extends Authenticatable
         return $this->hasMany(Payment::class)->latest();
     }
 
+    public function mobileDevices()
+    {
+        return $this->hasMany(MobileDevice::class)->latest('last_seen_at');
+    }
+
+    public function activeMobileDevice()
+    {
+        return $this->hasOne(MobileDevice::class)->where('status', MobileDevice::STATUS_ACTIVE)->latestOfMany();
+    }
+
+    public function progressReports()
+    {
+        return $this->hasMany(ProgressReport::class, 'student_id')->latest('period_ends_at');
+    }
+
     public function teacherAssignments()
     {
         return $this->hasMany(TeacherAssignment::class, 'teacher_id')->latest();
