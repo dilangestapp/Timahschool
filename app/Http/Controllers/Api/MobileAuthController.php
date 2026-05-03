@@ -15,6 +15,7 @@ use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Schema;
+use Illuminate\Support\Str;
 use Illuminate\Validation\Rule;
 use Throwable;
 
@@ -39,49 +40,32 @@ class MobileAuthController extends Controller
 
             $phone = $this->normalizePhone($data['phone']);
 
-            $existing = User::query()->where('phone', $phone)->first();
-            if ($existing) {
+            if (User::query()->where('phone', $phone)->exists()) {
                 return response()->json([
                     'status' => 'phone_already_registered',
                     'message' => 'Ce numéro WhatsApp possède déjà un compte TIMAH ACADEMY. Connectez-vous avec ce compte.',
                 ], 409);
             }
 
-            $payload = [
-                'name' => $data['name'],
-                'full_name' => $data['name'],
-                'username' => $this->makeUsername($phone),
-                'phone' => $phone,
-                'email' => $this->makeMobileEmail($phone),
-                'status' => 'active',
-                'password' => Hash::make($data['password']),
-            ];
+            $plainToken = $this->newMobileToken();
 
-            $user = DB::transaction(function () use ($payload, $data, $phone) {
-                $user = User::query()->create($payload);
+            $user = DB::transaction(function () use ($data, $phone, $plainToken) {
+                $user = User::query()->create($this->userPayload($data['name'], $phone, $data['password'], $plainToken));
                 $this->attachStudentRole($user);
-
-                StudentProfile::query()->create([
-                    'user_id' => $user->id,
-                    'school_class_id' => $data['school_class_id'] ?? $this->fallbackClassId(),
-                    'parent_name' => $data['parent_name'] ?? null,
-                    'parent_phone' => isset($data['parent_phone']) ? $this->normalizePhone($data['parent_phone']) : null,
-                    'trial_started_at' => now(),
-                    'trial_ends_at' => now()->addDay(),
-                    'trial_used' => true,
-                ]);
-
-                $this->activateFirstDevice($user, $phone, $data);
-                $this->createTrialSubscription($user);
+                $this->safeCreateStudentProfile($user, $data);
+                $this->safeActivateFirstDevice($user, $phone, $data);
+                $this->safeCreateTrialSubscription($user);
 
                 return $user;
             });
 
-            $user->load(['studentProfile.schoolClass', 'activeMobileDevice', 'subscriptions']);
+            $user = $user->fresh(['studentProfile.schoolClass']);
+
             return $this->mobileAccessResponse(
                 $user,
-                $user->activeMobileDevice,
-                $user->activeSubscription,
+                $plainToken,
+                $this->safeActiveDevice($user),
+                $this->safeActiveSubscription($user),
                 'Compte créé. Votre essai gratuit de 24h est activé.'
             );
         } catch (Throwable $e) {
@@ -93,8 +77,7 @@ class MobileAuthController extends Controller
 
             return response()->json([
                 'status' => 'server_error',
-                'message' => 'Inscription impossible pour le moment. Vérifiez que les migrations Railway sont lancées, puis réessayez.',
-                'debug' => config('app.debug') ? $e->getMessage() : null,
+                'message' => 'Inscription impossible : ' . $e->getMessage(),
             ], 500);
         }
     }
@@ -129,18 +112,21 @@ class MobileAuthController extends Controller
                 ], 403);
             }
 
-            $deviceResult = $this->resolveDeviceAccess($user, $phone, $data);
+            $deviceResult = $this->safeResolveDeviceAccess($user, $phone, $data);
             if ($deviceResult instanceof JsonResponse) {
                 return $deviceResult;
             }
 
-            $subscription = $user->activeSubscription;
+            $subscription = $this->safeActiveSubscription($user);
             if (!$subscription && !$this->trialWasUsed($user)) {
-                $subscription = $this->createTrialSubscription($user);
+                $subscription = $this->safeCreateTrialSubscription($user);
                 $this->markTrialUsed($user);
             }
 
-            return $this->mobileAccessResponse($user, $deviceResult, $subscription, 'Connexion mobile autorisée.');
+            $plainToken = $this->newMobileToken();
+            $user->forceFill(['remember_token' => hash('sha256', $plainToken)])->save();
+
+            return $this->mobileAccessResponse($user->fresh(['studentProfile.schoolClass']), $plainToken, $deviceResult, $subscription, 'Connexion mobile autorisée.');
         } catch (Throwable $e) {
             Log::error('Mobile login failed', [
                 'message' => $e->getMessage(),
@@ -150,28 +136,36 @@ class MobileAuthController extends Controller
 
             return response()->json([
                 'status' => 'server_error',
-                'message' => 'Connexion mobile impossible pour le moment. Réessayez après la mise à jour serveur.',
-                'debug' => config('app.debug') ? $e->getMessage() : null,
+                'message' => 'Connexion mobile impossible : ' . $e->getMessage(),
             ], 500);
         }
     }
 
     public function me(Request $request): JsonResponse
     {
-        $user = $request->user()->load(['studentProfile.schoolClass', 'activeMobileDevice']);
+        $user = $this->userFromBearer($request);
+        if (!$user) {
+            return response()->json(['status' => 'unauthenticated', 'message' => 'Session mobile expirée.'], 401);
+        }
+
+        $user->load(['studentProfile.schoolClass']);
 
         return response()->json([
             'status' => 'ok',
             'user' => $this->serializeUser($user),
-            'subscription' => $this->serializeSubscription($user->activeSubscription),
-            'device' => $this->serializeDevice($user->activeMobileDevice),
+            'subscription' => $this->serializeSubscription($this->safeActiveSubscription($user)),
+            'device' => $this->serializeDevice($this->safeActiveDevice($user)),
         ]);
     }
 
     public function subscription(Request $request): JsonResponse
     {
-        $user = $request->user();
-        $subscription = $user->activeSubscription;
+        $user = $this->userFromBearer($request);
+        if (!$user) {
+            return response()->json(['status' => 'unauthenticated', 'message' => 'Session mobile expirée.'], 401);
+        }
+
+        $subscription = $this->safeActiveSubscription($user);
 
         return response()->json([
             'status' => $subscription ? 'active' : 'expired',
@@ -184,7 +178,10 @@ class MobileAuthController extends Controller
 
     public function logout(Request $request): JsonResponse
     {
-        $request->user()?->currentAccessToken()?->delete();
+        $user = $this->userFromBearer($request);
+        if ($user) {
+            $user->forceFill(['remember_token' => null])->save();
+        }
 
         return response()->json([
             'status' => 'logged_out',
@@ -192,36 +189,65 @@ class MobileAuthController extends Controller
         ]);
     }
 
-    private function resolveDeviceAccess(User $user, string $phone, array $data): MobileDevice|JsonResponse
+    private function userPayload(string $name, string $phone, string $password, string $plainToken): array
     {
-        $deviceId = $data['device_id'];
-        $activeDevice = $user->mobileDevices()->active()->first();
+        $payload = [];
+        $columns = Schema::getColumnListing('users');
+        $put = function (string $column, mixed $value) use (&$payload, $columns) {
+            if (in_array($column, $columns, true)) {
+                $payload[$column] = $value;
+            }
+        };
 
-        if ($activeDevice && $activeDevice->device_id !== $deviceId) {
-            return response()->json([
-                'status' => 'device_already_linked',
-                'message' => 'Ce compte TIMAH ACADEMY est déjà utilisé sur un autre appareil. Pour transférer votre compte vers ce téléphone, contactez l’administration WhatsApp : 670 00 00 00.',
-                'active_device' => $this->serializeDevice($activeDevice),
-            ], 423);
-        }
+        $put('name', $name);
+        $put('full_name', $name);
+        $put('username', $this->makeUsername($phone));
+        $put('phone', $phone);
+        $put('email', $this->makeMobileEmail($phone));
+        $put('status', 'active');
+        $put('password', Hash::make($password));
+        $put('remember_token', hash('sha256', $plainToken));
 
-        if ($activeDevice && $activeDevice->device_id === $deviceId) {
-            $activeDevice->update([
-                'device_name' => $data['device_name'] ?? $activeDevice->device_name,
-                'device_model' => $data['device_model'] ?? $activeDevice->device_model,
-                'platform' => $data['platform'] ?? $activeDevice->platform,
-                'app_version' => $data['app_version'] ?? $activeDevice->app_version,
-                'last_seen_at' => now(),
-            ]);
-
-            return $activeDevice;
-        }
-
-        return $this->activateFirstDevice($user, $phone, $data);
+        return $payload;
     }
 
-    private function activateFirstDevice(User $user, string $phone, array $data): MobileDevice
+    private function safeCreateStudentProfile(User $user, array $data): void
     {
+        if (!Schema::hasTable('student_profiles')) {
+            return;
+        }
+
+        $columns = Schema::getColumnListing('student_profiles');
+        $payload = ['user_id' => $user->id];
+
+        if (in_array('school_class_id', $columns, true)) {
+            $payload['school_class_id'] = $data['school_class_id'] ?? $this->fallbackClassId();
+        }
+        if (in_array('parent_name', $columns, true)) {
+            $payload['parent_name'] = $data['parent_name'] ?? null;
+        }
+        if (in_array('parent_phone', $columns, true)) {
+            $payload['parent_phone'] = isset($data['parent_phone']) ? $this->normalizePhone($data['parent_phone']) : null;
+        }
+        if (in_array('trial_started_at', $columns, true)) {
+            $payload['trial_started_at'] = now();
+        }
+        if (in_array('trial_ends_at', $columns, true)) {
+            $payload['trial_ends_at'] = now()->addDay();
+        }
+        if (in_array('trial_used', $columns, true)) {
+            $payload['trial_used'] = true;
+        }
+
+        StudentProfile::query()->create($payload);
+    }
+
+    private function safeActivateFirstDevice(User $user, string $phone, array $data): ?MobileDevice
+    {
+        if (!Schema::hasTable('mobile_devices')) {
+            return null;
+        }
+
         return MobileDevice::query()->create([
             'user_id' => $user->id,
             'phone' => $phone,
@@ -236,17 +262,82 @@ class MobileAuthController extends Controller
         ]);
     }
 
-    private function createTrialSubscription(User $user): Subscription
+    private function safeResolveDeviceAccess(User $user, string $phone, array $data): MobileDevice|JsonResponse|null
     {
-        return Subscription::query()->create([
-            'user_id' => $user->id,
-            'subscription_plan_id' => null,
-            'plan_name' => 'Essai gratuit 24h',
-            'status' => Subscription::STATUS_TRIAL,
-            'is_trial' => true,
-            'starts_at' => now(),
-            'ends_at' => now()->addDay(),
-        ]);
+        if (!Schema::hasTable('mobile_devices')) {
+            return null;
+        }
+
+        $deviceId = $data['device_id'];
+        $activeDevice = $user->mobileDevices()->active()->first();
+
+        if ($activeDevice && $activeDevice->device_id !== $deviceId) {
+            return response()->json([
+                'status' => 'device_already_linked',
+                'message' => 'Ce compte TIMAH ACADEMY est déjà utilisé sur un autre appareil. Pour transférer votre compte vers ce téléphone, contactez l’administration WhatsApp : 670 00 00 00.',
+                'active_device' => $this->serializeDevice($activeDevice),
+            ], 423);
+        }
+
+        if ($activeDevice) {
+            $activeDevice->update([
+                'device_name' => $data['device_name'] ?? $activeDevice->device_name,
+                'device_model' => $data['device_model'] ?? $activeDevice->device_model,
+                'platform' => $data['platform'] ?? $activeDevice->platform,
+                'app_version' => $data['app_version'] ?? $activeDevice->app_version,
+                'last_seen_at' => now(),
+            ]);
+            return $activeDevice;
+        }
+
+        return $this->safeActivateFirstDevice($user, $phone, $data);
+    }
+
+    private function safeCreateTrialSubscription(User $user): ?Subscription
+    {
+        if (!Schema::hasTable('subscriptions')) {
+            return null;
+        }
+
+        $columns = Schema::getColumnListing('subscriptions');
+        $payload = ['user_id' => $user->id];
+        $put = function (string $column, mixed $value) use (&$payload, $columns) {
+            if (in_array($column, $columns, true)) {
+                $payload[$column] = $value;
+            }
+        };
+
+        $put('subscription_plan_id', null);
+        $put('plan_name', 'Essai gratuit 24h');
+        $put('status', defined(Subscription::class . '::STATUS_TRIAL') ? Subscription::STATUS_TRIAL : 'trial');
+        $put('is_trial', true);
+        $put('starts_at', now());
+        $put('ends_at', now()->addDay());
+
+        return Subscription::query()->create($payload);
+    }
+
+    private function safeActiveSubscription(User $user): ?Subscription
+    {
+        if (!Schema::hasTable('subscriptions')) {
+            return null;
+        }
+
+        return $user->subscriptions()
+            ->whereIn('status', ['active', 'trial'])
+            ->where(function ($query) {
+                $query->whereNull('ends_at')->orWhere('ends_at', '>', now());
+            })
+            ->first();
+    }
+
+    private function safeActiveDevice(User $user): ?MobileDevice
+    {
+        if (!Schema::hasTable('mobile_devices')) {
+            return null;
+        }
+
+        return $user->mobileDevices()->active()->first();
     }
 
     private function trialWasUsed(User $user): bool
@@ -255,35 +346,67 @@ class MobileAuthController extends Controller
             return true;
         }
 
+        if (!Schema::hasTable('subscriptions')) {
+            return false;
+        }
+
         return $user->subscriptions()->where('is_trial', true)->exists();
     }
 
     private function markTrialUsed(User $user): void
     {
+        if (!Schema::hasTable('student_profiles')) {
+            return;
+        }
+
         $profile = $user->studentProfile ?: StudentProfile::query()->create([
             'user_id' => $user->id,
             'school_class_id' => $this->fallbackClassId(),
         ]);
 
-        $profile->update([
-            'trial_started_at' => $profile->trial_started_at ?: now(),
-            'trial_ends_at' => $profile->trial_ends_at ?: now()->addDay(),
-            'trial_used' => true,
-        ]);
+        $updates = [];
+        $columns = Schema::getColumnListing('student_profiles');
+        if (in_array('trial_started_at', $columns, true)) {
+            $updates['trial_started_at'] = $profile->trial_started_at ?: now();
+        }
+        if (in_array('trial_ends_at', $columns, true)) {
+            $updates['trial_ends_at'] = $profile->trial_ends_at ?: now()->addDay();
+        }
+        if (in_array('trial_used', $columns, true)) {
+            $updates['trial_used'] = true;
+        }
+
+        if ($updates) {
+            $profile->update($updates);
+        }
     }
 
-    private function mobileAccessResponse(User $user, MobileDevice $device, ?Subscription $subscription, string $message): JsonResponse
+    private function mobileAccessResponse(User $user, string $plainToken, ?MobileDevice $device, ?Subscription $subscription, string $message): JsonResponse
     {
-        $token = $user->createToken('timah-academy-mobile')->plainTextToken;
-
         return response()->json([
             'status' => 'ok',
             'message' => $message,
-            'token' => $token,
-            'user' => $this->serializeUser($user->fresh(['studentProfile.schoolClass'])),
+            'token' => $plainToken,
+            'user' => $this->serializeUser($user),
             'device' => $this->serializeDevice($device),
             'subscription' => $this->serializeSubscription($subscription),
         ]);
+    }
+
+    private function userFromBearer(Request $request): ?User
+    {
+        $header = $request->header('Authorization', '');
+        $token = Str::startsWith($header, 'Bearer ') ? trim(Str::after($header, 'Bearer ')) : '';
+        if ($token === '') {
+            return null;
+        }
+
+        return User::query()->where('remember_token', hash('sha256', $token))->first();
+    }
+
+    private function newMobileToken(): string
+    {
+        return Str::random(80);
     }
 
     private function serializeUser(User $user): array
@@ -310,7 +433,7 @@ class MobileAuthController extends Controller
             'is_trial' => (bool) $subscription->is_trial,
             'starts_at' => $subscription->starts_at?->toIso8601String(),
             'ends_at' => $subscription->ends_at?->toIso8601String(),
-            'is_active' => $subscription->isActive(),
+            'is_active' => method_exists($subscription, 'isActive') ? $subscription->isActive() : true,
         ];
     }
 
