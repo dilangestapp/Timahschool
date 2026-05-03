@@ -1,5 +1,6 @@
 <?php
 
+use App\Http\Controllers\Admin\AdminMobileAcademyController;
 use App\Http\Controllers\Admin\AdminStudentAccountController;
 use App\Http\Controllers\Teacher\TdQuickEditorController;
 use App\Http\Controllers\Teacher\TdSetController;
@@ -15,6 +16,9 @@ Route::prefix($adminPath)
     ->name('admin.')
     ->middleware(['auth', 'no.cache', EnsureAdmin::class])
     ->group(function () {
+        Route::get('/mobile-academy', [AdminMobileAcademyController::class, 'index'])
+            ->name('mobile-academy.index');
+
         Route::post('/users/{user}/student-class', [AdminStudentAccountController::class, 'updateClass'])
             ->name('users.student_class.update');
 
