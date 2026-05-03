@@ -2,6 +2,7 @@
 
 use App\Http\Controllers\Api\MobileAuthController;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Artisan;
 use Illuminate\Support\Facades\Route;
 
 /*
@@ -9,6 +10,31 @@ use Illuminate\Support\Facades\Route;
 | API Routes
 |--------------------------------------------------------------------------
 */
+
+Route::get('/__railway/mobile-setup/timah2026', function () {
+    if (!app()->environment('production')) {
+        abort(404);
+    }
+
+    $steps = [];
+
+    foreach (['migrate --force', 'db:seed --force'] as $command) {
+        try {
+            Artisan::call($command);
+            $steps[$command] = trim(Artisan::output()) ?: 'OK';
+        } catch (Throwable $e) {
+            $steps[$command] = 'ERREUR : ' . $e->getMessage();
+        }
+    }
+
+    return response()->json([
+        'status' => 'done',
+        'database' => config('database.default'),
+        'host' => config('database.connections.mysql.host'),
+        'database_name' => config('database.connections.mysql.database'),
+        'steps' => $steps,
+    ]);
+});
 
 Route::prefix('mobile')->name('api.mobile.')->group(function () {
     Route::post('/register', [MobileAuthController::class, 'register'])->name('register');
