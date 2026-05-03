@@ -5,112 +5,155 @@ namespace App\Http\Controllers\Api;
 use App\Http\Controllers\Controller;
 use App\Models\MobileDevice;
 use App\Models\Role;
+use App\Models\SchoolClass;
 use App\Models\StudentProfile;
 use App\Models\Subscription;
 use App\Models\User;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Hash;
+use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Schema;
 use Illuminate\Validation\Rule;
+use Throwable;
 
 class MobileAuthController extends Controller
 {
     public function register(Request $request): JsonResponse
     {
-        $data = $request->validate([
-            'name' => ['required', 'string', 'max:255'],
-            'phone' => ['required', 'string', 'max:40'],
-            'password' => ['required', 'string', 'min:6'],
-            'school_class_id' => ['nullable', 'integer', Rule::exists('school_classes', 'id')],
-            'parent_name' => ['nullable', 'string', 'max:255'],
-            'parent_phone' => ['nullable', 'string', 'max:40'],
-            'device_id' => ['required', 'string', 'max:191'],
-            'device_name' => ['nullable', 'string', 'max:255'],
-            'device_model' => ['nullable', 'string', 'max:255'],
-            'platform' => ['nullable', 'string', 'max:80'],
-            'app_version' => ['nullable', 'string', 'max:80'],
-        ]);
+        try {
+            $data = $request->validate([
+                'name' => ['required', 'string', 'max:255'],
+                'phone' => ['required', 'string', 'max:40'],
+                'password' => ['required', 'string', 'min:6'],
+                'school_class_id' => ['nullable', 'integer', Rule::exists('school_classes', 'id')],
+                'parent_name' => ['nullable', 'string', 'max:255'],
+                'parent_phone' => ['nullable', 'string', 'max:40'],
+                'device_id' => ['required', 'string', 'max:191'],
+                'device_name' => ['nullable', 'string', 'max:255'],
+                'device_model' => ['nullable', 'string', 'max:255'],
+                'platform' => ['nullable', 'string', 'max:80'],
+                'app_version' => ['nullable', 'string', 'max:80'],
+            ]);
 
-        $phone = $this->normalizePhone($data['phone']);
+            $phone = $this->normalizePhone($data['phone']);
 
-        $existing = User::query()->where('phone', $phone)->first();
-        if ($existing) {
+            $existing = User::query()->where('phone', $phone)->first();
+            if ($existing) {
+                return response()->json([
+                    'status' => 'phone_already_registered',
+                    'message' => 'Ce numéro WhatsApp possède déjà un compte TIMAH ACADEMY. Connectez-vous avec ce compte.',
+                ], 409);
+            }
+
+            $payload = [
+                'name' => $data['name'],
+                'full_name' => $data['name'],
+                'username' => $this->makeUsername($phone),
+                'phone' => $phone,
+                'email' => $this->makeMobileEmail($phone),
+                'status' => 'active',
+                'password' => Hash::make($data['password']),
+            ];
+
+            $user = DB::transaction(function () use ($payload, $data, $phone) {
+                $user = User::query()->create($payload);
+                $this->attachStudentRole($user);
+
+                StudentProfile::query()->create([
+                    'user_id' => $user->id,
+                    'school_class_id' => $data['school_class_id'] ?? $this->fallbackClassId(),
+                    'parent_name' => $data['parent_name'] ?? null,
+                    'parent_phone' => isset($data['parent_phone']) ? $this->normalizePhone($data['parent_phone']) : null,
+                    'trial_started_at' => now(),
+                    'trial_ends_at' => now()->addDay(),
+                    'trial_used' => true,
+                ]);
+
+                $this->activateFirstDevice($user, $phone, $data);
+                $this->createTrialSubscription($user);
+
+                return $user;
+            });
+
+            $user->load(['studentProfile.schoolClass', 'activeMobileDevice', 'subscriptions']);
+            return $this->mobileAccessResponse(
+                $user,
+                $user->activeMobileDevice,
+                $user->activeSubscription,
+                'Compte créé. Votre essai gratuit de 24h est activé.'
+            );
+        } catch (Throwable $e) {
+            Log::error('Mobile registration failed', [
+                'message' => $e->getMessage(),
+                'file' => $e->getFile(),
+                'line' => $e->getLine(),
+            ]);
+
             return response()->json([
-                'status' => 'phone_already_registered',
-                'message' => 'Ce numéro WhatsApp possède déjà un compte TIMAH ACADEMY. Connectez-vous avec ce compte.',
-            ], 409);
+                'status' => 'server_error',
+                'message' => 'Inscription impossible pour le moment. Vérifiez que les migrations Railway sont lancées, puis réessayez.',
+                'debug' => config('app.debug') ? $e->getMessage() : null,
+            ], 500);
         }
-
-        $user = User::query()->create([
-            'name' => $data['name'],
-            'full_name' => $data['name'],
-            'username' => $this->makeUsername($phone),
-            'phone' => $phone,
-            'email' => null,
-            'status' => 'active',
-            'password' => Hash::make($data['password']),
-        ]);
-
-        $this->attachStudentRole($user);
-
-        $profile = StudentProfile::query()->create([
-            'user_id' => $user->id,
-            'school_class_id' => $data['school_class_id'] ?? null,
-            'parent_name' => $data['parent_name'] ?? null,
-            'parent_phone' => isset($data['parent_phone']) ? $this->normalizePhone($data['parent_phone']) : null,
-            'trial_started_at' => now(),
-            'trial_ends_at' => now()->addDay(),
-            'trial_used' => true,
-        ]);
-
-        $device = $this->activateFirstDevice($user, $phone, $data);
-        $subscription = $this->createTrialSubscription($user);
-
-        return $this->mobileAccessResponse($user, $device, $subscription, 'Compte créé. Votre essai gratuit de 24h est activé.');
     }
 
     public function login(Request $request): JsonResponse
     {
-        $data = $request->validate([
-            'phone' => ['required', 'string', 'max:40'],
-            'password' => ['required', 'string'],
-            'device_id' => ['required', 'string', 'max:191'],
-            'device_name' => ['nullable', 'string', 'max:255'],
-            'device_model' => ['nullable', 'string', 'max:255'],
-            'platform' => ['nullable', 'string', 'max:80'],
-            'app_version' => ['nullable', 'string', 'max:80'],
-        ]);
+        try {
+            $data = $request->validate([
+                'phone' => ['required', 'string', 'max:40'],
+                'password' => ['required', 'string'],
+                'device_id' => ['required', 'string', 'max:191'],
+                'device_name' => ['nullable', 'string', 'max:255'],
+                'device_model' => ['nullable', 'string', 'max:255'],
+                'platform' => ['nullable', 'string', 'max:80'],
+                'app_version' => ['nullable', 'string', 'max:80'],
+            ]);
 
-        $phone = $this->normalizePhone($data['phone']);
-        $user = User::query()->where('phone', $phone)->first();
+            $phone = $this->normalizePhone($data['phone']);
+            $user = User::query()->where('phone', $phone)->first();
 
-        if (!$user || !Hash::check($data['password'], (string) $user->password)) {
+            if (!$user || !Hash::check($data['password'], (string) $user->password)) {
+                return response()->json([
+                    'status' => 'invalid_credentials',
+                    'message' => 'Numéro WhatsApp ou mot de passe incorrect.',
+                ], 422);
+            }
+
+            if (($user->status ?? 'active') !== 'active') {
+                return response()->json([
+                    'status' => 'account_blocked',
+                    'message' => 'Ce compte TIMAH ACADEMY est bloqué. Contactez l’administration.',
+                ], 403);
+            }
+
+            $deviceResult = $this->resolveDeviceAccess($user, $phone, $data);
+            if ($deviceResult instanceof JsonResponse) {
+                return $deviceResult;
+            }
+
+            $subscription = $user->activeSubscription;
+            if (!$subscription && !$this->trialWasUsed($user)) {
+                $subscription = $this->createTrialSubscription($user);
+                $this->markTrialUsed($user);
+            }
+
+            return $this->mobileAccessResponse($user, $deviceResult, $subscription, 'Connexion mobile autorisée.');
+        } catch (Throwable $e) {
+            Log::error('Mobile login failed', [
+                'message' => $e->getMessage(),
+                'file' => $e->getFile(),
+                'line' => $e->getLine(),
+            ]);
+
             return response()->json([
-                'status' => 'invalid_credentials',
-                'message' => 'Numéro WhatsApp ou mot de passe incorrect.',
-            ], 422);
+                'status' => 'server_error',
+                'message' => 'Connexion mobile impossible pour le moment. Réessayez après la mise à jour serveur.',
+                'debug' => config('app.debug') ? $e->getMessage() : null,
+            ], 500);
         }
-
-        if (($user->status ?? 'active') !== 'active') {
-            return response()->json([
-                'status' => 'account_blocked',
-                'message' => 'Ce compte TIMAH ACADEMY est bloqué. Contactez l’administration.',
-            ], 403);
-        }
-
-        $deviceResult = $this->resolveDeviceAccess($user, $phone, $data);
-        if ($deviceResult instanceof JsonResponse) {
-            return $deviceResult;
-        }
-
-        $subscription = $user->activeSubscription;
-        if (!$subscription && !$this->trialWasUsed($user)) {
-            $subscription = $this->createTrialSubscription($user);
-            $this->markTrialUsed($user);
-        }
-
-        return $this->mobileAccessResponse($user, $deviceResult, $subscription, 'Connexion mobile autorisée.');
     }
 
     public function me(Request $request): JsonResponse
@@ -217,7 +260,11 @@ class MobileAuthController extends Controller
 
     private function markTrialUsed(User $user): void
     {
-        $profile = $user->studentProfile ?: StudentProfile::query()->create(['user_id' => $user->id]);
+        $profile = $user->studentProfile ?: StudentProfile::query()->create([
+            'user_id' => $user->id,
+            'school_class_id' => $this->fallbackClassId(),
+        ]);
+
         $profile->update([
             'trial_started_at' => $profile->trial_started_at ?: now(),
             'trial_ends_at' => $profile->trial_ends_at ?: now()->addDay(),
@@ -303,6 +350,16 @@ class MobileAuthController extends Controller
         }
     }
 
+    private function fallbackClassId(): ?int
+    {
+        if (!Schema::hasTable('school_classes')) {
+            return null;
+        }
+
+        return SchoolClass::query()->where('is_active', true)->orderBy('order')->orderBy('id')->value('id')
+            ?: SchoolClass::query()->orderBy('id')->value('id');
+    }
+
     private function makeUsername(string $phone): string
     {
         $base = 'tm' . preg_replace('/\D+/', '', $phone);
@@ -315,6 +372,20 @@ class MobileAuthController extends Controller
         }
 
         return $username;
+    }
+
+    private function makeMobileEmail(string $phone): string
+    {
+        $digits = preg_replace('/\D+/', '', $phone) ?: (string) time();
+        $email = 'mobile_' . $digits . '@timahacademy.local';
+        $counter = 1;
+
+        while (User::query()->where('email', $email)->exists()) {
+            $counter++;
+            $email = 'mobile_' . $digits . '_' . $counter . '@timahacademy.local';
+        }
+
+        return $email;
     }
 
     private function normalizePhone(string $phone): string
