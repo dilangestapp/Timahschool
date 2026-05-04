@@ -3,6 +3,7 @@
 use App\Http\Controllers\Api\MobileAuthController;
 use App\Http\Controllers\Api\MobileContentController;
 use App\Http\Controllers\Api\MobileLearningController;
+use App\Http\Controllers\Api\MobileTdController;
 use Illuminate\Support\Facades\Artisan;
 use Illuminate\Support\Facades\Route;
 
@@ -56,6 +57,10 @@ Route::prefix('mobile')->name('api.mobile.')->group(function () {
     Route::get('/board/{id}', [MobileLearningController::class, 'boardDetail'])->whereNumber('id')->name('board.detail');
     Route::get('/evaluations/{id}', [MobileLearningController::class, 'evaluationDetail'])->whereNumber('id')->name('evaluations.detail');
     Route::get('/reports/{id}', [MobileLearningController::class, 'reportDetail'])->whereNumber('id')->name('reports.detail');
+
+    Route::get('/td', [MobileTdController::class, 'index'])->name('td.index');
+    Route::get('/td/{id}', [MobileTdController::class, 'show'])->whereNumber('id')->name('td.show');
+    Route::post('/td/{id}/complete', [MobileTdController::class, 'complete'])->whereNumber('id')->name('td.complete');
 
     Route::get('/quizzes', [MobileLearningController::class, 'quizzes'])->name('quizzes.index');
     Route::get('/quizzes/{id}', [MobileLearningController::class, 'quizDetail'])->whereNumber('id')->name('quizzes.show');
