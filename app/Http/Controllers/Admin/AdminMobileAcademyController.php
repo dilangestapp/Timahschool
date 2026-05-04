@@ -9,8 +9,6 @@ use App\Models\LearningProgramSchedule;
 use App\Models\MobileQuiz;
 use App\Models\MobileQuizQuestion;
 use App\Models\ProgressReport;
-use App\Models\SchoolClass;
-use App\Models\Subject;
 use App\Models\User;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
@@ -20,40 +18,6 @@ class AdminMobileAcademyController extends Controller
 {
     public function index(Request $request)
     {
-        $classes = Schema::hasTable('school_classes') ? SchoolClass::query()->orderBy('order')->orderBy('name')->get() : collect();
-        $subjects = Schema::hasTable('subjects') ? Subject::query()->orderBy('order')->orderBy('name')->get() : collect();
-        $students = Schema::hasTable('users') ? User::query()->whereHas('roles', function ($q) {
-            $q->whereRaw('LOWER(name) IN (?, ?, ?)', ['student', 'eleve', 'élève']);
-        })->orderBy('full_name')->orderBy('name')->take(200)->get() : collect();
-
-        if ($students->isEmpty() && Schema::hasTable('users')) {
-            $students = User::query()->orderByDesc('id')->take(200)->get();
-        }
-
-        $programs = Schema::hasTable('learning_program_schedules')
-            ? LearningProgramSchedule::query()->with(['schoolClass', 'subject'])->latest('id')->take(30)->get()
-            : collect();
-
-        $posts = Schema::hasTable('digital_board_posts')
-            ? DigitalBoardPost::query()->with('schoolClass')->latest('id')->take(30)->get()
-            : collect();
-
-        $quizzes = Schema::hasTable('mobile_quizzes')
-            ? MobileQuiz::query()->with(['questions', 'schoolClass', 'subject'])->latest('id')->take(30)->get()
-            : collect();
-
-        $evaluations = Schema::hasTable('biweekly_evaluations')
-            ? BiweeklyEvaluation::query()->with('schoolClass')->latest('id')->take(30)->get()
-            : collect();
-
-        $reports = Schema::hasTable('progress_reports')
-            ? ProgressReport::query()->with(['student', 'schoolClass', 'evaluation'])->latest('id')->take(30)->get()
-            : collect();
-
-        $notifications = Schema::hasTable('mobile_notifications')
-            ? DB::table('mobile_notifications')->latest('id')->take(30)->get()
-            : collect();
-
         $missingTables = collect([
             'learning_program_schedules',
             'digital_board_posts',
@@ -61,10 +25,48 @@ class AdminMobileAcademyController extends Controller
             'progress_reports',
             'mobile_quizzes',
             'mobile_quiz_questions',
-            'mobile_quiz_attempts',
             'mobile_notifications',
-            'mobile_activity_progress',
         ])->reject(fn ($table) => Schema::hasTable($table))->values();
+
+        $classes = Schema::hasTable('school_classes')
+            ? DB::table('school_classes')->select('id', 'name')->orderBy('name')->get()
+            : collect();
+
+        $subjects = Schema::hasTable('subjects')
+            ? DB::table('subjects')->select('id', 'name')->orderBy('name')->get()
+            : collect();
+
+        $students = Schema::hasTable('users')
+            ? DB::table('users')->select('id', 'name', 'full_name', 'username', 'phone')->orderByDesc('id')->limit(200)->get()
+            : collect();
+
+        $programs = Schema::hasTable('learning_program_schedules')
+            ? DB::table('learning_program_schedules')->orderByDesc('id')->limit(40)->get()
+            : collect();
+
+        $posts = Schema::hasTable('digital_board_posts')
+            ? DB::table('digital_board_posts')->orderByDesc('id')->limit(40)->get()
+            : collect();
+
+        $quizzes = Schema::hasTable('mobile_quizzes')
+            ? DB::table('mobile_quizzes')->orderByDesc('id')->limit(40)->get()
+            : collect();
+
+        $quizQuestions = Schema::hasTable('mobile_quiz_questions')
+            ? DB::table('mobile_quiz_questions')->orderBy('order')->get()->groupBy('mobile_quiz_id')
+            : collect();
+
+        $evaluations = Schema::hasTable('biweekly_evaluations')
+            ? DB::table('biweekly_evaluations')->orderByDesc('id')->limit(40)->get()
+            : collect();
+
+        $reports = Schema::hasTable('progress_reports')
+            ? DB::table('progress_reports')->orderByDesc('id')->limit(40)->get()
+            : collect();
+
+        $notifications = Schema::hasTable('mobile_notifications')
+            ? DB::table('mobile_notifications')->orderByDesc('id')->limit(40)->get()
+            : collect();
 
         return view('admin.mobile-academy.index', compact(
             'classes',
@@ -73,6 +75,7 @@ class AdminMobileAcademyController extends Controller
             'programs',
             'posts',
             'quizzes',
+            'quizQuestions',
             'evaluations',
             'reports',
             'notifications',
@@ -123,7 +126,9 @@ class AdminMobileAcademyController extends Controller
         ]);
 
         $data = $this->cleanNullableIds($data);
-        $data['author_id'] = auth()->id();
+        if (Schema::hasColumn('digital_board_posts', 'author_id')) {
+            $data['author_id'] = auth()->id();
+        }
         if (($data['status'] ?? '') === 'published' && empty($data['published_at'])) {
             $data['published_at'] = now();
         }
@@ -171,7 +176,6 @@ class AdminMobileAcademyController extends Controller
             'description' => ['nullable', 'string'],
             'school_class_id' => ['nullable', 'integer'],
             'subject_id' => ['nullable', 'integer'],
-            'learning_program_schedule_id' => ['nullable', 'integer'],
             'duration_minutes' => ['nullable', 'integer', 'min:1'],
             'pass_mark' => ['nullable', 'integer', 'min:0'],
             'status' => ['required', 'string', 'max:40'],
@@ -181,7 +185,7 @@ class AdminMobileAcademyController extends Controller
 
         MobileQuiz::query()->create($this->cleanNullableIds($data));
 
-        return back()->with('success', 'Quiz mobile créé. Ajoutez maintenant les questions.');
+        return back()->with('success', 'Quiz mobile créé.');
     }
 
     public function deleteQuiz(MobileQuiz $quiz)
@@ -200,11 +204,7 @@ class AdminMobileAcademyController extends Controller
             'points' => ['nullable', 'integer', 'min:1'],
         ]);
 
-        $choices = collect(preg_split('/\r\n|\r|\n/', $data['choices_text']))
-            ->map(fn ($choice) => trim($choice))
-            ->filter()
-            ->values()
-            ->all();
+        $choices = collect(preg_split('/\r\n|\r|\n/', $data['choices_text']))->map(fn ($choice) => trim($choice))->filter()->values()->all();
 
         MobileQuizQuestion::query()->create([
             'mobile_quiz_id' => $quiz->id,
@@ -213,7 +213,7 @@ class AdminMobileAcademyController extends Controller
             'correct_answer' => $data['correct_answer'],
             'explanation' => $data['explanation'] ?? null,
             'points' => $data['points'] ?? 1,
-            'order' => ($quiz->questions()->count() + 1),
+            'order' => DB::table('mobile_quiz_questions')->where('mobile_quiz_id', $quiz->id)->count() + 1,
         ]);
 
         return back()->with('success', 'Question ajoutée au quiz.');
@@ -231,8 +231,6 @@ class AdminMobileAcademyController extends Controller
             'student_id' => ['required', 'integer'],
             'school_class_id' => ['nullable', 'integer'],
             'biweekly_evaluation_id' => ['nullable', 'integer'],
-            'period_starts_at' => ['nullable', 'date'],
-            'period_ends_at' => ['nullable', 'date'],
             'participation_rate' => ['nullable', 'integer', 'min:0', 'max:100'],
             'evaluation_score' => ['nullable', 'numeric', 'min:0'],
             'courses_done' => ['nullable', 'integer', 'min:0'],
@@ -247,17 +245,6 @@ class AdminMobileAcademyController extends Controller
         $data = $this->cleanNullableIds($data);
         if (($data['status'] ?? '') === 'published') {
             $data['published_at'] = now();
-            $student = User::query()->find($data['student_id']);
-            DigitalBoardPost::query()->create([
-                'author_id' => auth()->id(),
-                'title' => 'Rapport de progression disponible',
-                'content' => 'Un nouveau rapport de progression est disponible pour ' . ($student?->full_name ?: $student?->name ?: 'un apprenant') . '.',
-                'type' => 'report',
-                'audience' => 'parent',
-                'school_class_id' => $data['school_class_id'] ?? null,
-                'status' => 'published',
-                'published_at' => now(),
-            ]);
         }
 
         ProgressReport::query()->create($data);
@@ -280,8 +267,6 @@ class AdminMobileAcademyController extends Controller
             'audience' => ['required', 'string', 'max:60'],
             'school_class_id' => ['nullable', 'integer'],
             'user_id' => ['nullable', 'integer'],
-            'target_type' => ['nullable', 'string', 'max:60'],
-            'target_id' => ['nullable', 'integer'],
             'published_at' => ['nullable', 'date'],
             'expires_at' => ['nullable', 'date'],
         ]);
@@ -291,10 +276,7 @@ class AdminMobileAcademyController extends Controller
             $data['published_at'] = now();
         }
 
-        DB::table('mobile_notifications')->insert(array_merge($data, [
-            'created_at' => now(),
-            'updated_at' => now(),
-        ]));
+        DB::table('mobile_notifications')->insert(array_merge($data, ['created_at' => now(), 'updated_at' => now()]));
 
         return back()->with('success', 'Notification interne publiée.');
     }
@@ -304,18 +286,16 @@ class AdminMobileAcademyController extends Controller
         if (Schema::hasTable('mobile_notifications')) {
             DB::table('mobile_notifications')->where('id', $id)->delete();
         }
-
         return back()->with('success', 'Notification supprimée.');
     }
 
     private function cleanNullableIds(array $data): array
     {
-        foreach (['school_class_id', 'subject_id', 'learning_program_schedule_id', 'biweekly_evaluation_id', 'user_id', 'target_id'] as $field) {
+        foreach (['school_class_id', 'subject_id', 'learning_program_schedule_id', 'biweekly_evaluation_id', 'user_id'] as $field) {
             if (array_key_exists($field, $data) && ($data[$field] === '' || $data[$field] === null)) {
                 $data[$field] = null;
             }
         }
-
         return $data;
     }
 }
