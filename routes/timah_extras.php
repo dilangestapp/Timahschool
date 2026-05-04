@@ -16,8 +16,23 @@ Route::prefix($adminPath)
     ->name('admin.')
     ->middleware(['auth', 'no.cache', EnsureAdmin::class])
     ->group(function () {
-        Route::get('/mobile-academy', [AdminMobileAcademyController::class, 'index'])
-            ->name('mobile-academy.index');
+        Route::prefix('mobile-academy')->name('mobile-academy.')->group(function () {
+            Route::get('/', [AdminMobileAcademyController::class, 'index'])->name('index');
+            Route::post('/program', [AdminMobileAcademyController::class, 'storeProgram'])->name('program.store');
+            Route::post('/program/{schedule}/delete', [AdminMobileAcademyController::class, 'deleteProgram'])->name('program.delete');
+            Route::post('/board', [AdminMobileAcademyController::class, 'storeBoard'])->name('board.store');
+            Route::post('/board/{post}/delete', [AdminMobileAcademyController::class, 'deleteBoard'])->name('board.delete');
+            Route::post('/evaluations', [AdminMobileAcademyController::class, 'storeEvaluation'])->name('evaluations.store');
+            Route::post('/evaluations/{evaluation}/delete', [AdminMobileAcademyController::class, 'deleteEvaluation'])->name('evaluations.delete');
+            Route::post('/quizzes', [AdminMobileAcademyController::class, 'storeQuiz'])->name('quizzes.store');
+            Route::post('/quizzes/{quiz}/delete', [AdminMobileAcademyController::class, 'deleteQuiz'])->name('quizzes.delete');
+            Route::post('/quizzes/{quiz}/questions', [AdminMobileAcademyController::class, 'storeQuizQuestion'])->name('quizzes.questions.store');
+            Route::post('/quiz-questions/{question}/delete', [AdminMobileAcademyController::class, 'deleteQuizQuestion'])->name('quizzes.questions.delete');
+            Route::post('/reports', [AdminMobileAcademyController::class, 'storeReport'])->name('reports.store');
+            Route::post('/reports/{report}/delete', [AdminMobileAcademyController::class, 'deleteReport'])->name('reports.delete');
+            Route::post('/notifications', [AdminMobileAcademyController::class, 'storeNotification'])->name('notifications.store');
+            Route::post('/notifications/{id}/delete', [AdminMobileAcademyController::class, 'deleteNotification'])->name('notifications.delete');
+        });
 
         Route::post('/users/{user}/student-class', [AdminStudentAccountController::class, 'updateClass'])
             ->name('users.student_class.update');
