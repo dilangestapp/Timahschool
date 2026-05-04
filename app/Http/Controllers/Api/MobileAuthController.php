@@ -6,6 +6,7 @@ use App\Http\Controllers\Controller;
 use App\Models\MobileDevice;
 use App\Models\Role;
 use App\Models\SchoolClass;
+use App\Models\StudentLearningProfile;
 use App\Models\StudentProfile;
 use App\Models\Subscription;
 use App\Models\User;
@@ -29,6 +30,14 @@ class MobileAuthController extends Controller
                 'phone' => ['required', 'string', 'max:40'],
                 'password' => ['required', 'string', 'min:6'],
                 'school_class_id' => ['nullable', 'integer', Rule::exists('school_classes', 'id')],
+                'school_level' => ['nullable', 'string', 'max:120'],
+                'main_goal' => ['nullable', 'string', 'max:191'],
+                'target_exam' => ['nullable', 'string', 'max:191'],
+                'weak_subjects' => ['nullable', 'array'],
+                'weak_subjects.*' => ['nullable', 'string', 'max:120'],
+                'study_times' => ['nullable', 'array'],
+                'study_times.*' => ['nullable', 'string', 'max:120'],
+                'preferred_study_time' => ['nullable', 'string', 'max:120'],
                 'parent_name' => ['nullable', 'string', 'max:255'],
                 'parent_phone' => ['nullable', 'string', 'max:40'],
                 'device_id' => ['required', 'string', 'max:191'],
@@ -53,13 +62,14 @@ class MobileAuthController extends Controller
                 $user = User::query()->create($this->userPayload($data['name'], $phone, $data['password'], $plainToken));
                 $this->attachStudentRole($user);
                 $this->safeCreateStudentProfile($user, $data);
+                $this->safeCreateLearningProfile($user, $data);
                 $this->safeActivateFirstDevice($user, $phone, $data);
                 $this->safeCreateTrialSubscription($user);
 
                 return $user;
             });
 
-            $user = $user->fresh(['studentProfile.schoolClass']);
+            $user = $user->fresh(['studentProfile.schoolClass', 'learningProfile']);
 
             return $this->mobileAccessResponse(
                 $user,
@@ -126,7 +136,7 @@ class MobileAuthController extends Controller
             $plainToken = $this->newMobileToken();
             $user->forceFill(['remember_token' => hash('sha256', $plainToken)])->save();
 
-            return $this->mobileAccessResponse($user->fresh(['studentProfile.schoolClass']), $plainToken, $deviceResult, $subscription, 'Connexion mobile autorisée.');
+            return $this->mobileAccessResponse($user->fresh(['studentProfile.schoolClass', 'learningProfile']), $plainToken, $deviceResult, $subscription, 'Connexion mobile autorisée.');
         } catch (Throwable $e) {
             Log::error('Mobile login failed', [
                 'message' => $e->getMessage(),
@@ -148,13 +158,14 @@ class MobileAuthController extends Controller
             return response()->json(['status' => 'unauthenticated', 'message' => 'Session mobile expirée.'], 401);
         }
 
-        $user->load(['studentProfile.schoolClass']);
+        $user->load(['studentProfile.schoolClass', 'learningProfile']);
 
         return response()->json([
             'status' => 'ok',
             'user' => $this->serializeUser($user),
             'subscription' => $this->serializeSubscription($this->safeActiveSubscription($user)),
             'device' => $this->serializeDevice($this->safeActiveDevice($user)),
+            'learning_profile' => $this->serializeLearningProfile($user),
         ]);
     }
 
@@ -240,6 +251,52 @@ class MobileAuthController extends Controller
         }
 
         StudentProfile::query()->create($payload);
+    }
+
+    private function safeCreateLearningProfile(User $user, array $data): void
+    {
+        if (!Schema::hasTable('student_learning_profiles')) {
+            return;
+        }
+
+        $weakSubjects = collect($data['weak_subjects'] ?? [])->filter()->values()->all();
+        $studyTimes = collect($data['study_times'] ?? [])->filter()->values()->all();
+        $targetExam = $data['target_exam'] ?? null;
+        $mainGoal = $data['main_goal'] ?? null;
+        $schoolLevel = $data['school_level'] ?? null;
+        $preferred = $data['preferred_study_time'] ?? ($studyTimes[0] ?? null);
+        $subjectsLabel = $weakSubjects ? implode(', ', $weakSubjects) : 'les matières prioritaires';
+        $examLabel = $targetExam ?: 'ton objectif scolaire';
+
+        $title = 'Parcours personnalisé prêt';
+        $message = 'Nous allons t’aider en priorité sur ' . $subjectsLabel . ' pour mieux préparer ' . $examLabel . '.';
+        $actions = [
+            'Consulter le programme de révision du jour',
+            'Traiter les TD PDF programmés',
+            'Faire les quiz de consolidation',
+            'Lire les corrigés après validation des TD',
+        ];
+
+        StudentLearningProfile::query()->updateOrCreate(
+            ['user_id' => $user->id],
+            [
+                'school_class_id' => $data['school_class_id'] ?? $this->fallbackClassId(),
+                'school_level' => $schoolLevel,
+                'main_goal' => $mainGoal,
+                'target_exam' => $targetExam,
+                'weak_subjects' => $weakSubjects,
+                'study_times' => $studyTimes,
+                'preferred_study_time' => $preferred,
+                'parent_name' => $data['parent_name'] ?? null,
+                'parent_phone' => isset($data['parent_phone']) ? $this->normalizePhone($data['parent_phone']) : null,
+                'recommendation_title' => $title,
+                'recommendation_message' => $message,
+                'recommended_actions' => $actions,
+                'generated_summary' => trim(($schoolLevel ? 'Niveau : ' . $schoolLevel . '. ' : '') . ($mainGoal ? 'Objectif : ' . $mainGoal . '. ' : '') . ($targetExam ? 'Examen : ' . $targetExam . '. ' : '') . ($weakSubjects ? 'Priorités : ' . $subjectsLabel . '.' : '')),
+                'diagnostic_completed_at' => now(),
+                'completed_at' => now(),
+            ]
+        );
     }
 
     private function safeActivateFirstDevice(User $user, string $phone, array $data): ?MobileDevice
@@ -390,6 +447,7 @@ class MobileAuthController extends Controller
             'user' => $this->serializeUser($user),
             'device' => $this->serializeDevice($device),
             'subscription' => $this->serializeSubscription($subscription),
+            'learning_profile' => $this->serializeLearningProfile($user),
         ]);
     }
 
@@ -417,6 +475,29 @@ class MobileAuthController extends Controller
             'phone' => $user->phone,
             'role' => $user->isStudent() ? 'student' : ($user->isTeacher() ? 'teacher' : ($user->isAdmin() ? 'admin' : 'user')),
             'class' => $user->studentProfile?->schoolClass?->name,
+        ];
+    }
+
+    private function serializeLearningProfile(User $user): ?array
+    {
+        $profile = $user->learningProfile ?? null;
+        if (!$profile) {
+            return null;
+        }
+
+        return [
+            'school_level' => $profile->school_level,
+            'main_goal' => $profile->main_goal,
+            'target_exam' => $profile->target_exam,
+            'weak_subjects' => $profile->weak_subjects ?: [],
+            'study_times' => $profile->study_times ?: [],
+            'preferred_study_time' => $profile->preferred_study_time,
+            'parent_name' => $profile->parent_name,
+            'parent_phone' => $profile->parent_phone,
+            'recommendation_title' => $profile->recommendation_title,
+            'recommendation_message' => $profile->recommendation_message,
+            'recommended_actions' => $profile->recommended_actions ?: [],
+            'completed_at' => $profile->completed_at?->toIso8601String(),
         ];
     }
 
