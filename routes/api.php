@@ -60,6 +60,8 @@ Route::prefix('mobile')->name('api.mobile.')->group(function () {
 
     Route::get('/td', [MobileTdController::class, 'index'])->name('td.index');
     Route::get('/td/{id}', [MobileTdController::class, 'show'])->whereNumber('id')->name('td.show');
+    Route::get('/td/{id}/document', [MobileTdController::class, 'document'])->whereNumber('id')->name('td.document');
+    Route::get('/td/{id}/correction-document', [MobileTdController::class, 'correctionDocument'])->whereNumber('id')->name('td.correction_document');
     Route::post('/td/{id}/complete', [MobileTdController::class, 'complete'])->whereNumber('id')->name('td.complete');
 
     Route::get('/quizzes', [MobileLearningController::class, 'quizzes'])->name('quizzes.index');
