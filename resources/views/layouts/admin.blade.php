@@ -78,6 +78,7 @@
             <a href="{{ route('admin.td.index') }}" class="admin-link {{ request()->routeIs('admin.td.*') ? 'is-active' : '' }}">TD</a>
             <a href="{{ route('admin.learning-program.index') }}" class="admin-link {{ request()->routeIs('admin.learning-program.*') ? 'is-active' : '' }}">Programme</a>
             <a href="{{ route('admin.digital-board.index') }}" class="admin-link {{ request()->routeIs('admin.digital-board.*') ? 'is-active' : '' }}">Babillard</a>
+            <a href="{{ route('admin.mobile-academy.index') }}" class="admin-link {{ request()->routeIs('admin.mobile-academy.*') ? 'is-active' : '' }}">Mobile Academy</a>
 
             <div class="admin-nav__group-label">Business</div>
             <a href="{{ route('admin.mobile-devices.index') }}" class="admin-link {{ request()->routeIs('admin.mobile-devices.*') ? 'is-active' : '' }}">Appareils mobiles</a>
@@ -104,7 +105,8 @@
             <div class="admin-topbar__actions">
                 <a href="{{ route('admin.learning-program.index') }}" class="btn btn--ghost">Programme</a>
                 <a href="{{ route('admin.digital-board.index') }}" class="btn btn--ghost">Babillard</a>
-                <a href="{{ route('admin.mobile-devices.index') }}" class="btn btn--ghost">Mobile</a>
+                <a href="{{ route('admin.mobile-academy.index') }}" class="btn btn--ghost">Mobile</a>
+                <a href="{{ route('admin.mobile-devices.index') }}" class="btn btn--ghost">Appareils</a>
                 <button type="button" class="btn btn--ghost theme-toggle" data-theme-toggle>🌗 Thème</button>
                 @if(request()->routeIs('admin.td.*'))
                     <a href="{{ route('admin.td.create') }}" class="btn btn--primary">+ Nouveau TD</a>
