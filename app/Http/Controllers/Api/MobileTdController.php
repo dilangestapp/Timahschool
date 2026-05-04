@@ -9,7 +9,9 @@ use App\Models\User;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Schema;
+use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Str;
+use Symfony\Component\HttpFoundation\Response;
 
 class MobileTdController extends Controller
 {
@@ -43,7 +45,7 @@ class MobileTdController extends Controller
 
         return response()->json([
             'status' => 'ok',
-            'message' => $items->isEmpty() ? 'Aucun TD publié pour votre classe pour le moment.' : 'TD chargés.',
+            'message' => $items->isEmpty() ? 'Aucun TD PDF publié pour votre classe pour le moment.' : 'TD PDF chargés.',
             'items' => $items,
         ]);
     }
@@ -68,7 +70,7 @@ class MobileTdController extends Controller
 
         return response()->json([
             'status' => 'ok',
-            'message' => 'TD chargé.',
+            'message' => 'TD PDF chargé.',
             'item' => $this->serializeTd($td, $user, true, $attempt),
         ]);
     }
@@ -102,7 +104,7 @@ class MobileTdController extends Controller
 
         return response()->json([
             'status' => 'ok',
-            'message' => 'TD marqué comme terminé.',
+            'message' => 'TD marqué comme terminé. Le corrigé PDF sera disponible selon le temps prévu.',
             'attempt' => [
                 'status' => TdAttempt::STATUS_COMPLETED,
                 'completed_at' => now()->toIso8601String(),
@@ -110,6 +112,65 @@ class MobileTdController extends Controller
                 'can_see_correction' => $td->correctionIsAvailableFor($user, $attempt->fresh()),
             ],
         ]);
+    }
+
+    public function document(Request $request, int $id): Response|JsonResponse
+    {
+        $user = $this->userFromBearer($request);
+        if (!$user) {
+            return $this->unauthenticated();
+        }
+
+        $td = TdSet::query()->find($id);
+        if (!$td || $td->status !== TdSet::STATUS_PUBLISHED) {
+            return response()->json(['status' => 'not_found', 'message' => 'TD introuvable.'], 404);
+        }
+
+        if ($response = $this->ensureStudentCanAccessTd($td, $user)) {
+            return $response;
+        }
+
+        if (!$td->document_path || !Storage::disk('public')->exists($td->document_path)) {
+            return response()->json(['status' => 'not_found', 'message' => 'Document PDF du TD introuvable.'], 404);
+        }
+
+        return Storage::disk('public')->response($td->document_path, $td->document_name ?: basename($td->document_path));
+    }
+
+    public function correctionDocument(Request $request, int $id): Response|JsonResponse
+    {
+        $user = $this->userFromBearer($request);
+        if (!$user) {
+            return $this->unauthenticated();
+        }
+
+        $td = TdSet::query()->find($id);
+        if (!$td || $td->status !== TdSet::STATUS_PUBLISHED) {
+            return response()->json(['status' => 'not_found', 'message' => 'TD introuvable.'], 404);
+        }
+
+        if ($response = $this->ensureStudentCanAccessTd($td, $user)) {
+            return $response;
+        }
+
+        $attempt = TdAttempt::query()
+            ->where('td_set_id', $td->id)
+            ->where('student_id', $user->id)
+            ->latest('id')
+            ->first();
+
+        if (!$td->correctionIsAvailableFor($user, $attempt)) {
+            return response()->json([
+                'status' => 'locked',
+                'message' => 'Le corrigé PDF sera disponible après validation du TD et fin du temps de traitement.',
+            ], 423);
+        }
+
+        if (!$td->correction_document_path || !Storage::disk('public')->exists($td->correction_document_path)) {
+            return response()->json(['status' => 'not_found', 'message' => 'Corrigé PDF introuvable.'], 404);
+        }
+
+        return Storage::disk('public')->response($td->correction_document_path, $td->correction_document_name ?: basename($td->correction_document_path));
     }
 
     private function openAttempt(TdSet $td, User $user): TdAttempt
@@ -152,6 +213,8 @@ class MobileTdController extends Controller
             ->first();
 
         $canSeeCorrection = $td->correctionIsAvailableFor($user, $attempt);
+        $documentUrl = $td->document_path ? url('/api/mobile/td/' . $td->id . '/document') : null;
+        $correctionUrl = ($canSeeCorrection && $td->correction_document_path) ? url('/api/mobile/td/' . $td->id . '/correction-document') : null;
 
         $data = [
             'id' => $td->id,
@@ -164,10 +227,17 @@ class MobileTdController extends Controller
             'class' => $td->schoolClass?->name,
             'published_at' => $td->published_at?->toIso8601String(),
             'correction_delay_minutes' => $td->correctionDelayMinutes(),
+            'display_mode' => 'pdf_document',
             'has_document' => $td->hasDocument(),
-            'has_editable_version' => (bool) $td->has_editable_version,
+            'document_name' => $td->document_name,
+            'document_mime' => $td->document_mime,
+            'document_size' => $td->document_size,
+            'document_url' => $documentUrl,
+            'has_editable_version' => false,
             'has_correction' => $td->hasCorrectionContent(),
             'can_see_correction' => $canSeeCorrection,
+            'correction_document_name' => $td->correction_document_name,
+            'correction_document_url' => $correctionUrl,
             'attempt' => $attempt ? [
                 'status' => $attempt->status,
                 'opened_at' => $attempt->opened_at?->toIso8601String(),
@@ -178,15 +248,19 @@ class MobileTdController extends Controller
 
         if ($withContent) {
             $data['content'] = [
-                'html' => $td->editable_html,
-                'text' => $td->editable_text,
-                'document_url' => $td->document_path ? url('/student/td/' . $td->id . '/document') : null,
+                'type' => 'pdf',
+                'document_url' => $documentUrl,
+                'document_name' => $td->document_name,
+                'message' => $td->document_path
+                    ? 'Ouvrez le document PDF pour traiter le TD.'
+                    : 'Aucun document PDF n’a encore été ajouté pour ce TD.',
             ];
             $data['correction'] = [
+                'type' => 'pdf',
                 'available' => $canSeeCorrection,
-                'html' => $canSeeCorrection ? $td->correction_html : null,
-                'document_url' => ($canSeeCorrection && $td->correction_document_path) ? url('/student/td/' . $td->id . '/correction-document') : null,
-                'locked_message' => $canSeeCorrection ? null : 'Le corrigé sera disponible après validation du TD et fin du temps de traitement.',
+                'document_url' => $correctionUrl,
+                'document_name' => $td->correction_document_name,
+                'locked_message' => $canSeeCorrection ? null : 'Le corrigé PDF sera disponible après validation du TD et fin du temps de traitement.',
             ];
         }
 
