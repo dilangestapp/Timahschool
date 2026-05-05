@@ -18,6 +18,7 @@ class TdSet extends Model
     public const ACCESS_PREMIUM = 'premium';
 
     protected $fillable = [
+        'pedagogical_bank_item_id',
         'school_class_id',
         'subject_id',
         'teacher_assignment_id',
@@ -50,6 +51,11 @@ class TdSet extends Model
         'has_editable_version' => 'boolean',
         'correction_delay_minutes' => 'integer',
     ];
+
+    public function bankItem()
+    {
+        return $this->belongsTo(PedagogicalBankItem::class, 'pedagogical_bank_item_id');
+    }
 
     public function schoolClass()
     {
