@@ -8,6 +8,7 @@ use App\Http\Controllers\Internal\DirectTdImportController;
 use App\Http\Controllers\Student\DiagnosticController;
 use App\Http\Middleware\EnsureAdmin;
 use App\Http\Middleware\EnsureStudent;
+use App\Http\Middleware\InjectAdminBankShortcut;
 use Illuminate\Support\Facades\Route;
 use Illuminate\Support\Facades\URL;
 use Illuminate\Support\ServiceProvider;
@@ -30,7 +31,7 @@ class AppServiceProvider extends ServiceProvider
 
         $adminPath = trim((string) config('timahschool.admin_path', 'backoffice-access'), '/');
 
-        Route::middleware(['web', 'auth', 'no.cache', EnsureAdmin::class])
+        Route::middleware(['web', 'auth', 'no.cache', EnsureAdmin::class, InjectAdminBankShortcut::class])
             ->prefix($adminPath)
             ->name('admin.')
             ->group(function () {
