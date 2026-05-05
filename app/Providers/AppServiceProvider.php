@@ -2,6 +2,7 @@
 
 namespace App\Providers;
 
+use App\Http\Controllers\Admin\AdminPedagogicalBankController;
 use App\Http\Controllers\Admin\AdminTdImportController;
 use App\Http\Controllers\Internal\DirectTdImportController;
 use App\Http\Controllers\Student\DiagnosticController;
@@ -13,17 +14,11 @@ use Illuminate\Support\ServiceProvider;
 
 class AppServiceProvider extends ServiceProvider
 {
-    /**
-     * Register any application services.
-     */
     public function register(): void
     {
         //
     }
 
-    /**
-     * Bootstrap any application services.
-     */
     public function boot(): void
     {
         $forceHttps = filter_var(env('FORCE_HTTPS', false), FILTER_VALIDATE_BOOL)
@@ -42,6 +37,12 @@ class AppServiceProvider extends ServiceProvider
                 Route::get('/td/import', [AdminTdImportController::class, 'create'])->name('td.import');
                 Route::post('/td/import/analyze', [AdminTdImportController::class, 'analyze'])->name('td.import.analyze');
                 Route::post('/td/import/store', [AdminTdImportController::class, 'store'])->name('td.import.store');
+
+                Route::get('/pedagogical-bank', [AdminPedagogicalBankController::class, 'index'])->name('pedagogical-bank.index');
+                Route::post('/pedagogical-bank', [AdminPedagogicalBankController::class, 'store'])->name('pedagogical-bank.store');
+                Route::post('/pedagogical-bank/{item}/schedule', [AdminPedagogicalBankController::class, 'schedule'])->name('pedagogical-bank.schedule');
+                Route::post('/pedagogical-bank/{item}/archive', [AdminPedagogicalBankController::class, 'archive'])->name('pedagogical-bank.archive');
+                Route::post('/pedagogical-bank/{item}/restore', [AdminPedagogicalBankController::class, 'restore'])->name('pedagogical-bank.restore');
             });
 
         Route::middleware(['web', 'auth', 'no.cache', EnsureStudent::class])
