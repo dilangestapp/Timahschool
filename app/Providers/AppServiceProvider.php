@@ -41,6 +41,7 @@ class AppServiceProvider extends ServiceProvider
 
                 Route::get('/pedagogical-bank', [AdminPedagogicalBankController::class, 'index'])->name('pedagogical-bank.index');
                 Route::post('/pedagogical-bank', [AdminPedagogicalBankController::class, 'store'])->name('pedagogical-bank.store');
+                Route::post('/pedagogical-bank/{item}/update', [AdminPedagogicalBankController::class, 'update'])->name('pedagogical-bank.update');
                 Route::post('/pedagogical-bank/{item}/schedule', [AdminPedagogicalBankController::class, 'schedule'])->name('pedagogical-bank.schedule');
                 Route::post('/pedagogical-bank/{item}/archive', [AdminPedagogicalBankController::class, 'archive'])->name('pedagogical-bank.archive');
                 Route::post('/pedagogical-bank/{item}/restore', [AdminPedagogicalBankController::class, 'restore'])->name('pedagogical-bank.restore');
