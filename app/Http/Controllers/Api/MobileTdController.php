@@ -41,6 +41,8 @@ class MobileTdController extends Controller
             ->latest('id')
             ->take(50)
             ->get()
+            ->unique('id')
+            ->values()
             ->map(fn ($td) => $this->serializeTd($td, $user));
 
         return response()->json([
@@ -110,6 +112,7 @@ class MobileTdController extends Controller
                 'completed_at' => now()->toIso8601String(),
                 'correction_unlocked_at' => $unlockAt?->toIso8601String(),
                 'can_see_correction' => $td->correctionIsAvailableFor($user, $attempt->fresh()),
+                'correction_label' => 'Corrigé disponible après ' . $this->formatDateTime($unlockAt),
             ],
         ]);
     }
@@ -212,9 +215,35 @@ class MobileTdController extends Controller
             ->latest('id')
             ->first();
 
+        $publishedAt = $td->published_at;
+        $isAvailableNow = !$publishedAt || now()->greaterThanOrEqualTo($publishedAt);
         $canSeeCorrection = $td->correctionIsAvailableFor($user, $attempt);
         $documentUrl = $td->document_path ? url('/api/mobile/td/' . $td->id . '/document') : null;
         $correctionUrl = ($canSeeCorrection && $td->correction_document_path) ? url('/api/mobile/td/' . $td->id . '/correction-document') : null;
+        $availabilityStatus = $isAvailableNow ? 'available' : 'scheduled';
+        $availabilityLabel = $isAvailableNow ? 'Disponible maintenant' : 'Programmé pour ' . $this->formatDateTime($publishedAt);
+        $availabilityDetail = $isAvailableNow
+            ? 'Ouvre le PDF, traite le TD sur ton cahier, puis valide “J’ai terminé”.'
+            : 'Ce TD sera visible à la date et à l’heure programmées par TIMAH ACADEMY.';
+        $correctionStatus = 'locked';
+        $correctionLabel = 'Corrigé verrouillé';
+        $correctionDetail = 'Traite le TD sur cahier, puis clique sur “J’ai terminé”.';
+
+        if (!$td->hasCorrectionContent()) {
+            $correctionStatus = 'none';
+            $correctionLabel = 'Aucun corrigé PDF ajouté';
+            $correctionDetail = 'Le corrigé sera ajouté par TIMAH ACADEMY si nécessaire.';
+        } elseif ($canSeeCorrection) {
+            $correctionStatus = 'available';
+            $correctionLabel = 'Corrigé disponible';
+            $correctionDetail = 'Tu peux maintenant ouvrir le corrigé PDF.';
+        } elseif ($attempt?->status === TdAttempt::STATUS_COMPLETED && $attempt->correction_unlocked_at) {
+            $correctionStatus = 'waiting';
+            $correctionLabel = 'Corrigé disponible après ' . $this->formatDateTime($attempt->correction_unlocked_at);
+            $correctionDetail = 'Ton TD est marqué comme terminé. Le corrigé se débloquera automatiquement après le délai prévu.';
+        } elseif ($td->correctionDelayMinutes() > 0) {
+            $correctionDetail = 'Le corrigé se débloque après validation du TD + ' . $td->correctionDelayMinutes() . ' minutes.';
+        }
 
         $data = [
             'id' => $td->id,
@@ -225,8 +254,19 @@ class MobileTdController extends Controller
             'status' => $td->status,
             'subject' => $td->subject?->name,
             'class' => $td->schoolClass?->name,
-            'published_at' => $td->published_at?->toIso8601String(),
+            'published_at' => $publishedAt?->toIso8601String(),
+            'published_label' => $publishedAt ? 'Publié le ' . $this->formatDateTime($publishedAt) : 'Publication immédiate',
+            'is_available_now' => $isAvailableNow,
+            'availability_status' => $availabilityStatus,
+            'availability_label' => $availabilityLabel,
+            'availability_detail' => $availabilityDetail,
+            'student_instructions' => 'Traite ce TD sur ton cahier. Lorsque tu as terminé, valide le TD pour débloquer le corrigé selon le délai prévu.',
+            'action_hint' => $isAvailableNow ? 'Ouvrir le sujet PDF' : 'TD non encore ouvert',
             'correction_delay_minutes' => $td->correctionDelayMinutes(),
+            'correction_delay_label' => $td->correctionDelayMinutes() > 0 ? 'Corrigé après validation + ' . $td->correctionDelayMinutes() . ' min' : 'Corrigé après validation',
+            'correction_status' => $correctionStatus,
+            'correction_label' => $correctionLabel,
+            'correction_detail' => $correctionDetail,
             'display_mode' => 'pdf_document',
             'has_document' => $td->hasDocument(),
             'document_name' => $td->document_name,
@@ -258,9 +298,12 @@ class MobileTdController extends Controller
             $data['correction'] = [
                 'type' => 'pdf',
                 'available' => $canSeeCorrection,
+                'status' => $correctionStatus,
+                'label' => $correctionLabel,
+                'detail' => $correctionDetail,
                 'document_url' => $correctionUrl,
                 'document_name' => $td->correction_document_name,
-                'locked_message' => $canSeeCorrection ? null : 'Le corrigé PDF sera disponible après validation du TD et fin du temps de traitement.',
+                'locked_message' => $canSeeCorrection ? null : $correctionDetail,
             ];
         }
 
@@ -298,6 +341,15 @@ class MobileTdController extends Controller
         return collect($attributes)
             ->filter(fn ($value, $key) => array_key_exists($key, $columns))
             ->all();
+    }
+
+    private function formatDateTime($date): string
+    {
+        if (!$date) {
+            return '';
+        }
+
+        return $date->timezone(config('app.timezone', 'UTC'))->format('d/m/Y à H:i');
     }
 
     private function userFromBearer(Request $request): ?User
