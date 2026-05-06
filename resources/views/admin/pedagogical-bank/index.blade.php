@@ -7,6 +7,17 @@
 @if(session('success'))<div class="admin-success-box">{{ session('success') }}</div>@endif
 @if(session('error'))<div class="admin-error-box">{{ session('error') }}</div>@endif
 @if($errors->any())<div class="admin-error-box">@foreach($errors->all() as $error)<div>{{ $error }}</div>@endforeach</div>@endif
+
+<section class="admin-list-panel" style="border:2px solid #bfdbfe;background:#eff6ff;">
+<div class="admin-list-panel__head"><div><h2>Navigation rapide</h2><p>Après publication, un TD passe dans “Déjà utilisés / publiés”. Clique ici pour afficher directement l’historique.</p></div></div>
+<div style="display:flex;gap:10px;flex-wrap:wrap;">
+<a class="btn btn--primary" href="{{ route('admin.pedagogical-bank.index',['status'=>'used','content_type'=>$type,'school_class_id'=>$classId,'subject_id'=>$subjectId]) }}">Historique des TD publiés</a>
+<a class="btn btn--ghost" href="{{ route('admin.pedagogical-bank.index',['status'=>'all','content_type'=>$type,'school_class_id'=>$classId,'subject_id'=>$subjectId]) }}">Voir toute la banque</a>
+<a class="btn btn--ghost" href="{{ route('admin.pedagogical-bank.index',['status'=>'available','content_type'=>$type,'school_class_id'=>$classId,'subject_id'=>$subjectId]) }}">Disponibles</a>
+<a class="btn btn--ghost" href="{{ route('admin.pedagogical-bank.index,['status'=>'archived','content_type'=>$type,'school_class_id'=>$classId,'subject_id'=>$subjectId]) }}">Archivés</a>
+</div>
+</section>
+
 <section class="admin-list-panel">
 <div class="admin-list-panel__head"><div><h2>Import rapide</h2><p>Ajoute le document principal et le corrigé si disponible. Tu peux corriger la classe et la matière après import.</p></div></div>
 <form method="POST" action="{{ route('admin.pedagogical-bank.store') }}" enctype="multipart/form-data" class="admin-form">@csrf
@@ -26,7 +37,7 @@
 <div class="form-group"><label>Classe</label><select name="school_class_id"><option value="">Toutes</option>@foreach($classes as $class)<option value="{{ $class->id }}" @selected((string)$classId===(string)$class->id)>{{ $class->name }}</option>@endforeach</select></div>
 <div class="form-group"><label>Type</label><select name="content_type"><option value="all">Tous</option><option value="td" @selected($type==='td')>TD</option><option value="course" @selected($type==='course')>Cours</option><option value="quiz" @selected($type==='quiz')>Quiz</option><option value="evaluation" @selected($type==='evaluation')>Évaluation</option><option value="resource" @selected($type==='resource')>Ressource</option></select></div>
 <div class="form-group"><label>Matière</label><select name="subject_id"><option value="">Toutes</option>@foreach($subjects as $subject)<option value="{{ $subject->id }}" @selected((string)$subjectId===(string)$subject->id)>{{ $subject->name }}</option>@endforeach</select></div>
-<div class="form-group"><label>Statut</label><select name="status"><option value="available" @selected($status==='available')>Disponibles</option><option value="used" @selected($status==='used')>Déjà utilisés</option><option value="archived" @selected($status==='archived')>Archivés</option><option value="all" @selected($status==='all')>Tous</option></select></div>
+<div class="form-group"><label>Statut</label><select name="status"><option value="available" @selected($status==='available')>Disponibles</option><option value="used" @selected($status==='used')>Déjà utilisés / publiés</option><option value="archived" @selected($status==='archived')>Archivés</option><option value="all" @selected($status==='all')>Tous</option></select></div>
 </div><button class="btn btn--ghost">Filtrer</button></form>
 </section>
 
@@ -47,6 +58,9 @@ $sections = [
 <div class="admin-clean-title" style="flex:1;min-width:280px;"><strong>{{ $item->title }}</strong><span>{{ $item->code ?: 'Sans code' }} · {{ $item->type_label }} · {{ $item->schoolClass?->name ?: $item->inferred_class ?: 'Classe non définie' }} · {{ $item->subject?->name ?: $item->inferred_subject ?: 'Matière non définie' }}</span><p style="color:var(--muted)">Sujet : {{ $item->document_name ?: 'non ajouté' }}<br>Corrigé : {{ $item->correction_document_name ?: 'non ajouté' }}<br>Dernière publication : {{ $item->last_scheduled_at ? $item->last_scheduled_at->format('d/m/Y H:i') : 'non publiée' }}</p></div>
 <div class="admin-clean-meta"><span class="admin-badge">{{ $item->status_label }}</span><br><small>{{ $item->times_used }} publication(s)</small></div>
 </div>
+@if($section['tone']==='used')
+<div style="margin:10px 0;padding:12px;border-radius:14px;background:#ffedd5;color:#9a3412;font-weight:800;">✅ TD publié. Pour le voir côté Flutter, l’élève doit être dans cette classe exacte : {{ $item->schoolClass?->name ?: 'classe non définie' }}.</div>
+@endif
 <details style="margin-top:12px;"><summary class="btn btn--ghost" style="cursor:pointer;display:inline-block;">Modifier la fiche</summary>
 <form method="POST" action="{{ route('admin.pedagogical-bank.update',$item) }}" enctype="multipart/form-data" class="admin-form" style="margin-top:12px;">@csrf
 <div class="admin-form-grid">
