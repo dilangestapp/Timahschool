@@ -14,7 +14,7 @@
 <a class="btn btn--primary" href="{{ route('admin.pedagogical-bank.index',['status'=>'used','content_type'=>$type,'school_class_id'=>$classId,'subject_id'=>$subjectId]) }}">Historique des TD publiés</a>
 <a class="btn btn--ghost" href="{{ route('admin.pedagogical-bank.index',['status'=>'all','content_type'=>$type,'school_class_id'=>$classId,'subject_id'=>$subjectId]) }}">Voir toute la banque</a>
 <a class="btn btn--ghost" href="{{ route('admin.pedagogical-bank.index',['status'=>'available','content_type'=>$type,'school_class_id'=>$classId,'subject_id'=>$subjectId]) }}">Disponibles</a>
-<a class="btn btn--ghost" href="{{ route('admin.pedagogical-bank.index,['status'=>'archived','content_type'=>$type,'school_class_id'=>$classId,'subject_id'=>$subjectId]) }}">Archivés</a>
+<a class="btn btn--ghost" href="{{ route('admin.pedagogical-bank.index',['status'=>'archived','content_type'=>$type,'school_class_id'=>$classId,'subject_id'=>$subjectId]) }}">Archivés</a>
 </div>
 </section>
 
