@@ -26,18 +26,19 @@ class AdminPedagogicalBankController extends Controller
         $subjectId = $request->integer('subject_id') ?: null;
 
         $base = PedagogicalBankItem::query()
-            ->with(['schoolClass', 'subject'])
+            ->with(['schoolClass', 'subject', 'lastTdSet'])
             ->when($classId, fn ($query) => $query->where('school_class_id', $classId))
             ->when($subjectId, fn ($query) => $query->where('subject_id', $subjectId))
             ->when($type !== 'all', fn ($query) => $query->where('content_type', $type))
             ->latest('id');
 
-        $availableItems = (clone $base)->where('status', PedagogicalBankItem::STATUS_AVAILABLE)->take(80)->get();
-        $usedItems = (clone $base)->where('status', PedagogicalBankItem::STATUS_USED)->take(80)->get();
-        $archivedItems = (clone $base)->where('status', PedagogicalBankItem::STATUS_ARCHIVED)->take(80)->get();
+        $availableItems = (clone $base)->where('status', PedagogicalBankItem::STATUS_AVAILABLE)->take(100)->get();
+        $usedItems = (clone $base)->where('status', PedagogicalBankItem::STATUS_USED)->take(100)->get();
+        $archivedItems = (clone $base)->where('status', PedagogicalBankItem::STATUS_ARCHIVED)->take(100)->get();
 
         if ($status === 'used') {
             $availableItems = collect();
+            $archivedItems = collect();
         } elseif ($status === 'archived') {
             $availableItems = collect();
             $usedItems = collect();
@@ -66,8 +67,8 @@ class AdminPedagogicalBankController extends Controller
             'subject_id' => ['nullable', 'integer'],
             'content_type' => ['required', 'string', 'max:40'],
             'title' => ['nullable', 'string', 'max:255'],
-            'document' => ['required', 'file', 'mimes:pdf,doc,docx,png,jpg,jpeg', 'max:20480'],
-            'correction_document' => ['nullable', 'file', 'mimes:pdf,doc,docx,png,jpg,jpeg', 'max:20480'],
+            'document' => ['required', 'file', 'mimes:pdf,doc,docx,png,jpg,jpeg', 'max:30720'],
+            'correction_document' => ['nullable', 'file', 'mimes:pdf,doc,docx,png,jpg,jpeg', 'max:30720'],
         ]);
 
         $document = $request->file('document');
@@ -75,8 +76,8 @@ class AdminPedagogicalBankController extends Controller
         $inferred = $this->inferFromFileName($document->getClientOriginalName());
 
         $payload = [
-            'school_class_id' => $data['school_class_id'] ?: $this->resolveClassId($inferred['class_label']),
-            'subject_id' => $data['subject_id'] ?: $this->resolveSubjectId($inferred['subject_label']),
+            'school_class_id' => $this->normalizeNullableId($data['school_class_id'] ?? null) ?: $this->resolveClassId($inferred['class_label']),
+            'subject_id' => $this->normalizeNullableId($data['subject_id'] ?? null) ?: $this->resolveSubjectId($inferred['subject_label']),
             'created_by' => auth()->id(),
             'code' => $inferred['code'],
             'title' => $data['title'] ?: $inferred['title'],
@@ -95,7 +96,47 @@ class AdminPedagogicalBankController extends Controller
 
         PedagogicalBankItem::query()->create($payload);
 
-        return back()->with('success', 'Document ajouté à la banque pédagogique.');
+        return back()->with('success', 'Document ajouté à la banque pédagogique. Vérifiez la classe et la matière avant publication.');
+    }
+
+    public function update(Request $request, PedagogicalBankItem $item)
+    {
+        $data = $request->validate([
+            'title' => ['required', 'string', 'max:255'],
+            'code' => ['nullable', 'string', 'max:80'],
+            'content_type' => ['required', 'string', 'max:40'],
+            'school_class_id' => ['nullable', 'integer'],
+            'subject_id' => ['nullable', 'integer'],
+            'theme' => ['nullable', 'string', 'max:255'],
+            'status' => ['required', 'string', 'max:40'],
+            'document' => ['nullable', 'file', 'mimes:pdf,doc,docx,png,jpg,jpeg', 'max:30720'],
+            'correction_document' => ['nullable', 'file', 'mimes:pdf,doc,docx,png,jpg,jpeg', 'max:30720'],
+        ]);
+
+        $payload = [
+            'title' => $data['title'],
+            'code' => $data['code'] ?: null,
+            'content_type' => $data['content_type'],
+            'school_class_id' => $this->normalizeNullableId($data['school_class_id'] ?? null),
+            'subject_id' => $this->normalizeNullableId($data['subject_id'] ?? null),
+            'theme' => $data['theme'] ?: null,
+            'status' => in_array($data['status'], [PedagogicalBankItem::STATUS_AVAILABLE, PedagogicalBankItem::STATUS_USED, PedagogicalBankItem::STATUS_ARCHIVED], true)
+                ? $data['status']
+                : PedagogicalBankItem::STATUS_AVAILABLE,
+        ];
+
+        if ($request->hasFile('document')) {
+            $payload = array_merge($payload, $this->storeUploadedFile($request->file('document'), 'document'));
+        }
+
+        if ($request->hasFile('correction_document')) {
+            $payload = array_merge($payload, $this->storeUploadedFile($request->file('correction_document'), 'correction_document'));
+        }
+
+        $item->update($payload);
+        $this->syncLastTdSetFromBankItem($item->fresh());
+
+        return back()->with('success', 'Fiche mise à jour. Classe, matière, fichiers et statut sont maintenant corrigés.');
     }
 
     public function schedule(Request $request, PedagogicalBankItem $item)
@@ -106,19 +147,33 @@ class AdminPedagogicalBankController extends Controller
 
         $data = $request->validate([
             'publish_at' => ['nullable', 'date'],
+            'school_class_id' => ['nullable', 'integer'],
+            'subject_id' => ['nullable', 'integer'],
             'correction_delay_minutes' => ['required', 'integer', 'min:0', 'max:1440'],
             'access_level' => ['required', 'string', 'max:40'],
         ]);
 
-        if (!$item->school_class_id || !$item->subject_id) {
-            return back()->with('error', 'Classe ou matière manquante. Corrigez la fiche dans la banque avant programmation.');
+        $classId = $this->normalizeNullableId($data['school_class_id'] ?? null) ?: $item->school_class_id;
+        $subjectId = $this->normalizeNullableId($data['subject_id'] ?? null) ?: $item->subject_id;
+
+        if (!$classId || !$subjectId) {
+            return back()->with('error', 'Classe ou matière manquante. Choisissez la classe et la matière dans la fiche du TD, puis sauvegardez.');
         }
 
-        $td = DB::transaction(function () use ($item, $data) {
+        if (!$item->document_path) {
+            return back()->with('error', 'Document sujet manquant. Ajoutez ou remplacez le PDF du sujet avant de publier.');
+        }
+
+        $td = DB::transaction(function () use ($item, $data, $classId, $subjectId) {
+            $item->forceFill([
+                'school_class_id' => $classId,
+                'subject_id' => $subjectId,
+            ])->save();
+
             $td = TdSet::query()->create([
                 'pedagogical_bank_item_id' => $item->id,
-                'school_class_id' => $item->school_class_id,
-                'subject_id' => $item->subject_id,
+                'school_class_id' => $classId,
+                'subject_id' => $subjectId,
                 'author_user_id' => auth()->id(),
                 'title' => $item->title,
                 'slug' => Str::slug($item->title . '-' . $item->id . '-' . now()->timestamp),
@@ -138,17 +193,17 @@ class AdminPedagogicalBankController extends Controller
                 'published_at' => $data['publish_at'] ? now()->parse($data['publish_at']) : now(),
             ]);
 
-            $item->update([
+            $item->forceFill([
                 'status' => PedagogicalBankItem::STATUS_USED,
                 'times_used' => ((int) $item->times_used) + 1,
                 'last_scheduled_at' => now(),
                 'last_td_set_id' => $td->id,
-            ]);
+            ])->save();
 
             return $td;
         });
 
-        return back()->with('success', 'TD programmé et publié. Il est maintenant dans les TD déjà utilisés.');
+        return back()->with('success', 'TD publié avec succès. Il est maintenant classé dans “Déjà utilisés”.');
     }
 
     public function archive(PedagogicalBankItem $item)
@@ -207,6 +262,7 @@ class AdminPedagogicalBankController extends Controller
     {
         return match ($code) {
             'PA' => 'Première A',
+            'PA4' => 'Première A4 Allemand',
             'PC' => 'Première C',
             'PD' => 'Première D',
             'TA' => 'Terminale A',
@@ -238,8 +294,16 @@ class AdminPedagogicalBankController extends Controller
             return null;
         }
 
-        return SchoolClass::query()->where('name', $label)->value('id')
-            ?: SchoolClass::query()->where('name', 'like', '%' . $label . '%')->value('id');
+        $normalized = Str::lower(Str::ascii($label));
+
+        return SchoolClass::query()->get()->first(function ($class) use ($normalized, $label) {
+            $name = (string) $class->name;
+            $classNormalized = Str::lower(Str::ascii($name));
+            return $classNormalized === $normalized
+                || str_contains($classNormalized, $normalized)
+                || str_contains($normalized, $classNormalized)
+                || $name === $label;
+        })?->id;
     }
 
     private function resolveSubjectId(?string $label): ?int
@@ -248,7 +312,48 @@ class AdminPedagogicalBankController extends Controller
             return null;
         }
 
-        return Subject::query()->where('name', $label)->value('id')
-            ?: Subject::query()->where('name', 'like', '%' . $label . '%')->value('id');
+        $normalized = Str::lower(Str::ascii($label));
+
+        return Subject::query()->get()->first(function ($subject) use ($normalized, $label) {
+            $name = (string) $subject->name;
+            $subjectNormalized = Str::lower(Str::ascii($name));
+            return $subjectNormalized === $normalized
+                || str_contains($subjectNormalized, $normalized)
+                || str_contains($normalized, $subjectNormalized)
+                || $name === $label;
+        })?->id;
+    }
+
+    private function normalizeNullableId($value): ?int
+    {
+        $value = (int) ($value ?: 0);
+        return $value > 0 ? $value : null;
+    }
+
+    private function syncLastTdSetFromBankItem(PedagogicalBankItem $item): void
+    {
+        if (!$item->last_td_set_id) {
+            return;
+        }
+
+        $td = TdSet::query()->find($item->last_td_set_id);
+        if (!$td) {
+            return;
+        }
+
+        $td->forceFill([
+            'school_class_id' => $item->school_class_id,
+            'subject_id' => $item->subject_id,
+            'title' => $item->title,
+            'chapter_label' => $item->theme,
+            'document_path' => $item->document_path,
+            'document_name' => $item->document_name,
+            'document_mime' => $item->document_mime,
+            'document_size' => $item->document_size,
+            'correction_document_path' => $item->correction_document_path,
+            'correction_document_name' => $item->correction_document_name,
+            'correction_document_mime' => $item->correction_document_mime,
+            'correction_document_size' => $item->correction_document_size,
+        ])->save();
     }
 }
