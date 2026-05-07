@@ -2,6 +2,7 @@
 
 namespace App\Providers;
 
+use App\Http\Controllers\Admin\AdminDatabaseBackupController;
 use App\Http\Controllers\Admin\AdminPedagogicalBankController;
 use App\Http\Controllers\Admin\AdminTdImportController;
 use App\Http\Controllers\Internal\DirectTdImportController;
@@ -35,6 +36,9 @@ class AppServiceProvider extends ServiceProvider
             ->prefix($adminPath)
             ->name('admin.')
             ->group(function () {
+                Route::get('/database-backup', [AdminDatabaseBackupController::class, 'index'])->name('database-backup.index');
+                Route::get('/database-backup/download', [AdminDatabaseBackupController::class, 'download'])->name('database-backup.download');
+
                 Route::get('/td/import', [AdminTdImportController::class, 'create'])->name('td.import');
                 Route::post('/td/import/analyze', [AdminTdImportController::class, 'analyze'])->name('td.import.analyze');
                 Route::post('/td/import/store', [AdminTdImportController::class, 'store'])->name('td.import.store');
