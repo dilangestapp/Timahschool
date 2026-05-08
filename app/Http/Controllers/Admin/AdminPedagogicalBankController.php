@@ -7,6 +7,7 @@ use App\Models\PedagogicalBankItem;
 use App\Models\SchoolClass;
 use App\Models\Subject;
 use App\Models\TdSet;
+use App\Services\GoogleDriveStorageService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Schema;
@@ -60,7 +61,7 @@ class AdminPedagogicalBankController extends Controller
         ));
     }
 
-    public function store(Request $request)
+    public function store(Request $request, GoogleDriveStorageService $drive)
     {
         $data = $request->validate([
             'school_class_id' => ['nullable', 'integer'],
@@ -88,18 +89,18 @@ class AdminPedagogicalBankController extends Controller
             'status' => PedagogicalBankItem::STATUS_AVAILABLE,
         ];
 
-        $payload = array_merge($payload, $this->storeUploadedFile($document, 'document'));
+        $payload = array_merge($payload, $this->storeUploadedFile($document, 'document', $drive));
 
         if ($correction) {
-            $payload = array_merge($payload, $this->storeUploadedFile($correction, 'correction_document'));
+            $payload = array_merge($payload, $this->storeUploadedFile($correction, 'correction_document', $drive));
         }
 
         PedagogicalBankItem::query()->create($payload);
 
-        return back()->with('success', 'Document ajouté à la banque pédagogique. Vérifiez la classe et la matière avant publication.');
+        return back()->with('success', 'Document ajouté à la banque pédagogique. Une copie Google Drive est créée si la configuration Drive est active.');
     }
 
-    public function update(Request $request, PedagogicalBankItem $item)
+    public function update(Request $request, PedagogicalBankItem $item, GoogleDriveStorageService $drive)
     {
         $data = $request->validate([
             'title' => ['required', 'string', 'max:255'],
@@ -126,17 +127,17 @@ class AdminPedagogicalBankController extends Controller
         ];
 
         if ($request->hasFile('document')) {
-            $payload = array_merge($payload, $this->storeUploadedFile($request->file('document'), 'document'));
+            $payload = array_merge($payload, $this->storeUploadedFile($request->file('document'), 'document', $drive));
         }
 
         if ($request->hasFile('correction_document')) {
-            $payload = array_merge($payload, $this->storeUploadedFile($request->file('correction_document'), 'correction_document'));
+            $payload = array_merge($payload, $this->storeUploadedFile($request->file('correction_document'), 'correction_document', $drive));
         }
 
         $item->update($payload);
         $this->syncLastTdSetFromBankItem($item->fresh());
 
-        return back()->with('success', 'Fiche mise à jour. Classe, matière, fichiers et statut sont maintenant corrigés.');
+        return back()->with('success', 'Fiche mise à jour. Les fichiers Drive sont synchronisés si la configuration Drive est active.');
     }
 
     public function schedule(Request $request, PedagogicalBankItem $item)
@@ -160,7 +161,7 @@ class AdminPedagogicalBankController extends Controller
             return back()->with('error', 'Classe ou matière manquante. Choisissez la classe et la matière dans la fiche du TD, puis sauvegardez.');
         }
 
-        if (!$item->document_path) {
+        if (!$item->document_path && !$item->document_drive_url) {
             return back()->with('error', 'Document sujet manquant. Ajoutez ou remplacez le PDF du sujet avant de publier.');
         }
 
@@ -183,10 +184,14 @@ class AdminPedagogicalBankController extends Controller
                 'correction_delay_minutes' => (int) $data['correction_delay_minutes'],
                 'status' => TdSet::STATUS_PUBLISHED,
                 'document_path' => $item->document_path,
+                'document_drive_id' => $item->document_drive_id,
+                'document_drive_url' => $item->document_drive_url,
                 'document_name' => $item->document_name,
                 'document_mime' => $item->document_mime,
                 'document_size' => $item->document_size,
                 'correction_document_path' => $item->correction_document_path,
+                'correction_document_drive_id' => $item->correction_document_drive_id,
+                'correction_document_drive_url' => $item->correction_document_drive_url,
                 'correction_document_name' => $item->correction_document_name,
                 'correction_document_mime' => $item->correction_document_mime,
                 'correction_document_size' => $item->correction_document_size,
@@ -218,16 +223,22 @@ class AdminPedagogicalBankController extends Controller
         return back()->with('success', 'Document remis dans les disponibles.');
     }
 
-    private function storeUploadedFile($file, string $prefix): array
+    private function storeUploadedFile($file, string $prefix, GoogleDriveStorageService $drive): array
     {
         $path = $file->store('pedagogical-bank', 'public');
-
-        return [
+        $payload = [
             $prefix . '_path' => $path,
             $prefix . '_name' => $file->getClientOriginalName(),
             $prefix . '_mime' => $file->getClientMimeType(),
             $prefix . '_size' => $file->getSize(),
         ];
+
+        $drivePayload = $drive->upload($file, $prefix);
+        if ($drivePayload) {
+            $payload = array_merge($payload, $drivePayload);
+        }
+
+        return $payload;
     }
 
     private function inferFromFileName(string $filename): array
@@ -347,10 +358,14 @@ class AdminPedagogicalBankController extends Controller
             'title' => $item->title,
             'chapter_label' => $item->theme,
             'document_path' => $item->document_path,
+            'document_drive_id' => $item->document_drive_id,
+            'document_drive_url' => $item->document_drive_url,
             'document_name' => $item->document_name,
             'document_mime' => $item->document_mime,
             'document_size' => $item->document_size,
             'correction_document_path' => $item->correction_document_path,
+            'correction_document_drive_id' => $item->correction_document_drive_id,
+            'correction_document_drive_url' => $item->correction_document_drive_url,
             'correction_document_name' => $item->correction_document_name,
             'correction_document_mime' => $item->correction_document_mime,
             'correction_document_size' => $item->correction_document_size,
