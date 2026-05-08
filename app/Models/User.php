@@ -20,6 +20,7 @@ class User extends Authenticatable
         'city',
         'avatar',
         'status',
+        'device_policy',
         'password',
         'last_login_at',
         'last_login_ip',
@@ -68,7 +69,13 @@ class User extends Authenticatable
 
     public function mobileDevices()
     {
-        return $this->hasMany(MobileDevice::class)->latest('last_seen_at');
+        $relation = $this->hasMany(MobileDevice::class)->latest('last_seen_at');
+
+        if (in_array((string) ($this->device_policy ?? 'single'), ['demo_student', 'multiple'], true)) {
+            return $relation->where('id', 0);
+        }
+
+        return $relation;
     }
 
     public function activeMobileDevice()
