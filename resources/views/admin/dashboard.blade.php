@@ -12,6 +12,31 @@
     <article class="admin-stat-card"><span class="admin-stat-card__label">Questions TD ouvertes</span><strong>{{ $stats['td_questions_open'] }}</strong></article>
 </div>
 
+<section class="admin-section" style="border:2px solid #bfdbfe;background:#eff6ff;margin-bottom:18px;">
+    <div class="admin-section__head">
+        <div>
+            <h2>Outils importants TIMAH ACADEMY</h2>
+            <p class="admin-muted">Accès rapide aux fonctions sensibles : sauvegarde de la base, comptes de démonstration et banque pédagogique.</p>
+        </div>
+    </div>
+    <div class="admin-module-grid">
+        <a class="admin-module-card" href="{{ route('admin.database-backup.index') }}" style="border:1px solid #60a5fa;background:#ffffff;">
+            <strong>Sauvegarder la base</strong>
+            <span>Télécharger une copie SQL complète pour éviter toute perte sur Railway.</span>
+        </a>
+
+        <a class="admin-module-card" href="{{ route('admin.device-policy.index') }}" style="border:1px solid #22c55e;background:#ffffff;">
+            <strong>Comptes test multi-appareils</strong>
+            <span>Autoriser un compte élève partenaire à se connecter sur plusieurs appareils.</span>
+        </a>
+
+        <a class="admin-module-card" href="{{ route('admin.pedagogical-bank.index') }}" style="border:1px solid #f97316;background:#ffffff;">
+            <strong>Banque pédagogique</strong>
+            <span>Importer, modifier, publier et archiver les TD PDF.</span>
+        </a>
+    </div>
+</section>
+
 <div class="admin-grid-2 admin-grid-2--wide-left">
     <section class="admin-section admin-section--hero">
         <div class="admin-section__head">
@@ -66,6 +91,16 @@
             <a href="{{ route('admin.users.index') }}" class="admin-quick-action">
                 <strong>Utilisateurs</strong>
                 <span>Gérer accès et rôles.</span>
+            </a>
+
+            <a href="{{ route('admin.device-policy.index') }}" class="admin-quick-action">
+                <strong>Accès multi-appareils</strong>
+                <span>Gérer les comptes élèves test partenaires.</span>
+            </a>
+
+            <a href="{{ route('admin.database-backup.index') }}" class="admin-quick-action">
+                <strong>Sauvegarde DB</strong>
+                <span>Télécharger la base avant risque Railway.</span>
             </a>
 
             <a href="{{ route('admin.plans.index') }}" class="admin-quick-action">
