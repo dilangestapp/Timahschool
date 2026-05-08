@@ -31,6 +31,8 @@ class TdSet extends Model
         'correction_delay_minutes',
         'status',
         'document_path',
+        'document_drive_id',
+        'document_drive_url',
         'document_name',
         'document_mime',
         'document_size',
@@ -39,6 +41,8 @@ class TdSet extends Model
         'has_editable_version',
         'correction_html',
         'correction_document_path',
+        'correction_document_drive_id',
+        'correction_document_drive_url',
         'correction_document_name',
         'correction_document_mime',
         'correction_document_size',
@@ -94,12 +98,32 @@ class TdSet extends Model
 
     public function hasDocument(): bool
     {
-        return !empty($this->document_path);
+        return !empty($this->document_path) || !empty($this->document_drive_url);
+    }
+
+    public function hasLocalDocument(): bool
+    {
+        return !empty($this->document_path) && Storage::disk('public')->exists($this->document_path);
+    }
+
+    public function hasDriveDocument(): bool
+    {
+        return !empty($this->document_drive_url);
     }
 
     public function hasCorrectionDocument(): bool
     {
-        return !empty($this->correction_document_path);
+        return !empty($this->correction_document_path) || !empty($this->correction_document_drive_url);
+    }
+
+    public function hasLocalCorrectionDocument(): bool
+    {
+        return !empty($this->correction_document_path) && Storage::disk('public')->exists($this->correction_document_path);
+    }
+
+    public function hasDriveCorrectionDocument(): bool
+    {
+        return !empty($this->correction_document_drive_url);
     }
 
     public function hasCorrectionContent(): bool
