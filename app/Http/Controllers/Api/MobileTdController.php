@@ -7,6 +7,7 @@ use App\Models\TdAttempt;
 use App\Models\TdSet;
 use App\Models\User;
 use Illuminate\Http\JsonResponse;
+use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Schema;
 use Illuminate\Support\Facades\Storage;
@@ -117,7 +118,7 @@ class MobileTdController extends Controller
         ]);
     }
 
-    public function document(Request $request, int $id): Response|JsonResponse
+    public function document(Request $request, int $id): Response|JsonResponse|RedirectResponse
     {
         $user = $this->userFromBearer($request);
         if (!$user) {
@@ -133,14 +134,18 @@ class MobileTdController extends Controller
             return $response;
         }
 
-        if (!$td->document_path || !Storage::disk('public')->exists($td->document_path)) {
-            return response()->json(['status' => 'not_found', 'message' => 'Document PDF du TD introuvable.'], 404);
+        if ($td->document_path && Storage::disk('public')->exists($td->document_path)) {
+            return Storage::disk('public')->response($td->document_path, $td->document_name ?: basename($td->document_path));
         }
 
-        return Storage::disk('public')->response($td->document_path, $td->document_name ?: basename($td->document_path));
+        if (!empty($td->document_drive_url)) {
+            return redirect()->away($td->document_drive_url);
+        }
+
+        return response()->json(['status' => 'not_found', 'message' => 'Document PDF du TD introuvable. Le fichier doit être remplacé par l’administration.'], 404);
     }
 
-    public function correctionDocument(Request $request, int $id): Response|JsonResponse
+    public function correctionDocument(Request $request, int $id): Response|JsonResponse|RedirectResponse
     {
         $user = $this->userFromBearer($request);
         if (!$user) {
@@ -169,11 +174,15 @@ class MobileTdController extends Controller
             ], 423);
         }
 
-        if (!$td->correction_document_path || !Storage::disk('public')->exists($td->correction_document_path)) {
-            return response()->json(['status' => 'not_found', 'message' => 'Corrigé PDF introuvable.'], 404);
+        if ($td->correction_document_path && Storage::disk('public')->exists($td->correction_document_path)) {
+            return Storage::disk('public')->response($td->correction_document_path, $td->correction_document_name ?: basename($td->correction_document_path));
         }
 
-        return Storage::disk('public')->response($td->correction_document_path, $td->correction_document_name ?: basename($td->correction_document_path));
+        if (!empty($td->correction_document_drive_url)) {
+            return redirect()->away($td->correction_document_drive_url);
+        }
+
+        return response()->json(['status' => 'not_found', 'message' => 'Corrigé PDF introuvable. Le fichier doit être remplacé par l’administration.'], 404);
     }
 
     private function openAttempt(TdSet $td, User $user): TdAttempt
@@ -218,8 +227,8 @@ class MobileTdController extends Controller
         $publishedAt = $td->published_at;
         $isAvailableNow = !$publishedAt || now()->greaterThanOrEqualTo($publishedAt);
         $canSeeCorrection = $td->correctionIsAvailableFor($user, $attempt);
-        $documentUrl = $td->document_path ? url('/api/mobile/td/' . $td->id . '/document') : null;
-        $correctionUrl = ($canSeeCorrection && $td->correction_document_path) ? url('/api/mobile/td/' . $td->id . '/correction-document') : null;
+        $documentUrl = $td->hasDocument() ? url('/api/mobile/td/' . $td->id . '/document') : null;
+        $correctionUrl = ($canSeeCorrection && $td->hasCorrectionDocument()) ? url('/api/mobile/td/' . $td->id . '/correction-document') : null;
         $availabilityStatus = $isAvailableNow ? 'available' : 'scheduled';
         $availabilityLabel = $isAvailableNow ? 'Disponible maintenant' : 'Programmé pour ' . $this->formatDateTime($publishedAt);
         $availabilityDetail = $isAvailableNow
@@ -269,6 +278,7 @@ class MobileTdController extends Controller
             'correction_detail' => $correctionDetail,
             'display_mode' => 'pdf_document',
             'has_document' => $td->hasDocument(),
+            'document_storage' => $td->hasLocalDocument() ? 'local' : ($td->hasDriveDocument() ? 'google_drive' : null),
             'document_name' => $td->document_name,
             'document_mime' => $td->document_mime,
             'document_size' => $td->document_size,
@@ -276,6 +286,7 @@ class MobileTdController extends Controller
             'has_editable_version' => false,
             'has_correction' => $td->hasCorrectionContent(),
             'can_see_correction' => $canSeeCorrection,
+            'correction_storage' => $td->hasLocalCorrectionDocument() ? 'local' : ($td->hasDriveCorrectionDocument() ? 'google_drive' : null),
             'correction_document_name' => $td->correction_document_name,
             'correction_document_url' => $correctionUrl,
             'attempt' => $attempt ? [
@@ -291,7 +302,7 @@ class MobileTdController extends Controller
                 'type' => 'pdf',
                 'document_url' => $documentUrl,
                 'document_name' => $td->document_name,
-                'message' => $td->document_path
+                'message' => $td->hasDocument()
                     ? 'Ouvrez le document PDF pour traiter le TD.'
                     : 'Aucun document PDF n’a encore été ajouté pour ce TD.',
             ];
