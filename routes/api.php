@@ -2,6 +2,7 @@
 
 use App\Http\Controllers\Api\MobileAuthController;
 use App\Http\Controllers\Api\MobileContentController;
+use App\Http\Controllers\Api\MobileCourseController;
 use App\Http\Controllers\Api\MobileLearningController;
 use App\Http\Controllers\Api\MobileTdController;
 use Illuminate\Support\Facades\Artisan;
@@ -51,6 +52,11 @@ Route::prefix('mobile')->name('api.mobile.')->group(function () {
     Route::get('/board', [MobileContentController::class, 'board'])->name('board');
     Route::get('/reports', [MobileContentController::class, 'reports'])->name('reports');
     Route::get('/evaluations', [MobileContentController::class, 'evaluations'])->name('evaluations');
+
+    Route::get('/courses', [MobileCourseController::class, 'index'])->name('courses.index');
+    Route::get('/courses/{id}', [MobileCourseController::class, 'show'])->whereNumber('id')->name('courses.show');
+    Route::get('/courses/{id}/document', [MobileCourseController::class, 'document'])->whereNumber('id')->name('courses.document');
+    Route::get('/courses/{id}/download', [MobileCourseController::class, 'download'])->whereNumber('id')->name('courses.download');
 
     Route::get('/program/{id}', [MobileLearningController::class, 'programDetail'])->whereNumber('id')->name('program.detail');
     Route::post('/program/{id}/complete', [MobileLearningController::class, 'completeProgram'])->whereNumber('id')->name('program.complete');
