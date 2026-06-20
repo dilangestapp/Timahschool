@@ -4,6 +4,7 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Support\Facades\Schema;
 
 class Course extends Model
 {
@@ -19,6 +20,7 @@ class Course extends Model
         'objectives',
         'content_html',
         'content_text',
+        'editor_type',
         'level',
         'thumbnail',
         'order',
@@ -28,16 +30,25 @@ class Course extends Model
         'document_name',
         'document_mime',
         'document_size',
+        'is_downloadable',
+        'mobile_access',
+        'estimated_minutes',
     ];
 
     protected $casts = [
         'published_at' => 'datetime',
         'document_size' => 'integer',
+        'is_downloadable' => 'boolean',
+        'estimated_minutes' => 'integer',
     ];
 
     public const STATUS_DRAFT = 'draft';
     public const STATUS_PUBLISHED = 'published';
     public const STATUS_ARCHIVED = 'archived';
+
+    public const MOBILE_ACCESS_SUBSCRIPTION = 'subscription';
+    public const MOBILE_ACCESS_FREE = 'free';
+    public const MOBILE_ACCESS_LOCKED = 'locked';
 
     public function subject()
     {
@@ -59,6 +70,17 @@ class Course extends Model
         return $query->where('status', self::STATUS_PUBLISHED);
     }
 
+    public function scopeVisibleOnMobile($query)
+    {
+        return $query->where('status', self::STATUS_PUBLISHED)
+            ->when(Schema::hasColumn('courses', 'mobile_access'), function ($builder) {
+                $builder->where(function ($sub) {
+                    $sub->whereNull('mobile_access')
+                        ->orWhere('mobile_access', '!=', self::MOBILE_ACCESS_LOCKED);
+                });
+            });
+    }
+
     public function hasDocument(): bool
     {
         return !empty($this->document_path);
@@ -67,6 +89,24 @@ class Course extends Model
     public function hasRichContent(): bool
     {
         return trim((string) ($this->content_html ?? '')) !== '';
+    }
+
+    public function isDownloadable(): bool
+    {
+        if (!Schema::hasColumn('courses', 'is_downloadable')) {
+            return true;
+        }
+
+        return (bool) ($this->is_downloadable ?? true);
+    }
+
+    public function mobileAccess(): string
+    {
+        if (!Schema::hasColumn('courses', 'mobile_access')) {
+            return self::MOBILE_ACCESS_SUBSCRIPTION;
+        }
+
+        return $this->mobile_access ?: self::MOBILE_ACCESS_SUBSCRIPTION;
     }
 
     public function excerpt(int $limit = 160): string
