@@ -47,13 +47,23 @@ class TdSet extends Model
         'correction_document_mime',
         'correction_document_size',
         'published_at',
+        'opens_at',
+        'closes_at',
+        'duration_minutes',
+        'penalty_label',
+        'allow_makeup',
+        'submission_type',
     ];
 
     protected $casts = [
         'published_at' => 'datetime',
+        'opens_at' => 'datetime',
+        'closes_at' => 'datetime',
         'correction_release_at' => 'datetime',
         'has_editable_version' => 'boolean',
+        'allow_makeup' => 'boolean',
         'correction_delay_minutes' => 'integer',
+        'duration_minutes' => 'integer',
     ];
 
     public function bankItem()
@@ -94,6 +104,38 @@ class TdSet extends Model
     public function scopePublished($query)
     {
         return $query->where('status', self::STATUS_PUBLISHED);
+    }
+
+    public function openAt()
+    {
+        return $this->opens_at ?: $this->published_at;
+    }
+
+    public function closeAt()
+    {
+        return $this->closes_at;
+    }
+
+    public function treatmentDurationMinutes(): int
+    {
+        $minutes = (int) ($this->duration_minutes ?? $this->estimated_minutes ?? 90);
+        return max(1, min(1440, $minutes));
+    }
+
+    public function canOpenNow(): bool
+    {
+        $open = $this->openAt();
+        $close = $this->closeAt();
+
+        if ($open && now()->lt($open)) {
+            return false;
+        }
+
+        if ($close && now()->gt($close)) {
+            return false;
+        }
+
+        return true;
     }
 
     public function hasDocument(): bool
@@ -147,7 +189,7 @@ class TdSet extends Model
             return false;
         }
 
-        if (!$attempt || $attempt->status !== TdAttempt::STATUS_COMPLETED) {
+        if (!$attempt || !in_array($attempt->status, [TdAttempt::STATUS_COMPLETED, TdAttempt::STATUS_SUBMITTED, TdAttempt::STATUS_CORRECTED, TdAttempt::STATUS_GRADED], true)) {
             return false;
         }
 
