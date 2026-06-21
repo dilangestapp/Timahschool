@@ -52,8 +52,17 @@ return new class extends Migration {
 
         if (Schema::hasTable('mobile_notifications')) {
             Schema::table('mobile_notifications', function (Blueprint $table) {
+                if (!Schema::hasColumn('mobile_notifications', 'target_type')) {
+                    $table->string('target_type')->nullable()->after('message');
+                }
+                if (!Schema::hasColumn('mobile_notifications', 'target_id')) {
+                    $table->unsignedBigInteger('target_id')->nullable()->after('target_type');
+                }
                 if (!Schema::hasColumn('mobile_notifications', 'data')) {
-                    $table->json('data')->nullable()->after('target_id');
+                    $table->json('data')->nullable()->after('message');
+                }
+                if (!Schema::hasColumn('mobile_notifications', 'read_at')) {
+                    $table->timestamp('read_at')->nullable()->after('data');
                 }
                 if (!Schema::hasColumn('mobile_notifications', 'seen_at')) {
                     $table->timestamp('seen_at')->nullable()->after('read_at');
