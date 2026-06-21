@@ -9,7 +9,9 @@ use App\Models\TdQuestionThread;
 use App\Models\TdSet;
 use App\Models\TeacherAssignment;
 use App\Models\TeacherMessage;
+use App\Models\TeacherWeeklyProgram;
 use Illuminate\Support\Collection;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Schema;
 
 class DashboardController extends Controller
@@ -18,12 +20,12 @@ class DashboardController extends Controller
     {
         $teacher = auth()->user();
         $assignments = $this->assignments($teacher->id);
+        $classIds = $assignments->pluck('school_class_id')->filter()->unique()->values();
+
         $courseQuery = Course::query()->with(['subject', 'schoolClass']);
         $this->applyAssignments($courseQuery, $assignments);
 
-        $tdQuery = Schema::hasTable('td_sets')
-            ? TdSet::query()->with(['subject', 'schoolClass'])
-            : null;
+        $tdQuery = Schema::hasTable('td_sets') ? TdSet::query()->with(['subject', 'schoolClass']) : null;
         if ($tdQuery) {
             $this->applyAssignments($tdQuery, $assignments);
         }
@@ -36,13 +38,36 @@ class DashboardController extends Controller
             ? TdQuestionThread::query()->where('teacher_id', $teacher->id)->with(['student', 'tdSet', 'subject'])
             : null;
 
+        $weeklyProgram = Schema::hasTable('teacher_weekly_programs')
+            ? TeacherWeeklyProgram::query()
+                ->with(['schoolClass', 'subject'])
+                ->where('teacher_id', $teacher->id)
+                ->whereBetween('program_date', [now()->startOfWeek()->toDateString(), now()->endOfWeek()->toDateString()])
+                ->orderBy('program_date')
+                ->orderBy('start_time')
+                ->get()
+            : collect();
+
+        $assignmentCards = $assignments->map(function ($assignment) use ($messageQuery, $tdQuestionQuery) {
+            return [
+                'assignment' => $assignment,
+                'course_count' => Course::query()->where('school_class_id', $assignment->school_class_id)->where('subject_id', $assignment->subject_id)->count(),
+                'td_count' => Schema::hasTable('td_sets') ? TdSet::query()->where('school_class_id', $assignment->school_class_id)->where('subject_id', $assignment->subject_id)->count() : 0,
+                'open_questions' => $tdQuestionQuery ? (clone $tdQuestionQuery)->where('school_class_id', $assignment->school_class_id)->where('subject_id', $assignment->subject_id)->where('status', TdQuestionThread::STATUS_OPEN)->count() : 0,
+                'unread_messages' => $messageQuery ? (clone $messageQuery)->where('school_class_id', $assignment->school_class_id)->where('subject_id', $assignment->subject_id)->where('status', TeacherMessage::STATUS_UNREAD)->count() : 0,
+                'students' => Schema::hasTable('student_profiles') ? DB::table('student_profiles')->where('school_class_id', $assignment->school_class_id)->count() : 0,
+            ];
+        });
+
         return view('teacher.dashboard', [
             'teacher' => $teacher,
             'assignments' => $assignments,
+            'assignmentCards' => $assignmentCards,
             'dashboardText' => PlatformSetting::group('dashboard_teacher'),
             'stats' => [
-                'classes' => $assignments->pluck('school_class_id')->unique()->count(),
+                'classes' => $classIds->count(),
                 'subjects' => $assignments->pluck('subject_id')->unique()->count(),
+                'students' => Schema::hasTable('student_profiles') && $classIds->isNotEmpty() ? DB::table('student_profiles')->whereIn('school_class_id', $classIds)->count() : 0,
                 'courses' => (clone $courseQuery)->count(),
                 'published_courses' => (clone $courseQuery)->where('status', Course::STATUS_PUBLISHED)->count(),
                 'draft_courses' => (clone $courseQuery)->where('status', Course::STATUS_DRAFT)->count(),
@@ -51,7 +76,9 @@ class DashboardController extends Controller
                 'td_total' => $tdQuery ? (clone $tdQuery)->count() : 0,
                 'td_published' => $tdQuery ? (clone $tdQuery)->where('status', TdSet::STATUS_PUBLISHED)->count() : 0,
                 'td_questions_open' => $tdQuestionQuery ? (clone $tdQuestionQuery)->where('status', TdQuestionThread::STATUS_OPEN)->count() : 0,
+                'week_program' => $weeklyProgram->count(),
             ],
+            'weeklyProgram' => $weeklyProgram,
             'recentCourses' => (clone $courseQuery)->latest()->take(6)->get(),
             'recentMessages' => $messageQuery ? (clone $messageQuery)->latest()->take(6)->get() : collect(),
             'recentTdSets' => $tdQuery ? (clone $tdQuery)->latest()->take(6)->get() : collect(),
