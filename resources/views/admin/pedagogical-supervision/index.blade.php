@@ -10,10 +10,12 @@
         <div class="admin-section__head">
             <div>
                 <h2>Migration nécessaire</h2>
-                <p class="admin-muted">Les tables de supervision ne sont pas encore installées. Lance le setup Railway puis reviens sur cette page.</p>
+                <p class="admin-muted">Les tables de supervision ne sont pas encore installées sur le serveur Contabo. Déploie la dernière version depuis GitHub puis lance les migrations Laravel sur le VPS.</p>
             </div>
         </div>
-        <a href="{{ url('/__railway/setup/timah2026') }}" class="btn btn--primary">Lancer setup Railway</a>
+        <div class="admin-alert admin-alert--warning" style="margin-top:12px;">
+            Commandes serveur : cd /var/www/timahacademy ; git pull origin main ; php artisan migrate --force ; php artisan optimize:clear
+        </div>
     </section>
 @else
 <style>
