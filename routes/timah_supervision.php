@@ -1,6 +1,7 @@
 <?php
 
 use App\Http\Controllers\Admin\AdminPedagogicalSupervisionController;
+use App\Http\Controllers\SupervisionDashboardController;
 use App\Http\Middleware\EnsureAdmin;
 use Illuminate\Support\Facades\Route;
 
@@ -17,4 +18,12 @@ Route::prefix($adminPath)
         Route::post('/organization/notes', [AdminPedagogicalSupervisionController::class, 'storeNote'])->name('organization.notes.store');
         Route::post('/organization/responsibilities/{responsibility}/toggle', [AdminPedagogicalSupervisionController::class, 'toggleResponsibility'])->name('organization.responsibilities.toggle');
         Route::post('/organization/notes/{note}/status', [AdminPedagogicalSupervisionController::class, 'updateNoteStatus'])->name('organization.notes.status');
+    });
+
+Route::prefix('supervision')
+    ->name('supervision.')
+    ->middleware(['auth', 'no.cache'])
+    ->group(function () {
+        Route::get('/dashboard', [SupervisionDashboardController::class, 'index'])->name('dashboard');
+        Route::post('/notes', [SupervisionDashboardController::class, 'storeNote'])->name('notes.store');
     });
