@@ -4,8 +4,10 @@ namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\Controller;
 use App\Models\Course;
+use App\Models\CourseProgress;
 use App\Models\Subject;
 use App\Models\User;
+use App\Support\CoursePublicationNotifier;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Schema;
@@ -91,11 +93,11 @@ class MobileCourseController extends Controller
                 'name' => $user->studentProfile?->schoolClass?->name,
             ],
             'subjects' => $subjects,
-            'items' => $items->map(fn (Course $course) => $this->serializeCourse($course))->values(),
+            'items' => $items->map(fn (Course $course) => $this->serializeCourse($course, false, $user))->values(),
         ]);
     }
 
-    public function show(Request $request, int $id): JsonResponse
+    public function show(Request $request, int $id, CoursePublicationNotifier $notifier): JsonResponse
     {
         $user = $this->mobileUser($request);
         if (!$user) {
@@ -113,24 +115,50 @@ class MobileCourseController extends Controller
             ], 404);
         }
 
+        $notifier->courseOpened($course, $user);
+
         return response()->json([
             'status' => 'ok',
             'message' => 'Cours chargé.',
-            'item' => $this->serializeCourse($course, true),
+            'item' => $this->serializeCourse($course, true, $user),
         ]);
     }
 
-    public function document(Request $request, int $id): Response|JsonResponse
+    public function complete(Request $request, int $id, CoursePublicationNotifier $notifier): JsonResponse
     {
-        return $this->serveDocument($request, $id, false);
+        $user = $this->mobileUser($request);
+        if (!$user) {
+            return $this->unauthenticated();
+        }
+
+        $user->loadMissing('studentProfile.schoolClass');
+        $classId = $user->studentProfile?->school_class_id;
+        $course = Course::query()->with(['subject', 'schoolClass', 'creator'])->find($id);
+
+        if (!$course || !$classId || !$this->canOpen($course, (int) $classId)) {
+            return response()->json(['status' => 'not_found', 'message' => 'Cours introuvable ou non disponible.'], 404);
+        }
+
+        $notifier->courseCompleted($course, $user);
+
+        return response()->json([
+            'status' => 'ok',
+            'message' => 'Cours marqué comme terminé.',
+            'item' => $this->serializeCourse($course, true, $user),
+        ]);
     }
 
-    public function download(Request $request, int $id): Response|JsonResponse
+    public function document(Request $request, int $id, CoursePublicationNotifier $notifier): Response|JsonResponse
     {
-        return $this->serveDocument($request, $id, true);
+        return $this->serveDocument($request, $id, false, $notifier);
     }
 
-    private function serveDocument(Request $request, int $id, bool $download): Response|JsonResponse
+    public function download(Request $request, int $id, CoursePublicationNotifier $notifier): Response|JsonResponse
+    {
+        return $this->serveDocument($request, $id, true, $notifier);
+    }
+
+    private function serveDocument(Request $request, int $id, bool $download, CoursePublicationNotifier $notifier): Response|JsonResponse
     {
         $user = $this->mobileUser($request);
         if (!$user) {
@@ -158,6 +186,8 @@ class MobileCourseController extends Controller
             return response()->json(['status' => 'not_found', 'message' => 'Le fichier du cours est introuvable sur le serveur.'], 404);
         }
 
+        $notifier->courseOpened($course, $user);
+
         if ($download) {
             return response()->download($path, $course->document_name ?: basename($path));
         }
@@ -172,11 +202,12 @@ class MobileCourseController extends Controller
             && $course->mobileAccess() !== Course::MOBILE_ACCESS_LOCKED;
     }
 
-    private function serializeCourse(Course $course, bool $full = false): array
+    private function serializeCourse(Course $course, bool $full = false, ?User $user = null): array
     {
         $hasDocument = $course->hasDocument();
         $canDownload = $hasDocument && $course->isDownloadable();
         $publishedAt = $course->published_at;
+        $progress = $this->courseProgress($course, $user);
 
         $data = [
             'id' => $course->id,
@@ -206,6 +237,8 @@ class MobileCourseController extends Controller
             'document_size_label' => $course->humanDocumentSize(),
             'document_url' => $hasDocument ? url('/api/mobile/courses/' . $course->id . '/document') : null,
             'download_url' => $canDownload ? url('/api/mobile/courses/' . $course->id . '/download') : null,
+            'progress' => $progress,
+            'is_completed' => ($progress['status'] ?? null) === CourseProgress::STATUS_COMPLETED,
         ];
 
         if ($full) {
@@ -217,6 +250,30 @@ class MobileCourseController extends Controller
         }
 
         return $data;
+    }
+
+    private function courseProgress(Course $course, ?User $user): array
+    {
+        if (!$user || !Schema::hasTable('course_progress')) {
+            return ['status' => 'not_started', 'progress_percent' => 0];
+        }
+
+        $progress = CourseProgress::query()
+            ->where('course_id', $course->id)
+            ->where('student_id', $user->id)
+            ->first();
+
+        if (!$progress) {
+            return ['status' => 'not_started', 'progress_percent' => 0];
+        }
+
+        return [
+            'status' => $progress->status,
+            'progress_percent' => (int) $progress->progress_percent,
+            'opened_at' => $progress->opened_at?->toIso8601String(),
+            'last_seen_at' => $progress->last_seen_at?->toIso8601String(),
+            'completed_at' => $progress->completed_at?->toIso8601String(),
+        ];
     }
 
     private function mobileUser(Request $request): ?User
