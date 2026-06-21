@@ -43,7 +43,3 @@ if (file_exists(base_path('routes/timah_responsible_actions.php'))) {
 if (file_exists(base_path('routes/timah_department_management.php'))) {
     require base_path('routes/timah_department_management.php');
 }
-
-if (file_exists(base_path('routes/timah_teacher_messages_fix.php'))) {
-    require base_path('routes/timah_teacher_messages_fix.php');
-}
