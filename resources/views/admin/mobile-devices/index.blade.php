@@ -7,7 +7,7 @@
 @section('content')
 <div class="admin-compact-page">
     @if($tableMissing)
-        <div class="admin-empty-box">La table <strong>mobile_devices</strong> est introuvable. Lancez les migrations Railway pour activer ce module.</div>
+        <div class="admin-empty-box">La table <strong>mobile_devices</strong> est introuvable. Lancez les migrations Laravel sur le serveur Contabo pour activer ce module.</div>
     @else
         <div class="admin-summary-strip">
             <div class="admin-summary-card"><strong>{{ $items->count() }}</strong><span>appareils affichés</span></div>
