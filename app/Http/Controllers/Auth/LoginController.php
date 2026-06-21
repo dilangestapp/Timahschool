@@ -23,6 +23,10 @@ class LoginController extends Controller
                 return redirect()->route('teacher.dashboard');
             }
 
+            if (method_exists($user, 'isParent') && $user->isParent()) {
+                return redirect()->route('parent.dashboard');
+            }
+
             return redirect()->route('student.dashboard');
         }
 
@@ -39,9 +43,7 @@ class LoginController extends Controller
         $credentials = $request->only('username', 'password');
 
         if (!Auth::attempt($credentials, $request->boolean('remember'))) {
-            return back()->withErrors([
-                'username' => 'Identifiants invalides.',
-            ])->onlyInput('username');
+            return back()->withErrors(['username' => 'Identifiants invalides.'])->onlyInput('username');
         }
 
         $request->session()->regenerate();
@@ -50,11 +52,9 @@ class LoginController extends Controller
         try {
             if ($user && Schema::hasColumn($user->getTable(), 'last_login_at')) {
                 $updates = ['last_login_at' => now()];
-
                 if (Schema::hasColumn($user->getTable(), 'last_login_ip')) {
                     $updates['last_login_ip'] = $request->ip();
                 }
-
                 $user->forceFill($updates)->save();
             }
         } catch (\Throwable $e) {
@@ -75,6 +75,10 @@ class LoginController extends Controller
 
         if ($user && method_exists($user, 'isTeacher') && $user->isTeacher()) {
             return redirect()->route('teacher.dashboard');
+        }
+
+        if ($user && method_exists($user, 'isParent') && $user->isParent()) {
+            return redirect()->route('parent.dashboard');
         }
 
         return redirect()->route('student.dashboard');
