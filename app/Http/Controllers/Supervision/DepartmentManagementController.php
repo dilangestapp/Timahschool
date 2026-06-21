@@ -11,9 +11,18 @@ use Illuminate\Validation\Rule;
 
 class DepartmentManagementController extends Controller
 {
-    private array $levels = [
+    private array $allLevels = [
         'enseignement_general' => 'Enseignement général',
+        'secondaire_general' => 'Secondaire général',
+        'general' => 'Général',
         'enseignement_technique' => 'Enseignement technique',
+        'secondaire_technique' => 'Secondaire technique',
+        'technical' => 'Technique',
+        'technique' => 'Technique',
+        'primaire' => 'Primaire',
+        'primary' => 'Primaire',
+        'anglophone' => 'Anglophone',
+        'exam' => 'Classes d’examen',
     ];
 
     public function classes()
@@ -21,16 +30,38 @@ class DepartmentManagementController extends Controller
         $context = $this->departmentContext();
         abort_unless($context['allowed'], 403);
 
-        $classes = Schema::hasTable('school_classes') ? DB::table('school_classes')->orderBy('level')->orderBy('order')->orderBy('name')->get() : collect();
-        $subjects = Schema::hasTable('subjects') ? DB::table('subjects')->orderBy('order')->orderBy('name')->get() : collect();
+        $department = $context['department'];
+        $levels = $this->levelsForDepartment($department);
+
+        $classes = collect();
+        if (Schema::hasTable('school_classes')) {
+            $classesQuery = DB::table('school_classes')->orderBy('level')->orderBy('order')->orderBy('name');
+            if (!empty($levels) && Schema::hasColumn('school_classes', 'level')) {
+                $classesQuery->whereIn('level', array_keys($levels));
+            } elseif ($department->school_class_id ?? null) {
+                $classesQuery->where('id', $department->school_class_id);
+            } else {
+                $classesQuery->whereRaw('1 = 0');
+            }
+            $classes = $classesQuery->get();
+        }
+
+        $subjects = collect();
+        if (Schema::hasTable('subjects') && ($department->subject_id ?? null)) {
+            $subjects = DB::table('subjects')
+                ->where('id', $department->subject_id)
+                ->orderBy('order')
+                ->orderBy('name')
+                ->get();
+        }
 
         return view('supervision.department-classes', [
-            'department' => $context['department'],
-            'linkedClassId' => $context['department']->school_class_id ?? null,
-            'linkedSubjectId' => $context['department']->subject_id ?? null,
+            'department' => $department,
+            'linkedClassId' => $department->school_class_id ?? null,
+            'linkedSubjectId' => $department->subject_id ?? null,
             'classes' => $classes,
             'subjects' => $subjects,
-            'levels' => $this->levels,
+            'levels' => $levels ?: ['enseignement_technique' => 'Enseignement technique'],
         ]);
     }
 
@@ -45,9 +76,10 @@ class DepartmentManagementController extends Controller
         abort_unless($context['allowed'], 403);
         abort_unless(Schema::hasTable('school_classes'), 404);
 
+        $levels = $this->levelsForDepartment($context['department']);
         $request->validate([
             'name' => ['required', 'string', 'max:255', Rule::unique('school_classes', 'name')],
-            'level' => ['required', Rule::in(array_keys($this->levels))],
+            'level' => ['required', Rule::in(array_keys($levels ?: $this->allLevels))],
             'description' => ['nullable', 'string'],
             'order' => ['nullable', 'integer', 'min:0'],
         ]);
@@ -74,9 +106,10 @@ class DepartmentManagementController extends Controller
         abort_unless($context['allowed'], 403);
         abort_unless(Schema::hasTable('school_classes'), 404);
 
+        $levels = $this->levelsForDepartment($context['department']);
         $request->validate([
             'name' => ['required', 'string', 'max:255', Rule::unique('school_classes', 'name')->ignore($class)],
-            'level' => ['required', Rule::in(array_keys($this->levels))],
+            'level' => ['required', Rule::in(array_keys($levels ?: $this->allLevels))],
             'description' => ['nullable', 'string'],
             'order' => ['nullable', 'integer', 'min:0'],
         ]);
@@ -133,6 +166,8 @@ class DepartmentManagementController extends Controller
         abort_unless($context['allowed'], 403);
         abort_unless(Schema::hasTable('subjects'), 404);
 
+        abort_unless((int) ($context['department']->subject_id ?? 0) === $subject, 403);
+
         $request->validate([
             'name' => ['required', 'string', 'max:255', Rule::unique('subjects', 'name')->ignore($subject)],
             'description' => ['nullable', 'string'],
@@ -152,9 +187,7 @@ class DepartmentManagementController extends Controller
             'updated_at' => now(),
         ]));
 
-        $this->linkDepartmentColumn($context['department']->id, 'subject_id', $subject);
-
-        return back()->with('success', 'Matière mise à jour et liée au département.');
+        return back()->with('success', 'Matière du département mise à jour.');
     }
 
     private function departmentContext(): array
@@ -181,6 +214,39 @@ class DepartmentManagementController extends Controller
         $department = DB::table('teaching_departments')->where('id', $responsibility->teaching_department_id)->first();
 
         return ['allowed' => (bool) $department, 'department' => $department];
+    }
+
+    private function levelsForDepartment(object $department): array
+    {
+        $divisionType = '';
+        if (($department->teaching_division_id ?? null) && Schema::hasTable('teaching_divisions')) {
+            $divisionType = (string) DB::table('teaching_divisions')->where('id', $department->teaching_division_id)->value('type');
+        }
+
+        $haystack = Str::lower(($department->name ?? '') . ' ' . ($department->code ?? '') . ' ' . $divisionType);
+
+        if (str_contains($haystack, 'tech')) {
+            return [
+                'enseignement_technique' => 'Enseignement technique',
+                'secondaire_technique' => 'Secondaire technique',
+                'technical' => 'Technique',
+                'technique' => 'Technique',
+            ];
+        }
+
+        if (str_contains($haystack, 'general') || str_contains($haystack, 'général')) {
+            return [
+                'enseignement_general' => 'Enseignement général',
+                'secondaire_general' => 'Secondaire général',
+                'general' => 'Général',
+            ];
+        }
+
+        if (str_contains($haystack, 'primaire') || str_contains($haystack, 'primary')) {
+            return ['primaire' => 'Primaire', 'primary' => 'Primaire'];
+        }
+
+        return [];
     }
 
     private function linkDepartmentColumn(int $departmentId, string $column, int $value): void
