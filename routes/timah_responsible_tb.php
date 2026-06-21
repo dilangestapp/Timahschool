@@ -18,10 +18,6 @@ Route::get('/supervision/tb', function () {
     $hasTitle = fn (string $needle) => $responsibilities->contains(fn ($item) => str_contains((string) ($item->role_title ?? ''), $needle));
     $hasScope = fn (string $scope) => $responsibilities->contains(fn ($item) => ($item->scope_type ?? '') === $scope);
 
-    if ($hasTitle('Secrétaire général') || $hasTitle('Coordinateur général')) {
-        return redirect()->route('secretariat.dashboard');
-    }
-
     if ($hasTitle('Superviseur pédagogique')) {
         return redirect()->route('supervisor.pedagogical.dashboard');
     }
@@ -30,12 +26,16 @@ Route::get('/supervision/tb', function () {
         return redirect()->route('referent.pedagogical.dashboard');
     }
 
+    if ($hasScope('department')) {
+        return redirect()->route('responsible.department.dashboard');
+    }
+
     if ($hasScope('division')) {
         return redirect()->route('responsible.division.dashboard');
     }
 
-    if ($hasScope('department')) {
-        return redirect()->route('responsible.department.dashboard');
+    if ($hasTitle('Secrétaire général') || $hasTitle('Coordinateur général')) {
+        return redirect()->route('secretariat.dashboard');
     }
 
     return view('supervision.responsible-tb');
@@ -53,10 +53,7 @@ Route::get('/responsable-enseignement/dashboard', function () {
 })->middleware(['auth', 'no.cache'])->name('responsible.division.dashboard');
 
 Route::get('/responsable-departement/dashboard', function () {
-    return view('supervision.responsible-area', [
-        'requiredScope' => 'department',
-        'dashboardTitle' => 'TB Responsable département / filière',
-    ]);
+    return view('supervision.department-dashboard');
 })->middleware(['auth', 'no.cache'])->name('responsible.department.dashboard');
 
 Route::get('/referent-pedagogique/dashboard', function () {
