@@ -71,7 +71,7 @@ class PedagogicalResponsibility extends Model
         return $query->where('scope_type', 'department');
     }
 
-    public function scopeLabel(): string
+    public function label(): string
     {
         if ($this->scope_type === 'division') {
             return $this->division->name ?? 'Type d’enseignement';
