@@ -2,20 +2,29 @@
 
 @section('title', 'Modifier un cours')
 @section('page_title', 'Modifier le cours')
-@section('page_subtitle', 'Mettez à jour le contenu rédigé, le document et le statut de ce cours.')
+@section('page_subtitle', 'Mettez à jour le contenu rédigé, le fichier et le statut de ce cours.')
 
 @push('head')
     <script src="https://cdn.jsdelivr.net/npm/tinymce@7/tinymce.min.js" referrerpolicy="origin"></script>
 @endpush
 
 @section('content')
+@php
+    $extension = strtolower(pathinfo($course->document_name ?: $course->document_path ?: '', PATHINFO_EXTENSION));
+    $canEditOffice = in_array($extension, ['docx', 'doc', 'odt', 'rtf', 'txt'], true);
+@endphp
 <section class="teacher-section teacher-form-section">
     <div class="teacher-section__head">
         <div>
             <h2>{{ $course->title }}</h2>
             <p class="teacher-muted">{{ $course->schoolClass->name ?? '-' }} — {{ $course->subject->name ?? '-' }}</p>
         </div>
-        <a href="{{ route('teacher.courses.index') }}" class="teacher-btn teacher-btn--ghost">Retour à mes cours</a>
+        <div style="display:flex;gap:8px;flex-wrap:wrap;">
+            @if($canEditOffice)
+                <a href="{{ route('teacher.courses.office', $course) }}" class="teacher-btn teacher-btn--primary">Ouvrir l’éditeur</a>
+            @endif
+            <a href="{{ route('teacher.courses.index') }}" class="teacher-btn teacher-btn--ghost">Retour à mes cours</a>
+        </div>
     </div>
 
     <form method="POST" action="{{ route('teacher.courses.update', $course) }}" enctype="multipart/form-data" class="teacher-form-card teacher-course-editor-card" id="teacher-course-form">
@@ -51,35 +60,36 @@
             </div>
 
             <div class="teacher-form-group teacher-form-group--full">
-                <label for="document">Remplacer le document</label>
+                <label for="document">Remplacer le fichier</label>
                 <input id="document" type="file" name="document" class="teacher-file-input" accept=".pdf,.doc,.docx,.ppt,.pptx,.txt,.rtf,.odt">
                 <small class="teacher-help">Formats acceptés : PDF, DOC, DOCX, PPT, PPTX, TXT, RTF, ODT.</small>
             </div>
 
             <div class="teacher-form-group teacher-form-group--full">
-                <label>Document actuel</label>
+                <label>Fichier actuel</label>
                 @if($course->hasDocument())
                     <div class="teacher-current-doc">
                         <div>
                             <strong>{{ $course->document_name }}</strong>
-                            <div class="teacher-muted">{{ strtoupper(pathinfo($course->document_name, PATHINFO_EXTENSION)) ?: 'DOC' }} • {{ $course->humanDocumentSize() }}</div>
+                            <div class="teacher-muted">{{ strtoupper($extension) ?: 'DOC' }} • {{ $course->humanDocumentSize() }}</div>
                         </div>
                         <div class="teacher-current-doc__actions">
+                            @if($canEditOffice)
+                                <a href="{{ route('teacher.courses.office', $course) }}" class="teacher-mini-link">Éditer</a>
+                            @endif
                             <a href="{{ route('teacher.courses.document', $course) }}" target="_blank" class="teacher-mini-link">Ouvrir</a>
                             <a href="{{ route('teacher.courses.document.download', $course) }}" class="teacher-mini-link">Télécharger</a>
                         </div>
                     </div>
-                    <label class="teacher-inline-check">
-                        <input type="checkbox" name="remove_document" value="1"> Supprimer le document actuel
-                    </label>
+                    <label class="teacher-inline-check"><input type="checkbox" name="remove_document" value="1"> Supprimer le fichier actuel</label>
                 @else
-                    <div class="teacher-empty-inline">Aucun document importé pour ce cours.</div>
+                    <div class="teacher-empty-inline">Aucun fichier importé pour ce cours.</div>
                 @endif
             </div>
 
             <div class="teacher-form-group teacher-form-group--full">
                 <label for="content_html">Contenu rédigé du cours</label>
-                <div class="teacher-editor-note">Vous pouvez modifier librement le contenu avec une interface riche type traitement de texte.</div>
+                <div class="teacher-editor-note">Vous pouvez aussi modifier librement le contenu avec une interface riche.</div>
                 <textarea id="content_html" name="content_html" class="teacher-editor-source">{!! old('content_html', $course->content_html ?? '') !!}</textarea>
             </div>
         </div>
@@ -95,11 +105,7 @@
 @push('scripts')
 <script>
 (function () {
-    if (typeof tinymce === 'undefined') {
-        console.warn('TinyMCE indisponible');
-        return;
-    }
-
+    if (typeof tinymce === 'undefined') { return; }
     tinymce.init({
         selector: '#content_html',
         menubar: 'file edit view insert format tools table help',
@@ -121,11 +127,7 @@
         convert_urls: false,
         pagebreak_separator: '<!-- pagebreak -->',
         content_style: 'body { font-family: Inter, Segoe UI, Arial, sans-serif; font-size: 16px; line-height: 1.7; }',
-        setup: function (editor) {
-            editor.on('change input undo redo', function () {
-                editor.save();
-            });
-        }
+        setup: function (editor) { editor.on('change input undo redo', function () { editor.save(); }); }
     });
 })();
 </script>
