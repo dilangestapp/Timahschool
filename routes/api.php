@@ -55,6 +55,7 @@ Route::prefix('mobile')->name('api.mobile.')->group(function () {
 
     Route::get('/courses', [MobileCourseController::class, 'index'])->name('courses.index');
     Route::get('/courses/{id}', [MobileCourseController::class, 'show'])->whereNumber('id')->name('courses.show');
+    Route::post('/courses/{id}/complete', [MobileCourseController::class, 'complete'])->whereNumber('id')->name('courses.complete');
     Route::get('/courses/{id}/document', [MobileCourseController::class, 'document'])->whereNumber('id')->name('courses.document');
     Route::get('/courses/{id}/download', [MobileCourseController::class, 'download'])->whereNumber('id')->name('courses.download');
 
