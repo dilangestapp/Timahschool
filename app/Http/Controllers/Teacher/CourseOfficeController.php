@@ -102,24 +102,31 @@ class CourseOfficeController extends Controller
             return back()->with('error', 'Le fichier du cours est introuvable sur le serveur.');
         }
 
-        $text = $extractor->text($course, $path);
-        if (trim($text) === '') {
-            return back()->with('error', 'Le contenu n’a pas pu être extrait. Pour un PDF scanné, il faudra activer l’OCR.');
+        $result = $extractor->extract($course, $path);
+        $html = trim((string) ($result['html'] ?? ''));
+        $text = trim((string) ($result['text'] ?? ''));
+
+        if ($html === '' && $text === '') {
+            return back()->with('error', 'Le contenu n’a pas pu être récupéré. Pour un PDF scanné, il faudra activer l’OCR.');
         }
 
         $updates = [];
         if (Schema::hasColumn('courses', 'content_html')) {
-            $updates['content_html'] = $extractor->html($text);
+            $updates['content_html'] = $html;
         }
         if (Schema::hasColumn('courses', 'content_text')) {
-            $updates['content_text'] = trim(preg_replace('/\s+/u', ' ', $text) ?? $text);
+            $updates['content_text'] = $text;
         }
 
         if ($updates) {
             $course->update($updates);
         }
 
-        return redirect()->route('teacher.courses.edit', $course)->with('success', 'Le contenu du fichier a été extrait dans l’éditeur. Relisez et corrigez la mise en forme avant publication.');
+        $message = ($result['mode'] ?? '') === 'pdf_html'
+            ? 'Le PDF a été récupéré en mode fidèle avec sa mise en page et ses images lorsque c’est possible.'
+            : 'Le texte du fichier a été récupéré dans l’éditeur. Relisez et corrigez la mise en forme avant publication.';
+
+        return redirect()->route('teacher.courses.edit', $course)->with('success', $message);
     }
 
     public function file(Course $course, string $token): BinaryFileResponse|JsonResponse
