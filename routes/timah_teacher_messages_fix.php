@@ -1,0 +1,86 @@
+<?php
+
+use App\Models\TeacherAssignment;
+use App\Models\TeacherMessage;
+use App\Models\User;
+use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Route;
+use Illuminate\Support\Facades\Schema;
+
+Route::get('/teacher/messages', function (Request $request) {
+    $assignments = Schema::hasTable('teacher_assignments')
+        ? TeacherAssignment::query()
+            ->with(['schoolClass', 'subject', 'teacher'])
+            ->where('teacher_id', auth()->id())
+            ->where('is_active', true)
+            ->get()
+        : collect();
+
+    $classIds = $assignments->pluck('school_class_id')->filter()->unique()->values();
+
+    $students = collect();
+    if ($classIds->isNotEmpty() && Schema::hasTable('student_profiles') && Schema::hasColumn('student_profiles', 'school_class_id')) {
+        $students = User::query()
+            ->with(['studentProfile.schoolClass'])
+            ->whereHas('studentProfile', fn ($query) => $query->whereIn('school_class_id', $classIds))
+            ->orderBy('full_name')
+            ->orderBy('name')
+            ->get();
+    }
+
+    $messages = collect();
+    if (Schema::hasTable('teacher_messages') && $assignments->isNotEmpty()) {
+        $relations = ['student.studentProfile.schoolClass', 'subject', 'schoolClass', 'teacher'];
+        if (Schema::hasColumn('teacher_messages', 'parent_message_id')) {
+            $relations[] = 'parentMessage';
+        }
+
+        $query = TeacherMessage::query()->with($relations)->where('teacher_id', auth()->id());
+        if (Schema::hasColumn('teacher_messages', 'school_class_id')) {
+            $query->whereIn('school_class_id', $classIds);
+        }
+        if (Schema::hasColumn('teacher_messages', 'deleted_by_teacher_at')) {
+            $query->whereNull('deleted_by_teacher_at');
+        }
+        if (Schema::hasColumn('teacher_messages', 'created_at')) {
+            $query->orderBy('created_at');
+        }
+        $messages = $query->get();
+    }
+
+    $hasDirection = Schema::hasTable('teacher_messages') && Schema::hasColumn('teacher_messages', 'direction');
+    $hasStatus = Schema::hasTable('teacher_messages') && Schema::hasColumn('teacher_messages', 'status');
+
+    $threads = $students->map(function ($student) use ($messages, $assignments, $hasDirection, $hasStatus) {
+        $studentMessages = $messages->where('student_id', $student->id)->sortBy('created_at')->values();
+        $latest = $studentMessages->last();
+        $assignment = $assignments->firstWhere('school_class_id', optional($student->studentProfile)->school_class_id) ?: $assignments->first();
+        $unread = ($hasDirection && $hasStatus)
+            ? $studentMessages->where('direction', TeacherMessage::DIRECTION_STUDENT)->where('status', TeacherMessage::STATUS_UNREAD)->count()
+            : 0;
+
+        return (object) [
+            'student' => $student,
+            'assignment' => $assignment,
+            'messages' => $studentMessages,
+            'latest_message' => $latest,
+            'unread_count' => $unread,
+            'attachment_count' => $studentMessages->filter(fn ($message) => !empty($message->attachment_path))->count(),
+            'sort_timestamp' => $latest?->created_at?->timestamp ?? 0,
+        ];
+    })->sortByDesc('sort_timestamp')->values();
+
+    $selectedStudentId = (int) $request->query('student');
+    if (!$threads->contains(fn ($thread) => (int) $thread->student->id === $selectedStudentId)) {
+        $selectedStudentId = (int) optional($threads->first())->student->id;
+    }
+
+    $selectedThread = $threads->first(fn ($thread) => (int) $thread->student->id === $selectedStudentId);
+
+    return view('teacher.messages.index', [
+        'threads' => $threads,
+        'selectedStudentId' => $selectedStudentId,
+        'selectedThread' => $selectedThread,
+        'assignments' => $assignments,
+    ]);
+})->middleware(['auth', 'no.cache', \App\Http\Middleware\EnsureTeacher::class])->name('teacher.messages.index');
