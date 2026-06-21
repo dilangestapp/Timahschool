@@ -10,6 +10,18 @@ Route::post('/teacher/courses/{course}/convert-content', [\App\Http\Controllers\
     ->middleware(['auth', 'no.cache', \App\Http\Middleware\EnsureTeacher::class])
     ->name('teacher.courses.convert');
 
+Route::post('/teacher/messages/send', [\App\Http\Controllers\Teacher\MessageController::class, 'send'])
+    ->middleware(['auth', 'no.cache', \App\Http\Middleware\EnsureTeacher::class])
+    ->name('teacher.messages.send');
+
+Route::post('/teacher/messages/broadcast', [\App\Http\Controllers\Teacher\MessageController::class, 'broadcast'])
+    ->middleware(['auth', 'no.cache', \App\Http\Middleware\EnsureTeacher::class])
+    ->name('teacher.messages.broadcast');
+
+Route::post('/teacher/messages/{message}/delete', [\App\Http\Controllers\Teacher\MessageController::class, 'destroy'])
+    ->middleware(['auth', 'no.cache', \App\Http\Middleware\EnsureTeacher::class])
+    ->name('teacher.messages.delete');
+
 Route::get('/course-office/{course}/document/{key}', [\App\Http\Controllers\Teacher\CourseOfficeController::class, 'file'])
     ->name('onlyoffice.courses.file');
 
