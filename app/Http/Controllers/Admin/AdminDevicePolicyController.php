@@ -15,7 +15,7 @@ class AdminDevicePolicyController extends Controller
         if (!Schema::hasColumn('users', 'device_policy')) {
             return response($this->htmlPage(
                 'Gestion multi-appareils',
-                '<div class="alert error"><strong>Migration non appliquée.</strong><br>La colonne <code>device_policy</code> n’existe pas encore. Lance d’abord le setup Railway.</div>'
+                '<div class="alert error"><strong>Migration non appliquée.</strong><br>La colonne <code>device_policy</code> n’existe pas encore. Déploie la dernière version depuis GitHub puis lance <code>php artisan migrate --force</code> sur le VPS Contabo.</div>'
             ));
         }
 
