@@ -27,3 +27,7 @@ Route::get('/responsable-departement/dashboard', function () {
 Route::get('/referent-pedagogique/dashboard', function () {
     return view('supervision.pedagogical-referent');
 })->middleware(['auth', 'no.cache'])->name('referent.pedagogical.dashboard');
+
+Route::get('/superviseur-pedagogique/dashboard', function () {
+    return view('supervision.pedagogical-supervisor');
+})->middleware(['auth', 'no.cache'])->name('supervisor.pedagogical.dashboard');
