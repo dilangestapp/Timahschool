@@ -16,7 +16,7 @@
     <div class="admin-section__head">
         <div>
             <h2>Outils importants TIMAH ACADEMY</h2>
-            <p class="admin-muted">Accès rapide aux fonctions sensibles : sauvegarde de la base, comptes de démonstration et banque pédagogique.</p>
+            <p class="admin-muted">Accès rapide aux fonctions sensibles : sauvegarde de la base, comptes de démonstration, banque pédagogique et supervision.</p>
         </div>
     </div>
     <div class="admin-module-grid">
@@ -33,6 +33,11 @@
         <a class="admin-module-card" href="{{ route('admin.pedagogical-bank.index') }}" style="border:1px solid #f97316;background:#ffffff;">
             <strong>Banque pédagogique</strong>
             <span>Importer, modifier, publier et archiver les TD PDF.</span>
+        </a>
+
+        <a class="admin-module-card" href="{{ route('admin.organization.index') }}" style="border:1px solid #7c3aed;background:#ffffff;">
+            <strong>Administration pédagogique</strong>
+            <span>Suivre les responsables, départements, cours, TD, questions et relances.</span>
         </a>
     </div>
 </section>
@@ -55,6 +60,11 @@
             <a class="admin-module-card" href="{{ route('admin.assignments.index') }}">
                 <strong>Affectations</strong>
                 <span>Lier enseignant, classe et matière.</span>
+            </a>
+
+            <a class="admin-module-card" href="{{ route('admin.organization.index') }}">
+                <strong>Supervision pédagogique</strong>
+                <span>Coordonner les responsables et surveiller les retards.</span>
             </a>
 
             <a class="admin-module-card" href="{{ route('admin.courses.index') }}">
@@ -88,6 +98,11 @@
         </div>
 
         <div class="admin-quick-actions">
+            <a href="{{ route('admin.organization.index') }}" class="admin-quick-action">
+                <strong>Suivi pédagogique</strong>
+                <span>Responsables, départements, relances et questions ouvertes.</span>
+            </a>
+
             <a href="{{ route('admin.users.index') }}" class="admin-quick-action">
                 <strong>Utilisateurs</strong>
                 <span>Gérer accès et rôles.</span>
