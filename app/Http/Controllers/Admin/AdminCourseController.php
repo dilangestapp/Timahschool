@@ -7,8 +7,8 @@ use App\Http\Controllers\Controller;
 use App\Models\Course;
 use App\Models\SchoolClass;
 use App\Models\Subject;
+use App\Support\CoursePublicationNotifier;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Str;
 use Illuminate\Validation\Rule;
 
@@ -54,7 +54,7 @@ class AdminCourseController extends Controller
         return view('admin.courses.index', compact('search', 'status', 'classId', 'subjectId', 'tableMissing', 'subjects', 'classes', 'courses', 'summary'));
     }
 
-    public function store(Request $request)
+    public function store(Request $request, CoursePublicationNotifier $notifier)
     {
         $request->validate([
             'title' => ['required', 'string', 'max:255', Rule::unique('courses', 'title')],
@@ -67,7 +67,7 @@ class AdminCourseController extends Controller
             'order' => ['nullable', 'integer', 'min:0'],
         ]);
 
-        Course::query()->create($this->onlyExistingColumns('courses', [
+        $course = Course::query()->create($this->onlyExistingColumns('courses', [
             'subject_id' => (int) $request->subject_id,
             'school_class_id' => (int) $request->school_class_id,
             'created_by' => auth()->id(),
@@ -81,12 +81,18 @@ class AdminCourseController extends Controller
             'published_at' => $request->status === Course::STATUS_PUBLISHED ? now() : null,
         ]));
 
+        if ($course->status === Course::STATUS_PUBLISHED) {
+            $notifier->coursePublished($course->fresh(['subject', 'schoolClass', 'creator']), auth()->user());
+        }
+
         return back()->with('success', 'Cours ajouté avec succès.');
     }
 
-    public function update(Request $request, int $id)
+    public function update(Request $request, int $id, CoursePublicationNotifier $notifier)
     {
         $course = Course::query()->findOrFail($id);
+        $wasPublished = $course->status === Course::STATUS_PUBLISHED;
+
         $request->validate([
             'title' => ['required', 'string', 'max:255', Rule::unique('courses', 'title')->ignore($course->id)],
             'subject_id' => ['required', 'integer'],
@@ -111,14 +117,24 @@ class AdminCourseController extends Controller
             'published_at' => $request->status === Course::STATUS_PUBLISHED ? ($course->published_at ?: now()) : null,
         ]));
 
+        if (!$wasPublished && $course->status === Course::STATUS_PUBLISHED) {
+            $notifier->coursePublished($course->fresh(['subject', 'schoolClass', 'creator']), auth()->user());
+        }
+
         return back()->with('success', 'Cours mis à jour.');
     }
 
-    public function publish(int $id)
+    public function publish(int $id, CoursePublicationNotifier $notifier)
     {
         $course = Course::query()->findOrFail($id);
+        $wasPublished = $course->status === Course::STATUS_PUBLISHED;
         $course->update($this->onlyExistingColumns('courses', ['status' => Course::STATUS_PUBLISHED, 'published_at' => now()]));
-        return back()->with('success', 'Cours publié.');
+
+        if (!$wasPublished) {
+            $notifier->coursePublished($course->fresh(['subject', 'schoolClass', 'creator']), auth()->user());
+        }
+
+        return back()->with('success', 'Cours publié. Les notifications internes ont été créées.');
     }
 
     public function archive(int $id)
