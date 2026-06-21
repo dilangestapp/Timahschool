@@ -4,6 +4,10 @@ use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Route;
 use Illuminate\Support\Facades\Schema;
 
+Route::get('/responsabilites', function () {
+    return redirect()->route('supervision.tb');
+})->middleware(['auth', 'no.cache'])->name('responsibilities.home');
+
 Route::get('/responsabilites/notes', function () {
     return view('supervision.notes-center');
 })->middleware(['auth', 'no.cache'])->name('responsibilities.notes.index');
