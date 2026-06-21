@@ -30,12 +30,9 @@ Route::get('/teacher/messages', function (Request $request) {
 
     $messages = collect();
     if (Schema::hasTable('teacher_messages') && $assignments->isNotEmpty()) {
-        $relations = ['student.studentProfile.schoolClass', 'subject', 'schoolClass', 'teacher'];
-        if (Schema::hasColumn('teacher_messages', 'parent_message_id')) {
-            $relations[] = 'parentMessage';
-        }
-
-        $query = TeacherMessage::query()->with($relations)->where('teacher_id', auth()->id());
+        $query = TeacherMessage::query()
+            ->with(['student.studentProfile.schoolClass', 'subject', 'schoolClass', 'teacher'])
+            ->where('teacher_id', auth()->id());
         if (Schema::hasColumn('teacher_messages', 'school_class_id')) {
             $query->whereIn('school_class_id', $classIds);
         }
@@ -48,25 +45,16 @@ Route::get('/teacher/messages', function (Request $request) {
         $messages = $query->get();
     }
 
-    $hasDirection = Schema::hasTable('teacher_messages') && Schema::hasColumn('teacher_messages', 'direction');
-    $hasStatus = Schema::hasTable('teacher_messages') && Schema::hasColumn('teacher_messages', 'status');
-
-    $threads = $students->map(function ($student) use ($messages, $assignments, $hasDirection, $hasStatus) {
+    $threads = $students->map(function ($student) use ($messages, $assignments) {
         $studentMessages = $messages->where('student_id', $student->id)->sortBy('created_at')->values();
-        $latest = $studentMessages->last();
-        $assignment = $assignments->firstWhere('school_class_id', optional($student->studentProfile)->school_class_id) ?: $assignments->first();
-        $unread = ($hasDirection && $hasStatus)
-            ? $studentMessages->where('direction', TeacherMessage::DIRECTION_STUDENT)->where('status', TeacherMessage::STATUS_UNREAD)->count()
-            : 0;
-
         return (object) [
             'student' => $student,
-            'assignment' => $assignment,
+            'assignment' => $assignments->firstWhere('school_class_id', optional($student->studentProfile)->school_class_id) ?: $assignments->first(),
             'messages' => $studentMessages,
-            'latest_message' => $latest,
-            'unread_count' => $unread,
+            'latest_message' => $studentMessages->last(),
+            'unread_count' => 0,
             'attachment_count' => $studentMessages->filter(fn ($message) => !empty($message->attachment_path))->count(),
-            'sort_timestamp' => $latest?->created_at?->timestamp ?? 0,
+            'sort_timestamp' => $studentMessages->last()?->created_at?->timestamp ?? 0,
         ];
     })->sortByDesc('sort_timestamp')->values();
 
@@ -75,12 +63,10 @@ Route::get('/teacher/messages', function (Request $request) {
         $selectedStudentId = (int) optional($threads->first())->student->id;
     }
 
-    $selectedThread = $threads->first(fn ($thread) => (int) $thread->student->id === $selectedStudentId);
-
-    return view('teacher.messages.index', [
+    return view('teacher.messages.safe', [
         'threads' => $threads,
         'selectedStudentId' => $selectedStudentId,
-        'selectedThread' => $selectedThread,
+        'selectedThread' => $threads->first(fn ($thread) => (int) $thread->student->id === $selectedStudentId),
         'assignments' => $assignments,
     ]);
-})->middleware(['auth', 'no.cache', \App\Http\Middleware\EnsureTeacher::class])->name('teacher.messages.index');
+})->middleware(['auth', 'no.cache', \App\Http\Middleware\EnsureTeacher::class)->name('teacher.messages.index');
