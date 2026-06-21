@@ -25,17 +25,17 @@ class TeachingDivision extends Model
 
     public function departments()
     {
-        return $this->hasMany(TeachingDepartment::class)->orderBy('order')->orderBy('name');
+        return $this->hasMany(PedagogicalDepartment::class, 'teaching_division_id')->orderBy('order')->orderBy('name');
     }
 
     public function responsibilities()
     {
-        return $this->hasMany(PedagogicalResponsibility::class);
+        return $this->hasMany(PedagogicalResponsibility::class, 'teaching_division_id');
     }
 
     public function supervisionNotes()
     {
-        return $this->hasMany(PedagogicalSupervisionNote::class);
+        return $this->hasMany(PedagogicalSupervisionNote::class, 'teaching_division_id');
     }
 
     public function activeDepartments()
