@@ -8,6 +8,10 @@ Route::get('/responsabilites/notes', function () {
     return view('supervision.notes-center');
 })->middleware(['auth', 'no.cache'])->name('responsibilities.notes.index');
 
+Route::get('/suivi-pedagogique-relances', function () {
+    return view('supervision.notes-center');
+})->middleware(['auth', 'no.cache'])->name('responsibilities.followups.index');
+
 Route::post('/responsabilites/notes/{note}/status', function ($note) {
     if (!auth()->check()) {
         abort(403);
@@ -47,5 +51,5 @@ Route::post('/responsabilites/notes/{note}/status', function ($note) {
             'updated_at' => now(),
         ]);
 
-    return back()->with('success', $data['status'] === 'resolved' ? 'Note marquée comme traitée.' : 'Statut de la note mis à jour.');
+    return back()->with('success', $data['status'] === 'resolved' ? 'Alerte pédagogique marquée comme traitée.' : 'Statut de l’alerte pédagogique mis à jour.');
 })->middleware(['auth', 'no.cache'])->name('responsibilities.notes.status');
