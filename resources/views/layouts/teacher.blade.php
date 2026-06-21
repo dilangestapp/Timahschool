@@ -18,6 +18,9 @@
     });
     $hasDivisionResponsibility = $pedagogicalResponsibilities->contains(fn($responsibility) => ($responsibility->scope_type ?? '') === 'division');
     $hasDepartmentResponsibility = $pedagogicalResponsibilities->contains(fn($responsibility) => ($responsibility->scope_type ?? '') === 'department');
+    $hasReferentResponsibility = $pedagogicalResponsibilities->contains(function ($responsibility) {
+        return str_contains((string) ($responsibility->role_title ?? ''), 'Référent pédagogique');
+    });
 @endphp
 <!DOCTYPE html>
 <html lang="fr" data-theme="light">
@@ -114,7 +117,10 @@
             @if($hasDepartmentResponsibility && \Illuminate\Support\Facades\Route::has('responsible.department.dashboard'))
                 <a href="{{ route('responsible.department.dashboard') }}" class="teacher-link {{ request()->routeIs('responsible.department.dashboard') ? 'is-active' : '' }}"><span class="teacher-link__icon">🧩</span><span class="teacher-link__text">TB département</span></a>
             @endif
-            @if($hasPedagogicalResponsibility && !$hasSecretaryResponsibility && !$hasDivisionResponsibility && !$hasDepartmentResponsibility && \Illuminate\Support\Facades\Route::has('supervision.tb'))
+            @if($hasReferentResponsibility && \Illuminate\Support\Facades\Route::has('referent.pedagogical.dashboard'))
+                <a href="{{ route('referent.pedagogical.dashboard') }}" class="teacher-link {{ request()->routeIs('referent.pedagogical.dashboard') ? 'is-active' : '' }}"><span class="teacher-link__icon">🔎</span><span class="teacher-link__text">TB référent</span></a>
+            @endif
+            @if($hasPedagogicalResponsibility && !$hasSecretaryResponsibility && !$hasDivisionResponsibility && !$hasDepartmentResponsibility && !$hasReferentResponsibility && \Illuminate\Support\Facades\Route::has('supervision.tb'))
                 <a href="{{ route('supervision.tb') }}" class="teacher-link {{ request()->routeIs('supervision.tb') ? 'is-active' : '' }}"><span class="teacher-link__icon">🧭</span><span class="teacher-link__text">TB responsable</span></a>
             @endif
             <a href="{{ route('teacher.classes.index') }}" class="teacher-link {{ request()->routeIs('teacher.classes.*') ? 'is-active' : '' }}"><span class="teacher-link__icon">🏫</span><span class="teacher-link__text">Mes classes</span></a>
