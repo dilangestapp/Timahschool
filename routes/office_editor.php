@@ -31,3 +31,7 @@ Route::post('/course-office/{course}/save/{key}', [\App\Http\Controllers\Teacher
 if (file_exists(base_path('routes/timah_supervision.php'))) {
     require base_path('routes/timah_supervision.php');
 }
+
+if (file_exists(base_path('routes/timah_responsible_tb.php'))) {
+    require base_path('routes/timah_responsible_tb.php');
+}
