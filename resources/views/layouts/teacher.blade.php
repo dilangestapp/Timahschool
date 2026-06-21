@@ -4,6 +4,13 @@
     $platformSlogan = $generalSettings['platform_slogan'] ?? 'Plateforme éducative moderne et premium';
     $platformLogo = \App\Models\PlatformSetting::logoUrl($generalSettings['logo_path'] ?? null);
     $hasWeeklyProgram = \Illuminate\Support\Facades\Route::has('teacher.weekly-program.index');
+    $hasPedagogicalResponsibility = auth()->check()
+        && \Illuminate\Support\Facades\Route::has('supervision.dashboard')
+        && \Illuminate\Support\Facades\Schema::hasTable('pedagogical_responsibilities')
+        && \Illuminate\Support\Facades\DB::table('pedagogical_responsibilities')
+            ->where('user_id', auth()->id())
+            ->where('is_active', true)
+            ->exists();
 @endphp
 <!DOCTYPE html>
 <html lang="fr" data-theme="light">
@@ -91,6 +98,9 @@
 
         <nav class="teacher-nav">
             <a href="{{ route('teacher.dashboard') }}" class="teacher-link {{ request()->routeIs('teacher.dashboard') ? 'is-active' : '' }}"><span class="teacher-link__icon">🏠</span><span class="teacher-link__text">Tableau de bord</span></a>
+            @if($hasPedagogicalResponsibility)
+                <a href="{{ route('supervision.dashboard') }}" class="teacher-link {{ request()->routeIs('supervision.*') ? 'is-active' : '' }}"><span class="teacher-link__icon">🧭</span><span class="teacher-link__text">TB responsable</span></a>
+            @endif
             <a href="{{ route('teacher.classes.index') }}" class="teacher-link {{ request()->routeIs('teacher.classes.*') ? 'is-active' : '' }}"><span class="teacher-link__icon">🏫</span><span class="teacher-link__text">Mes classes</span></a>
             <a href="{{ route('teacher.courses.index') }}" class="teacher-link {{ request()->routeIs('teacher.courses.*') ? 'is-active' : '' }}"><span class="teacher-link__icon">📚</span><span class="teacher-link__text">Mes cours</span></a>
             <a href="{{ route('teacher.td.sets.index') }}" class="teacher-link {{ request()->routeIs('teacher.td.sets.*') ? 'is-active' : '' }}"><span class="teacher-link__icon">📝</span><span class="teacher-link__text">Mes TD</span></a>
