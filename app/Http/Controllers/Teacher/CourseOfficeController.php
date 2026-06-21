@@ -5,10 +5,13 @@ namespace App\Http\Controllers\Teacher;
 use App\Http\Controllers\Controller;
 use App\Models\Course;
 use App\Models\TeacherAssignment;
+use App\Support\CourseDocumentExtractor;
 use Illuminate\Http\JsonResponse;
+use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Facades\Schema;
 use Illuminate\Support\Facades\Storage;
 use Symfony\Component\HttpFoundation\BinaryFileResponse;
 
@@ -84,6 +87,39 @@ class CourseOfficeController extends Controller
             'documentServerUrl' => config('onlyoffice.document_server_url'),
             'editorConfig' => $config,
         ]);
+    }
+
+    public function convertContent(Course $course, CourseDocumentExtractor $extractor): RedirectResponse
+    {
+        $this->authorizeCourse($course);
+
+        if (!$course->document_path) {
+            return back()->with('error', 'Aucun fichier n’est joint à ce cours.');
+        }
+
+        $path = storage_path('app/' . $course->document_path);
+        if (!is_file($path)) {
+            return back()->with('error', 'Le fichier du cours est introuvable sur le serveur.');
+        }
+
+        $text = $extractor->text($course, $path);
+        if (trim($text) === '') {
+            return back()->with('error', 'Le contenu n’a pas pu être extrait. Pour un PDF scanné, il faudra activer l’OCR.');
+        }
+
+        $updates = [];
+        if (Schema::hasColumn('courses', 'content_html')) {
+            $updates['content_html'] = $extractor->html($text);
+        }
+        if (Schema::hasColumn('courses', 'content_text')) {
+            $updates['content_text'] = trim(preg_replace('/\s+/u', ' ', $text) ?? $text);
+        }
+
+        if ($updates) {
+            $course->update($updates);
+        }
+
+        return redirect()->route('teacher.courses.edit', $course)->with('success', 'Le contenu du fichier a été extrait dans l’éditeur. Relisez et corrigez la mise en forme avant publication.');
     }
 
     public function file(Course $course, string $token): BinaryFileResponse|JsonResponse
