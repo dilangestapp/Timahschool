@@ -2,7 +2,7 @@
 
 @section('title', 'Mes classes affectées')
 @section('page_title', 'Mes classes et matières')
-@section('page_subtitle', 'Cette page résume exactement ce que vous êtes autorisé à gérer.')
+@section('page_subtitle', 'Retrouvez vos classes et matières.')
 
 @section('content')
 <div class="teacher-class-grid">
@@ -13,16 +13,16 @@
                     <h3>{{ $card['assignment']->schoolClass->name ?? '-' }}</h3>
                     <p>{{ $card['assignment']->subject->name ?? '-' }}</p>
                 </div>
-                <span class="teacher-badge">{{ $card['assignment']->is_active ? 'active' : 'inactive' }}</span>
+                <span class="teacher-badge">active</span>
             </div>
             <div class="teacher-class-stats">
-                <div><strong>{{ $card['course_count'] }}</strong><span>cours liés</span></div>
-                <div><strong>{{ $card['unread_messages'] }}</strong><span>messages non lus</span></div>
+                <div><strong>{{ $card['course_count'] ?? 0 }}</strong><span>cours</span></div>
+                <div><strong>{{ $card['td_count'] ?? 0 }}</strong><span>TD</span></div>
+                <div><strong>{{ $card['open_questions'] ?? 0 }}</strong><span>questions</span></div>
             </div>
-            <p class="teacher-muted">{{ $card['assignment']->notes ?: 'Aucune note d’affectation.' }}</p>
         </article>
     @empty
-        <div class="teacher-empty">Aucune affectation active pour le moment.</div>
+        <div class="teacher-empty">Aucune affectation active.</div>
     @endforelse
 </div>
 @endsection
