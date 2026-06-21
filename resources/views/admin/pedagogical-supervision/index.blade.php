@@ -14,7 +14,7 @@
             </div>
         </div>
         <div class="admin-alert admin-alert--warning" style="margin-top:12px;">
-            Commandes serveur : cd /var/www/timahacademy ; git pull origin main ; php artisan migrate --force ; php artisan optimize:clear
+            Ouvre le terminal du serveur, place-toi dans le dossier du projet, récupère la dernière version, lance les migrations, puis vide le cache Laravel.
         </div>
     </section>
 @else
@@ -24,7 +24,7 @@
     .supervision-form{background:#fff;border:1px solid #e2e8f0;border-radius:18px;padding:16px;box-shadow:0 12px 28px rgba(15,23,42,.06)}
     .supervision-form h3{margin-top:0}.supervision-form label{display:block;font-weight:800;font-size:13px;margin-top:10px;color:#334155}
     .supervision-form input,.supervision-form select,.supervision-form textarea{width:100%;box-sizing:border-box;margin-top:5px;border:1px solid #cbd5e1;border-radius:12px;padding:10px;background:#fff;color:#0f172a}.supervision-form textarea{min-height:78px}
-    .supervision-list{display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-bottom:18px}.supervision-item{border-top:1px solid #e5e7eb;padding:12px 0}.supervision-item strong{display:block}.supervision-item small{display:inline-block;background:#eef2ff;color:#3730a3;border-radius:999px;padding:4px 8px;margin-top:4px}.severity-warning{background:#fff7ed!important;color:#c2410c!important}.severity-urgent{background:#fef2f2!important;color:#b91c1c!important}@media(max-width:980px){.supervision-forms,.supervision-list{grid-template-columns:1fr}}
+    .supervision-list{display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-bottom:18px}.supervision-item{border-top:1px solid #e5e7eb;padding:12px 0}.supervision-item strong{display:block}.supervision-item small{display:inline-block;background:#eef2ff;color:#3730a3;border-radius:999px;padding:4px 8px;margin-top:4px}.severity-warning{background:#fff7ed!important;color:#c2410c!important}.severity-urgent{background:#fef2f2!important;color:#b91c1c!important}.secretary-highlight{border:1px solid #bfdbfe;background:linear-gradient(135deg,#eff6ff,#f8fafc);border-radius:18px;padding:16px;margin-bottom:18px}.secretary-highlight strong{display:block;font-size:18px;color:#0f172a}.secretary-highlight span{display:block;margin-top:6px;color:#64748b;line-height:1.55}@media(max-width:980px){.supervision-forms,.supervision-list{grid-template-columns:1fr}}
 </style>
 
 <div class="admin-grid admin-grid--stats">
@@ -41,9 +41,14 @@
     <article class="admin-stat-card"><span class="admin-stat-card__label">Questions ouvertes</span><strong>{{ $stats['td_questions_open'] ?? 0 }}</strong></article>
 </div>
 
+<div class="secretary-highlight">
+    <strong>Poste central : Secrétaire général / Coordinateur général</strong>
+    <span>Cette personne pilote toute la plateforme. Pour la créer, choisis la personne à droite, mets le titre <b>Secrétaire général</b> ou <b>Secrétaire général / Coordinateur général</b>, puis garde la portée sur <b>Plateforme entière</b>.</span>
+</div>
+
 <div class="supervision-note">
     <strong>Logique retenue :</strong>
-    un coordinateur général suit toute la plateforme, des responsables suivent chaque type d’enseignement, puis des responsables de département ou de filière vérifient les cours, TD, réponses aux élèves, programmes et retards. Leur rôle est de contrôler, relancer et signaler, sans créer une administration lourde.
+    le Secrétaire général ou Coordinateur général suit toute la plateforme, des responsables suivent chaque type d’enseignement, puis des responsables de département ou de filière vérifient les cours, TD, réponses aux élèves, programmes et retards. Leur rôle est de contrôler, relancer et signaler, sans créer une administration lourde.
 </div>
 
 <div class="supervision-forms">
@@ -75,9 +80,9 @@
 
     <form class="supervision-form" method="POST" action="{{ route('admin.organization.responsibilities.store') }}">
         @csrf
-        <h3>Attribuer une responsabilité</h3>
+        <h3>Nommer le Secrétaire général ou un responsable</h3>
         <label>Personne<select name="user_id" required><option value="">Choisir</option>@foreach($users as $user)<option value="{{ $user->id }}">{{ $user->full_name ?: ($user->name ?: $user->username) }} {{ $user->phone }}</option>@endforeach</select></label>
-        <label>Titre<input name="role_title" required placeholder="Coordinateur général"></label>
+        <label>Titre<input name="role_title" required placeholder="Secrétaire général / Coordinateur général"></label>
         <label>Portée<select name="scope_type"><option value="platform">Plateforme entière</option><option value="division">Type d’enseignement</option><option value="department">Département / filière</option></select></label>
         <label>Type d’enseignement<select name="teaching_division_id"><option value="">Aucun</option>@foreach($divisions as $division)<option value="{{ $division->id }}">{{ $division->name }}</option>@endforeach</select></label>
         <label>Département<select name="teaching_department_id"><option value="">Aucun</option>@foreach($departments as $department)<option value="{{ $department->id }}">{{ $department->name }}</option>@endforeach</select></label>
