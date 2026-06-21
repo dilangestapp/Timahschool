@@ -22,7 +22,7 @@
     <div class="admin-module-grid">
         <a class="admin-module-card" href="{{ route('admin.database-backup.index') }}" style="border:1px solid #60a5fa;background:#ffffff;">
             <strong>Sauvegarder la base</strong>
-            <span>Télécharger une copie SQL complète pour éviter toute perte sur Railway.</span>
+            <span>Télécharger une copie SQL complète pour sécuriser les données du serveur.</span>
         </a>
 
         <a class="admin-module-card" href="{{ route('admin.device-policy.index') }}" style="border:1px solid #22c55e;background:#ffffff;">
@@ -115,7 +115,7 @@
 
             <a href="{{ route('admin.database-backup.index') }}" class="admin-quick-action">
                 <strong>Sauvegarde DB</strong>
-                <span>Télécharger la base avant risque Railway.</span>
+                <span>Télécharger la base avant une maintenance du serveur.</span>
             </a>
 
             <a href="{{ route('admin.plans.index') }}" class="admin-quick-action">
