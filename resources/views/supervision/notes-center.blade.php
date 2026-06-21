@@ -1,8 +1,8 @@
 @extends('layouts.teacher')
 
-@section('title', 'Centre des notes et relances')
-@section('page_title', 'Centre des notes et relances')
-@section('page_subtitle', 'Traiter, suivre et clôturer les notes pédagogiques liées à vos responsabilités.')
+@section('title', 'Suivi pédagogique et relances')
+@section('page_title', 'Suivi pédagogique et relances')
+@section('page_subtitle', 'Traiter, suivre et clôturer les alertes pédagogiques liées à vos responsabilités.')
 
 @section('content')
 @php
@@ -12,11 +12,7 @@
     $stats = ['open' => 0, 'follow_up' => 0, 'resolved' => 0, 'urgent' => 0];
 
     if ($schemaReady) {
-        $responsibilities = \Illuminate\Support\Facades\DB::table('pedagogical_responsibilities')
-            ->where('user_id', auth()->id())
-            ->where('is_active', true)
-            ->get();
-
+        $responsibilities = \Illuminate\Support\Facades\DB::table('pedagogical_responsibilities')->where('user_id', auth()->id())->where('is_active', true)->get();
         $responsibilityIds = $responsibilities->pluck('id')->all();
 
         if ($responsibilities->isNotEmpty()) {
@@ -24,8 +20,7 @@
                 ->leftJoin('users as u', 'u.id', '=', 'n.target_user_id')
                 ->leftJoin('pedagogical_responsibilities as pr', 'pr.id', '=', 'n.responsibility_id')
                 ->where(function ($query) use ($responsibilityIds) {
-                    $query->whereIn('n.responsibility_id', $responsibilityIds)
-                        ->orWhere('n.author_id', auth()->id());
+                    $query->whereIn('n.responsibility_id', $responsibilityIds)->orWhere('n.author_id', auth()->id());
                 });
 
             $stats['open'] = (clone $base)->where('n.status', 'open')->count();
@@ -79,8 +74,8 @@
         <section class="note-hero">
             <div>
                 <span class="note-badge note-badge--primary">Centre de traitement</span>
-                <h2>Notes et relances pédagogiques</h2>
-                <p>Traitez les alertes pédagogiques sans perdre le fil : ouvrez, mettez en suivi, clôturez, puis revenez au tableau de bord.</p>
+                <h2>Suivi pédagogique et relances</h2>
+                <p>Traitez les alertes pédagogiques sans les confondre avec les notes scolaires : ouvrez, mettez en suivi, clôturez, puis revenez au tableau de bord.</p>
             </div>
             <div class="note-actions">
                 <a class="note-btn" href="{{ route('supervision.tb') }}">← Retour TB</a>
@@ -89,18 +84,16 @@
         </section>
 
         <section class="note-grid">
-            <article class="note-card"><span>Notes ouvertes</span><strong>{{ $stats['open'] }}</strong></article>
+            <article class="note-card"><span>Alertes ouvertes</span><strong>{{ $stats['open'] }}</strong></article>
             <article class="note-card"><span>En suivi</span><strong>{{ $stats['follow_up'] }}</strong></article>
-            <article class="note-card"><span>Traitées</span><strong>{{ $stats['resolved'] }}</strong></article>
+            <article class="note-card"><span>Alertes traitées</span><strong>{{ $stats['resolved'] }}</strong></article>
             <article class="note-card"><span>Urgentes actives</span><strong>{{ $stats['urgent'] }}</strong></article>
         </section>
 
         <section class="note-panel">
             <div class="note-scroll">
                 <table class="note-table">
-                    <thead>
-                        <tr><th>Objet</th><th>Responsabilité</th><th>Cible</th><th>Niveau</th><th>Statut</th><th>Actions</th></tr>
-                    </thead>
+                    <thead><tr><th>Objet</th><th>Responsabilité</th><th>Cible</th><th>Niveau</th><th>Statut</th><th>Actions</th></tr></thead>
                     <tbody>
                     @forelse($notes as $note)
                         <tr>
@@ -124,7 +117,7 @@
                             </td>
                         </tr>
                     @empty
-                        <tr><td colspan="6" class="note-empty">Aucune note à traiter.</td></tr>
+                        <tr><td colspan="6" class="note-empty">Aucune alerte pédagogique à traiter.</td></tr>
                     @endforelse
                     </tbody>
                 </table>
