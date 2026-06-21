@@ -13,14 +13,8 @@ class DepartmentManagementController extends Controller
 {
     private array $allLevels = [
         'enseignement_general' => 'Enseignement général',
-        'secondaire_general' => 'Secondaire général',
-        'general' => 'Général',
         'enseignement_technique' => 'Enseignement technique',
-        'secondaire_technique' => 'Secondaire technique',
-        'technical' => 'Technique',
-        'technique' => 'Technique',
         'primaire' => 'Primaire',
-        'primary' => 'Primaire',
         'anglophone' => 'Anglophone',
         'exam' => 'Classes d’examen',
     ];
@@ -32,12 +26,13 @@ class DepartmentManagementController extends Controller
 
         $department = $context['department'];
         $levels = $this->levelsForDepartment($department);
+        $filterLevels = $this->filterLevelsForDepartment($department);
 
         $classes = collect();
         if (Schema::hasTable('school_classes')) {
             $classesQuery = DB::table('school_classes')->orderBy('level')->orderBy('order')->orderBy('name');
-            if (!empty($levels) && Schema::hasColumn('school_classes', 'level')) {
-                $classesQuery->whereIn('level', array_keys($levels));
+            if (!empty($filterLevels) && Schema::hasColumn('school_classes', 'level')) {
+                $classesQuery->whereIn('level', $filterLevels);
             } elseif ($department->school_class_id ?? null) {
                 $classesQuery->where('id', $department->school_class_id);
             } else {
@@ -165,7 +160,6 @@ class DepartmentManagementController extends Controller
         $context = $this->departmentContext();
         abort_unless($context['allowed'], 403);
         abort_unless(Schema::hasTable('subjects'), 404);
-
         abort_unless((int) ($context['department']->subject_id ?? 0) === $subject, 403);
 
         $request->validate([
@@ -218,35 +212,50 @@ class DepartmentManagementController extends Controller
 
     private function levelsForDepartment(object $department): array
     {
+        $haystack = $this->departmentHaystack($department);
+
+        if (str_contains($haystack, 'tech')) {
+            return ['enseignement_technique' => 'Enseignement technique'];
+        }
+
+        if (str_contains($haystack, 'general') || str_contains($haystack, 'général')) {
+            return ['enseignement_general' => 'Enseignement général'];
+        }
+
+        if (str_contains($haystack, 'primaire') || str_contains($haystack, 'primary')) {
+            return ['primaire' => 'Primaire'];
+        }
+
+        return [];
+    }
+
+    private function filterLevelsForDepartment(object $department): array
+    {
+        $haystack = $this->departmentHaystack($department);
+
+        if (str_contains($haystack, 'tech')) {
+            return ['enseignement_technique', 'secondaire_technique', 'technical', 'technique'];
+        }
+
+        if (str_contains($haystack, 'general') || str_contains($haystack, 'général')) {
+            return ['enseignement_general', 'secondaire_general', 'general'];
+        }
+
+        if (str_contains($haystack, 'primaire') || str_contains($haystack, 'primary')) {
+            return ['primaire', 'primary'];
+        }
+
+        return [];
+    }
+
+    private function departmentHaystack(object $department): string
+    {
         $divisionType = '';
         if (($department->teaching_division_id ?? null) && Schema::hasTable('teaching_divisions')) {
             $divisionType = (string) DB::table('teaching_divisions')->where('id', $department->teaching_division_id)->value('type');
         }
 
-        $haystack = Str::lower(($department->name ?? '') . ' ' . ($department->code ?? '') . ' ' . $divisionType);
-
-        if (str_contains($haystack, 'tech')) {
-            return [
-                'enseignement_technique' => 'Enseignement technique',
-                'secondaire_technique' => 'Secondaire technique',
-                'technical' => 'Technique',
-                'technique' => 'Technique',
-            ];
-        }
-
-        if (str_contains($haystack, 'general') || str_contains($haystack, 'général')) {
-            return [
-                'enseignement_general' => 'Enseignement général',
-                'secondaire_general' => 'Secondaire général',
-                'general' => 'Général',
-            ];
-        }
-
-        if (str_contains($haystack, 'primaire') || str_contains($haystack, 'primary')) {
-            return ['primaire' => 'Primaire', 'primary' => 'Primaire'];
-        }
-
-        return [];
+        return Str::lower(($department->name ?? '') . ' ' . ($department->code ?? '') . ' ' . $divisionType);
     }
 
     private function linkDepartmentColumn(int $departmentId, string $column, int $value): void
