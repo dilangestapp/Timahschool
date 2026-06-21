@@ -3,8 +3,9 @@
 use Illuminate\Support\Facades\Route;
 
 Route::get('/teacher/messages', function () {
-    return response('TIMAH MESSAGERIE DIRECTE OK', 200)->header('Content-Type', 'text/plain; charset=UTF-8');
-})->middleware(['auth', 'no.cache', \App\Http\Middleware\EnsureTeacher::class])->name('teacher.messages.index');
+    return response('TIMAH MESSAGERIE DIRECTE SANS MIDDLEWARE OK', 200)
+        ->header('Content-Type', 'text/plain; charset=UTF-8');
+})->name('teacher.messages.index');
 
 Route::get('/teacher/courses/{course}/office', [\App\Http\Controllers\Teacher\CourseOfficeController::class, 'editor'])
     ->middleware(['auth', 'no.cache', \App\Http\Middleware\EnsureTeacher::class])
