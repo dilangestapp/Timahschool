@@ -59,9 +59,21 @@ Route::prefix('supervision')
                 ? DB::table('td_sets as item')->leftJoin('school_classes as c', 'c.id', '=', 'item.school_class_id')->leftJoin('subjects as s', 's.id', '=', 'item.subject_id')->select('item.id', 'item.title', 'item.status', 'c.name as class_name', 's.name as subject_name')->orderByDesc('item.id')->limit(10)->get()
                 : collect();
 
-            $questions = Schema::hasTable('td_question_threads')
-                ? DB::table('td_question_threads as q')->leftJoin('school_classes as c', 'c.id', '=', 'q.school_class_id')->leftJoin('subjects as s', 's.id', '=', 'q.subject_id')->select('q.id', 'q.status', 'c.name as class_name', 's.name as subject_name')->orderByDesc('q.id')->limit(10)->get()
-                : collect();
+            $questions = collect();
+            if (Schema::hasTable('td_question_threads')) {
+                $questionQuery = DB::table('td_question_threads as q');
+                if (Schema::hasColumn('td_question_threads', 'school_class_id') && Schema::hasTable('school_classes')) {
+                    $questionQuery->leftJoin('school_classes as c', 'c.id', '=', 'q.school_class_id');
+                }
+                if (Schema::hasColumn('td_question_threads', 'subject_id') && Schema::hasTable('subjects')) {
+                    $questionQuery->leftJoin('subjects as s', 's.id', '=', 'q.subject_id');
+                }
+                $questions = $questionQuery
+                    ->select('q.id', 'q.status', DB::raw(Schema::hasColumn('td_question_threads', 'school_class_id') ? 'c.name as class_name' : 'NULL as class_name'), DB::raw(Schema::hasColumn('td_question_threads', 'subject_id') ? 's.name as subject_name' : 'NULL as subject_name'))
+                    ->orderByDesc('q.id')
+                    ->limit(10)
+                    ->get();
+            }
 
             $notes = DB::table('pedagogical_supervision_notes as n')->leftJoin('users as u', 'u.id', '=', 'n.target_user_id')->where('n.responsibility_id', $active->id)->select('n.*', 'u.full_name', 'u.name', 'u.username')->orderByDesc('n.id')->limit(12)->get();
 
