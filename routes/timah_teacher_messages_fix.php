@@ -69,4 +69,4 @@ Route::get('/teacher/messages', function (Request $request) {
         'selectedThread' => $threads->first(fn ($thread) => (int) $thread->student->id === $selectedStudentId),
         'assignments' => $assignments,
     ]);
-})->middleware(['auth', 'no.cache', \App\Http\Middleware\EnsureTeacher::class)->name('teacher.messages.index');
+})->middleware(['auth', 'no.cache', \App\Http\Middleware\EnsureTeacher::class])->name('teacher.messages.index');
