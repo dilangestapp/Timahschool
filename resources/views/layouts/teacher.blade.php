@@ -4,13 +4,20 @@
     $platformSlogan = $generalSettings['platform_slogan'] ?? 'Plateforme éducative moderne et premium';
     $platformLogo = \App\Models\PlatformSetting::logoUrl($generalSettings['logo_path'] ?? null);
     $hasWeeklyProgram = \Illuminate\Support\Facades\Route::has('teacher.weekly-program.index');
-    $hasPedagogicalResponsibility = auth()->check()
-        && \Illuminate\Support\Facades\Route::has('supervision.dashboard')
-        && \Illuminate\Support\Facades\Schema::hasTable('pedagogical_responsibilities')
-        && \Illuminate\Support\Facades\DB::table('pedagogical_responsibilities')
+    $pedagogicalResponsibilities = auth()->check() && \Illuminate\Support\Facades\Schema::hasTable('pedagogical_responsibilities')
+        ? \Illuminate\Support\Facades\DB::table('pedagogical_responsibilities')
             ->where('user_id', auth()->id())
             ->where('is_active', true)
-            ->exists();
+            ->get()
+        : collect();
+    $hasPedagogicalResponsibility = $pedagogicalResponsibilities->isNotEmpty();
+    $hasSecretaryResponsibility = $pedagogicalResponsibilities->contains(function ($responsibility) {
+        $title = (string) ($responsibility->role_title ?? '');
+        return ($responsibility->scope_type ?? '') === 'platform'
+            && (str_contains($title, 'Secrétaire général') || str_contains($title, 'Coordinateur général'));
+    });
+    $hasDivisionResponsibility = $pedagogicalResponsibilities->contains(fn($responsibility) => ($responsibility->scope_type ?? '') === 'division');
+    $hasDepartmentResponsibility = $pedagogicalResponsibilities->contains(fn($responsibility) => ($responsibility->scope_type ?? '') === 'department');
 @endphp
 <!DOCTYPE html>
 <html lang="fr" data-theme="light">
@@ -98,8 +105,17 @@
 
         <nav class="teacher-nav">
             <a href="{{ route('teacher.dashboard') }}" class="teacher-link {{ request()->routeIs('teacher.dashboard') ? 'is-active' : '' }}"><span class="teacher-link__icon">🏠</span><span class="teacher-link__text">Tableau de bord</span></a>
-            @if($hasPedagogicalResponsibility)
-                <a href="{{ route('supervision.dashboard') }}" class="teacher-link {{ request()->routeIs('supervision.*') ? 'is-active' : '' }}"><span class="teacher-link__icon">🧭</span><span class="teacher-link__text">TB responsable</span></a>
+            @if($hasSecretaryResponsibility && \Illuminate\Support\Facades\Route::has('secretariat.dashboard'))
+                <a href="{{ route('secretariat.dashboard') }}" class="teacher-link {{ request()->routeIs('secretariat.dashboard') ? 'is-active' : '' }}"><span class="teacher-link__icon">🛡️</span><span class="teacher-link__text">TB Secrétaire</span></a>
+            @endif
+            @if($hasDivisionResponsibility && \Illuminate\Support\Facades\Route::has('responsible.division.dashboard'))
+                <a href="{{ route('responsible.division.dashboard') }}" class="teacher-link {{ request()->routeIs('responsible.division.dashboard') ? 'is-active' : '' }}"><span class="teacher-link__icon">🏛️</span><span class="teacher-link__text">TB type enseignement</span></a>
+            @endif
+            @if($hasDepartmentResponsibility && \Illuminate\Support\Facades\Route::has('responsible.department.dashboard'))
+                <a href="{{ route('responsible.department.dashboard') }}" class="teacher-link {{ request()->routeIs('responsible.department.dashboard') ? 'is-active' : '' }}"><span class="teacher-link__icon">🧩</span><span class="teacher-link__text">TB département</span></a>
+            @endif
+            @if($hasPedagogicalResponsibility && !$hasSecretaryResponsibility && !$hasDivisionResponsibility && !$hasDepartmentResponsibility && \Illuminate\Support\Facades\Route::has('supervision.tb'))
+                <a href="{{ route('supervision.tb') }}" class="teacher-link {{ request()->routeIs('supervision.tb') ? 'is-active' : '' }}"><span class="teacher-link__icon">🧭</span><span class="teacher-link__text">TB responsable</span></a>
             @endif
             <a href="{{ route('teacher.classes.index') }}" class="teacher-link {{ request()->routeIs('teacher.classes.*') ? 'is-active' : '' }}"><span class="teacher-link__icon">🏫</span><span class="teacher-link__text">Mes classes</span></a>
             <a href="{{ route('teacher.courses.index') }}" class="teacher-link {{ request()->routeIs('teacher.courses.*') ? 'is-active' : '' }}"><span class="teacher-link__icon">📚</span><span class="teacher-link__text">Mes cours</span></a>
@@ -188,7 +204,7 @@
     document.querySelectorAll('[data-teacher-drawer-close]').forEach((button) => button.addEventListener('click', closeDrawer));
     document.querySelectorAll('.teacher-sidebar .teacher-link').forEach((link) => link.addEventListener('click', closeDrawer));
     window.addEventListener('resize', () => { if (window.innerWidth > 1100) closeDrawer(); });
-})();
+})()
 </script>
 @if(file_exists(public_path('assets/js/td-file-preview.js')))
     <script>{!! file_get_contents(public_path('assets/js/td-file-preview.js')) !!}</script>
