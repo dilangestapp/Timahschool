@@ -6,6 +6,10 @@ Route::get('/teacher/courses/{course}/office', [\App\Http\Controllers\Teacher\Co
     ->middleware(['auth', 'no.cache', \App\Http\Middleware\EnsureTeacher::class])
     ->name('teacher.courses.office');
 
+Route::post('/teacher/courses/{course}/convert-content', [\App\Http\Controllers\Teacher\CourseOfficeController::class, 'convertContent'])
+    ->middleware(['auth', 'no.cache', \App\Http\Middleware\EnsureTeacher::class])
+    ->name('teacher.courses.convert');
+
 Route::get('/course-office/{course}/document/{key}', [\App\Http\Controllers\Teacher\CourseOfficeController::class, 'file'])
     ->name('onlyoffice.courses.file');
 
