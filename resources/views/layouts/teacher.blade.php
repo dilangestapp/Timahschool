@@ -2,7 +2,8 @@
     $generalSettings = \App\Models\PlatformSetting::group('general');
     $platformName = $generalSettings['platform_name'] ?? 'TIMAH ACADEMY';
     $platformSlogan = $generalSettings['platform_slogan'] ?? 'Plateforme éducative moderne et premium';
-   $platformLogo = \App\Models\PlatformSetting::logoUrl($generalSettings['logo_path'] ?? null);
+    $platformLogo = \App\Models\PlatformSetting::logoUrl($generalSettings['logo_path'] ?? null);
+    $hasWeeklyProgram = \Illuminate\Support\Facades\Route::has('teacher.weekly-program.index');
 @endphp
 <!DOCTYPE html>
 <html lang="fr" data-theme="light">
@@ -35,11 +36,16 @@
         .teacher-topbar__left { display: flex; align-items: flex-start; gap: 12px; min-width: 0; }
         .teacher-topbar__left > div:last-child { min-width: 0; }
         .teacher-topbar__actions { display: flex; align-items: center; gap: 12px; flex-wrap: wrap; }
+        .teacher-nav { overflow-y: auto; padding-bottom: 18px; }
+        .teacher-link { gap: 10px; }
+        .teacher-link__icon { width: 22px; flex: 0 0 22px; text-align: center; opacity: .95; }
+        .teacher-link__text { min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+        .teacher-sidebar__bottom { border-top: 1px solid rgba(255,255,255,.08); }
         @media (prefers-color-scheme: dark) { :root, html, body, input, textarea, select, button { color-scheme: light; } }
         @media (max-width: 1100px) {
             .teacher-shell { display: block !important; }
             .teacher-sidebar {
-                position: fixed !important; top: 0; left: 0; bottom: 0; width: min(84vw, 320px) !important;
+                position: fixed !important; top: 0; left: 0; bottom: 0; width: min(86vw, 330px) !important;
                 height: 100vh !important; z-index: 1200; transform: translateX(-100%);
                 transition: transform .25s ease; box-shadow: 0 20px 60px rgba(15, 23, 42, .32);
             }
@@ -84,16 +90,23 @@
         </div>
 
         <nav class="teacher-nav">
-            <a href="{{ route('teacher.dashboard') }}" class="teacher-link {{ request()->routeIs('teacher.dashboard') ? 'is-active' : '' }}">Tableau de bord</a>
-            <a href="{{ route('teacher.classes.index') }}" class="teacher-link {{ request()->routeIs('teacher.classes.*') ? 'is-active' : '' }}">Mes classes</a>
-            <a href="{{ route('teacher.students.activity') }}" class="teacher-link {{ request()->routeIs('teacher.students.*') ? 'is-active' : '' }}">Élèves connectés</a>
-            <a href="{{ route('teacher.td.sets.index') }}" class="teacher-link {{ request()->routeIs('teacher.td.sets.*') ? 'is-active' : '' }}">Mes TD</a>
-            <a href="{{ route('teacher.td.questions.index') }}" class="teacher-link {{ request()->routeIs('teacher.td.questions.*') ? 'is-active' : '' }}">Questions TD</a>
-            <a href="{{ route('teacher.messages.index') }}" class="teacher-link {{ request()->routeIs('teacher.messages.*') ? 'is-active' : '' }}">Messagerie</a>
+            <a href="{{ route('teacher.dashboard') }}" class="teacher-link {{ request()->routeIs('teacher.dashboard') ? 'is-active' : '' }}"><span class="teacher-link__icon">🏠</span><span class="teacher-link__text">Tableau de bord</span></a>
+            <a href="{{ route('teacher.classes.index') }}" class="teacher-link {{ request()->routeIs('teacher.classes.*') ? 'is-active' : '' }}"><span class="teacher-link__icon">🏫</span><span class="teacher-link__text">Mes classes</span></a>
+            <a href="{{ route('teacher.courses.index') }}" class="teacher-link {{ request()->routeIs('teacher.courses.*') ? 'is-active' : '' }}"><span class="teacher-link__icon">📚</span><span class="teacher-link__text">Mes cours</span></a>
+            <a href="{{ route('teacher.td.sets.index') }}" class="teacher-link {{ request()->routeIs('teacher.td.sets.*') ? 'is-active' : '' }}"><span class="teacher-link__icon">📝</span><span class="teacher-link__text">Mes TD</span></a>
+            <a href="{{ route('teacher.td.questions.index') }}" class="teacher-link {{ request()->routeIs('teacher.td.questions.*') ? 'is-active' : '' }}"><span class="teacher-link__icon">❓</span><span class="teacher-link__text">Questions élèves</span></a>
+            <a href="{{ route('teacher.messages.index') }}" class="teacher-link {{ request()->routeIs('teacher.messages.*') ? 'is-active' : '' }}"><span class="teacher-link__icon">💬</span><span class="teacher-link__text">Messagerie</span></a>
+            <a href="{{ route('teacher.students.activity') }}" class="teacher-link {{ request()->routeIs('teacher.students.*') ? 'is-active' : '' }}"><span class="teacher-link__icon">📊</span><span class="teacher-link__text">Suivi élèves</span></a>
+            @if($hasWeeklyProgram)
+                <a href="{{ route('teacher.weekly-program.index') }}" class="teacher-link {{ request()->routeIs('teacher.weekly-program.*') ? 'is-active' : '' }}"><span class="teacher-link__icon">🗓️</span><span class="teacher-link__text">Programme</span></a>
+            @endif
+            @if(\Illuminate\Support\Facades\Route::has('teacher.td.sources.index'))
+                <a href="{{ route('teacher.td.sources.index') }}" class="teacher-link {{ request()->routeIs('teacher.td.sources.*') ? 'is-active' : '' }}"><span class="teacher-link__icon">📥</span><span class="teacher-link__text">Sources TD</span></a>
+            @endif
         </nav>
 
         <div class="teacher-sidebar__bottom">
-            <a href="{{ route('home') }}" class="teacher-link teacher-link--bottom">← Retour au site</a>
+            <a href="{{ route('home') }}" class="teacher-link teacher-link--bottom"><span class="teacher-link__icon">←</span><span class="teacher-link__text">Retour au site</span></a>
             <form method="POST" action="{{ route('logout') }}">
                 @csrf
                 <button type="submit" class="teacher-logout">Déconnexion</button>
@@ -107,7 +120,7 @@
                 <button type="button" class="teacher-drawer-toggle" data-teacher-drawer-open>☰</button>
                 <div>
                     <h1>@yield('page_title', 'Espace enseignant')</h1>
-                    <p>@yield('page_subtitle', 'Gestion de vos TD, corrigés et questions liées à vos affectations.')</p>
+                    <p>@yield('page_subtitle', 'Gestion de vos cours, TD, corrigés et questions liées à vos affectations.')</p>
                 </div>
             </div>
 
