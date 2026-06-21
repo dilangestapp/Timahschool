@@ -8,7 +8,7 @@
 
 @section('title', $pageTitle)
 @section('page_title', $pageTitle)
-@section('page_subtitle', $isDivision ? 'Suivi des départements, enseignants, cours, TD et questions rattachés à un type d’enseignement.' : 'Suivi des enseignants, classes, cours, TD et questions rattachés à un département ou une filière.')
+@section('page_subtitle', $isDivision ? 'Suivi des départements, enseignants, cours, TD et questions rattachés à un type d’enseignement.' : 'Suivi des enseignants, classes, matières, cours, TD et questions rattachés à un département ou une filière.')
 
 @section('content')
 @php
@@ -24,7 +24,8 @@
     $departments = collect();
     $subjectIds = collect();
     $classIds = collect();
-    $stats = ['teachers' => 0, 'students' => 0, 'departments' => 0, 'classes' => 0, 'courses_published' => 0, 'courses_draft' => 0, 'td_published' => 0, 'questions_open' => 0, 'notes_open' => 0];
+    $subjects = collect();
+    $stats = ['teachers' => 0, 'students' => 0, 'departments' => 0, 'classes' => 0, 'subjects' => 0, 'courses_published' => 0, 'courses_draft' => 0, 'td_published' => 0, 'questions_open' => 0, 'notes_open' => 0];
     $teachers = collect();
     $classes = collect();
     $courses = collect();
@@ -88,6 +89,7 @@
 
             $subjectIds = $departments->pluck('subject_id')->filter()->unique()->values();
             $classIds = $departments->pluck('school_class_id')->filter()->unique()->values();
+            $stats['subjects'] = $subjectIds->count();
 
             $applyScope = function ($query, string $table, string $alias = '') use ($subjectIds, $classIds) {
                 $prefix = $alias !== '' ? $alias . '.' : '';
@@ -122,6 +124,10 @@
 
             $stats['departments'] = $departments->count();
             $stats['classes'] = $classIds->count();
+
+            if ($subjectIds->isNotEmpty() && \Illuminate\Support\Facades\Schema::hasTable('subjects')) {
+                $subjects = \Illuminate\Support\Facades\DB::table('subjects')->whereIn('id', $subjectIds->all())->orderBy('name')->limit(8)->get();
+            }
 
             if (\Illuminate\Support\Facades\Schema::hasTable('courses')) {
                 $courseBase = \Illuminate\Support\Facades\DB::table('courses');
@@ -224,44 +230,46 @@
                 <div class="rz-reserved">🔒 Espace réservé : {{ $responsibility->role_title }}</div>
                 <h2>{{ $pageTitle }}</h2>
                 <h3>{{ $area->name ?? ($isDivision ? 'Type d’enseignement' : 'Département / filière') }}</h3>
-                <p>{{ $isDivision ? 'Vous supervisez les départements, enseignants, cours, TD, questions et relances rattachés à ce type d’enseignement.' : 'Vous suivez les enseignants, classes, cours, TD, questions et retards liés à ce département ou cette filière.' }}</p>
+                <p>{{ $isDivision ? 'Vous supervisez les départements, enseignants, cours, TD, questions et relances rattachés à ce type d’enseignement.' : 'Vous gérez les matières et classes liées à votre département, puis vous suivez les enseignants, cours, TD, questions et retards de cette zone.' }}</p>
             </div>
             <div class="rz-actions">
                 <a class="rz-btn" href="{{ route('teacher.dashboard') }}">← Retour</a>
-                @if(\Illuminate\Support\Facades\Route::has('secretariat.dashboard'))<a class="rz-btn rz-btn--primary" href="{{ route('secretariat.dashboard') }}">TB Secrétaire</a>@endif
-                <a class="rz-btn rz-btn--success" href="#note-suivi">+ Créer une note</a>
+                @if(!$isDivision && \Illuminate\Support\Facades\Route::has('admin.classes.index'))<a class="rz-btn rz-btn--primary" href="{{ route('admin.classes.index') }}">Gérer les classes</a>@endif
+                @if(!$isDivision && \Illuminate\Support\Facades\Route::has('admin.subjects.index'))<a class="rz-btn rz-btn--primary" href="{{ route('admin.subjects.index') }}">Gérer les matières</a>@endif
+                @if(\Illuminate\Support\Facades\Route::has('responsibilities.followups.index'))<a class="rz-btn" href="{{ route('responsibilities.followups.index') }}">Suivi pédagogique</a>@endif
+                <a class="rz-btn rz-btn--success" href="#note-suivi">+ Créer une alerte</a>
             </div>
         </section>
 
         <section class="rz-grid">
             <article class="rz-card"><div class="rz-ico">👥</div><div><span>Enseignants</span><strong>{{ $stats['teachers'] }}</strong><small>Voir la liste</small></div></article>
             <article class="rz-card"><div class="rz-ico">🎓</div><div><span>Élèves concernés</span><strong>{{ $stats['students'] }}</strong><small>Voir le détail</small></div></article>
-            <article class="rz-card"><div class="rz-ico">{{ $isDivision ? '🏛️' : '🏫' }}</div><div><span>{{ $isDivision ? 'Départements / filières' : 'Classes liées' }}</span><strong>{{ $isDivision ? $stats['departments'] : $stats['classes'] }}</strong><small>Voir le détail</small></div></article>
-            <article class="rz-card"><div class="rz-ico">📘</div><div><span>Cours publiés</span><strong>{{ $stats['courses_published'] }}</strong><small>Voir les cours</small></div></article>
+            <article class="rz-card"><div class="rz-ico">{{ $isDivision ? '🏛️' : '🏫' }}</div><div><span>{{ $isDivision ? 'Départements / filières' : 'Classes liées' }}</span><strong>{{ $isDivision ? $stats['departments'] : $stats['classes'] }}</strong><small>{{ !$isDivision ? 'Gérer depuis Classes' : 'Voir le détail' }}</small></div></article>
+            <article class="rz-card"><div class="rz-ico">📘</div><div><span>{{ !$isDivision ? 'Matières liées' : 'Cours publiés' }}</span><strong>{{ !$isDivision ? $stats['subjects'] : $stats['courses_published'] }}</strong><small>{{ !$isDivision ? 'Gérer depuis Matières' : 'Voir les cours' }}</small></div></article>
+            <article class="rz-card"><div class="rz-ico">📗</div><div><span>Cours publiés</span><strong>{{ $stats['courses_published'] }}</strong><small>Voir les cours</small></div></article>
             <article class="rz-card"><div class="rz-ico">📝</div><div><span>Cours brouillons</span><strong>{{ $stats['courses_draft'] }}</strong><small>À finaliser</small></div></article>
             <article class="rz-card"><div class="rz-ico">📄</div><div><span>TD publiés</span><strong>{{ $stats['td_published'] }}</strong><small>Voir les TD</small></div></article>
-            <article class="rz-card"><div class="rz-ico">❓</div><div><span>Questions ouvertes</span><strong>{{ $stats['questions_open'] }}</strong><small>À suivre</small></div></article>
-            <article class="rz-card"><div class="rz-ico">📋</div><div><span>Notes ouvertes</span><strong>{{ $stats['notes_open'] }}</strong><small>Relances</small></div></article>
+            <article class="rz-card"><div class="rz-ico">📋</div><div><span>Alertes ouvertes</span><strong>{{ $stats['notes_open'] }}</strong><small>Relances</small></div></article>
         </section>
 
         <div class="rz-panels">
             <section class="rz-panel"><div class="rz-panel__head"><h3>{{ $isDivision ? 'Enseignants à suivre' : 'Enseignants du département' }}</h3><a href="#">Voir tout</a></div><div class="rz-list">@forelse($teachers as $teacher)<div class="rz-row"><div class="rz-row__line"><strong>{{ $teacher->full_name ?: ($teacher->name ?: $teacher->username) }}</strong><span class="rz-badge rz-badge--success">Actif</span></div><span>{{ $teacher->class_name ?? '-' }} · {{ $teacher->subject_name ?? '-' }}</span></div>@empty<div class="rz-empty">Aucun enseignant trouvé.</div>@endforelse</div></section>
-            <section class="rz-panel"><div class="rz-panel__head"><h3>{{ $isDivision ? 'Départements / filières concernés' : 'Classes concernées' }}</h3><a href="#">Voir tout</a></div><div class="rz-list">@if($isDivision) @forelse($departments as $department)<div class="rz-row"><div class="rz-row__line"><strong>{{ $department->name }}</strong><span class="rz-badge rz-badge--success">Actif</span></div><span>{{ $department->code ?: 'Sans code' }}</span></div>@empty<div class="rz-empty">Aucun département.</div>@endforelse @else @forelse($classes as $class)<div class="rz-row"><div class="rz-row__line"><strong>{{ $class->name }}</strong><span class="rz-badge rz-badge--neutral">Classe</span></div><span>{{ $class->level ?? $class->niveau ?? 'Niveau non précisé' }}</span></div>@empty<div class="rz-empty">Aucune classe liée directement.</div>@endforelse @endif</div></section>
+            <section class="rz-panel"><div class="rz-panel__head"><h3>{{ $isDivision ? 'Départements / filières concernés' : 'Classes concernées' }}</h3>@if(!$isDivision && \Illuminate\Support\Facades\Route::has('admin.classes.index'))<a href="{{ route('admin.classes.index') }}">Gérer</a>@else<a href="#">Voir tout</a>@endif</div><div class="rz-list">@if($isDivision) @forelse($departments as $department)<div class="rz-row"><div class="rz-row__line"><strong>{{ $department->name }}</strong><span class="rz-badge rz-badge--success">Actif</span></div><span>{{ $department->code ?: 'Sans code' }}</span></div>@empty<div class="rz-empty">Aucun département.</div>@endforelse @else @forelse($classes as $class)<div class="rz-row"><div class="rz-row__line"><strong>{{ $class->name }}</strong><span class="rz-badge rz-badge--neutral">Classe</span></div><span>{{ $class->level ?? $class->niveau ?? 'Niveau non précisé' }}</span></div>@empty<div class="rz-empty">Aucune classe liée directement.</div>@endforelse @endif</div></section>
+            @if(!$isDivision)<section class="rz-panel"><div class="rz-panel__head"><h3>Matières du département</h3>@if(\Illuminate\Support\Facades\Route::has('admin.subjects.index'))<a href="{{ route('admin.subjects.index') }}">Gérer</a>@endif</div><div class="rz-list">@forelse($subjects as $subject)<div class="rz-row"><div class="rz-row__line"><strong>{{ $subject->name }}</strong><span class="rz-badge rz-badge--success">Matière</span></div><span>Liée au département</span></div>@empty<div class="rz-empty">Aucune matière liée directement au département.</div>@endforelse</div></section>@endif
             <section class="rz-panel"><div class="rz-panel__head"><h3>Cours récents</h3><a href="#">Voir tout</a></div><div class="rz-list">@forelse($courses as $course)<div class="rz-row"><div class="rz-row__line"><strong>{{ $course->title }}</strong><span class="rz-badge {{ $statusClass($course->status) }}">{{ $labelStatus($course->status) }}</span></div><span>{{ $course->class_name ?? '-' }} · {{ $course->subject_name ?? '-' }}</span></div>@empty<div class="rz-empty">Aucun cours.</div>@endforelse</div></section>
             <section class="rz-panel"><div class="rz-panel__head"><h3>TD récents</h3><a href="#">Voir tout</a></div><div class="rz-list">@forelse($tdSets as $td)<div class="rz-row"><div class="rz-row__line"><strong>{{ $td->title }}</strong><span class="rz-badge {{ $statusClass($td->status) }}">{{ $labelStatus($td->status) }}</span></div><span>{{ $td->class_name ?? '-' }} · {{ $td->subject_name ?? '-' }}</span></div>@empty<div class="rz-empty">Aucun TD.</div>@endforelse</div></section>
-            <section class="rz-panel"><div class="rz-panel__head"><h3>Questions élèves ouvertes</h3><a href="#">Voir tout</a></div><div class="rz-list">@forelse($questions as $question)<div class="rz-row"><div class="rz-row__line"><strong>{{ $question->subject_name ?: 'Question élève' }}</strong><span class="rz-badge {{ $statusClass($question->status) }}">{{ $labelStatus($question->status) }}</span></div><span>{{ $question->class_name ?? '-' }}</span></div>@empty<div class="rz-empty">Aucune question ouverte.</div>@endforelse</div></section>
-            <section class="rz-panel"><div class="rz-panel__head"><h3>Notes / relances</h3><a href="#">Voir tout</a></div><div class="rz-list">@forelse($notes as $note)<div class="rz-row"><div class="rz-row__line"><strong>{{ $note->title }}</strong><span class="rz-badge {{ $statusClass($note->severity) }}">{{ $labelStatus($note->severity) }}</span></div><span>{{ $note->full_name ?: ($note->name ?: ($note->username ?: 'Zone suivie')) }}</span><small>{{ $labelStatus($note->status) }}</small></div>@empty<div class="rz-empty">Aucune note.</div>@endforelse</div></section>
+            <section class="rz-panel"><div class="rz-panel__head"><h3>Suivi / relances</h3>@if(\Illuminate\Support\Facades\Route::has('responsibilities.followups.index'))<a href="{{ route('responsibilities.followups.index') }}">Voir tout</a>@endif</div><div class="rz-list">@forelse($notes as $note)<div class="rz-row"><div class="rz-row__line"><strong>{{ $note->title }}</strong><span class="rz-badge {{ $statusClass($note->severity) }}">{{ $labelStatus($note->severity) }}</span></div><span>{{ $note->full_name ?: ($note->name ?: ($note->username ?: 'Zone suivie')) }}</span><small>{{ $labelStatus($note->status) }}</small></div>@empty<div class="rz-empty">Aucune alerte.</div>@endforelse</div></section>
         </div>
 
         <section class="rz-alerts">
             <div class="rz-alert"><div class="rz-ico">⏰</div><div><b>{{ $stats['courses_draft'] }}</b><br><span>cours à finaliser</span></div></div>
             <div class="rz-alert"><div class="rz-ico">📄</div><div><b>{{ max(0, $stats['teachers'] - $stats['td_published']) }}</b><br><span>points TD à surveiller</span></div></div>
             <div class="rz-alert"><div class="rz-ico">❓</div><div><b>{{ $stats['questions_open'] }}</b><br><span>questions sans réponse</span></div></div>
-            <div class="rz-alert"><div class="rz-ico">📋</div><div><b>{{ $stats['notes_open'] }}</b><br><span>notes de suivi ouvertes</span></div></div>
+            <div class="rz-alert"><div class="rz-ico">📋</div><div><b>{{ $stats['notes_open'] }}</b><br><span>alertes ouvertes</span></div></div>
         </section>
 
         <section class="rz-note-form" id="note-suivi">
-            <h3>Créer une note de suivi rapide</h3>
+            <h3>Créer une alerte rapide</h3>
             <form method="POST" action="{{ route('supervision.notes.store') }}">
                 @csrf
                 <input type="hidden" name="responsibility_id" value="{{ $responsibility->id }}">
