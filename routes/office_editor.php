@@ -39,3 +39,7 @@ if (file_exists(base_path('routes/timah_responsible_tb.php'))) {
 if (file_exists(base_path('routes/timah_responsible_actions.php'))) {
     require base_path('routes/timah_responsible_actions.php');
 }
+
+if (file_exists(base_path('routes/timah_department_management.php'))) {
+    require base_path('routes/timah_department_management.php');
+}
