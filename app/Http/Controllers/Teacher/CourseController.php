@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Teacher;
 use App\Http\Controllers\Controller;
 use App\Models\Course;
 use App\Models\TeacherAssignment;
+use App\Support\CoursePublicationNotifier;
 use Illuminate\Http\Request;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\Schema;
@@ -56,7 +57,7 @@ class CourseController extends Controller
         ]);
     }
 
-    public function store(Request $request)
+    public function store(Request $request, CoursePublicationNotifier $notifier)
     {
         $assignments = $this->assignments()->keyBy('id');
 
@@ -111,9 +112,12 @@ class CourseController extends Controller
             $payload['content_text'] = $contentText;
         }
 
-        Course::query()->create($payload);
+        $course = Course::query()->create($payload);
+        if ($course->status === Course::STATUS_PUBLISHED) {
+            $notifier->coursePublished($course->fresh(['subject', 'schoolClass', 'creator']), auth()->user());
+        }
 
-        return redirect()->route('teacher.courses.index')->with('success', 'Cours enregistré avec succès.');
+        return redirect()->route('teacher.courses.index')->with('success', 'Cours enregistré avec succès. Les notifications internes ont été préparées si le cours est publié.');
     }
 
     public function edit(Course $course)
@@ -126,9 +130,10 @@ class CourseController extends Controller
         ]);
     }
 
-    public function update(Request $request, Course $course)
+    public function update(Request $request, Course $course, CoursePublicationNotifier $notifier)
     {
         $this->authorizeCourse($course);
+        $wasPublished = $course->status === Course::STATUS_PUBLISHED;
 
         $data = $request->validate([
             'title' => ['required', 'string', 'max:255'],
@@ -192,19 +197,27 @@ class CourseController extends Controller
         }
 
         $course->update($updates);
+        if (!$wasPublished && $course->status === Course::STATUS_PUBLISHED) {
+            $notifier->coursePublished($course->fresh(['subject', 'schoolClass', 'creator']), auth()->user());
+        }
 
         return redirect()->route('teacher.courses.index')->with('success', 'Cours mis à jour avec succès.');
     }
 
-    public function publish(Course $course)
+    public function publish(Course $course, CoursePublicationNotifier $notifier)
     {
         $this->authorizeCourse($course);
+        $wasPublished = $course->status === Course::STATUS_PUBLISHED;
         $course->update([
             'status' => Course::STATUS_PUBLISHED,
             'published_at' => $course->published_at ?? now(),
         ]);
 
-        return redirect()->route('teacher.courses.index')->with('success', 'Cours publié.');
+        if (!$wasPublished) {
+            $notifier->coursePublished($course->fresh(['subject', 'schoolClass', 'creator']), auth()->user());
+        }
+
+        return redirect()->route('teacher.courses.index')->with('success', 'Cours publié. Les élèves et les parents liés recevront une notification interne.');
     }
 
     public function archive(Course $course)
@@ -305,12 +318,7 @@ class CourseController extends Controller
         $filename = now()->format('YmdHis') . '_' . Str::random(8) . '_' . preg_replace('/[^A-Za-z0-9._-]/', '_', $original);
         $path = $file->storeAs('course_documents', $filename, 'local');
 
-        return [
-            $path,
-            $original,
-            $file->getMimeType(),
-            $file->getSize(),
-        ];
+        return [$path, $original, $file->getMimeType(), $file->getSize()];
     }
 
     protected function deleteDocument(?string $path): void
@@ -330,7 +338,6 @@ class CourseController extends Controller
 
         $html = preg_replace('/<(script|style)\b[^>]*>(.*?)<\/\1>/is', '', $html) ?? $html;
         $html = trim($html);
-
         $text = trim(preg_replace('/\s+/u', ' ', strip_tags($html)) ?? '');
 
         if ($text === '') {
