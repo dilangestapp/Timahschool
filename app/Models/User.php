@@ -27,10 +27,7 @@ class User extends Authenticatable
         'role_id',
     ];
 
-    protected $hidden = [
-        'password',
-        'remember_token',
-    ];
+    protected $hidden = ['password', 'remember_token'];
 
     protected $casts = [
         'email_verified_at' => 'datetime',
@@ -50,6 +47,25 @@ class User extends Authenticatable
     public function studentProfile()
     {
         return $this->hasOne(StudentProfile::class);
+    }
+
+    public function parentProfile()
+    {
+        return $this->hasOne(ParentProfile::class);
+    }
+
+    public function children()
+    {
+        return $this->belongsToMany(User::class, 'student_parent', 'parent_id', 'student_id')
+            ->withPivot(['relationship', 'is_primary'])
+            ->withTimestamps();
+    }
+
+    public function parents()
+    {
+        return $this->belongsToMany(User::class, 'student_parent', 'student_id', 'parent_id')
+            ->withPivot(['relationship', 'is_primary'])
+            ->withTimestamps();
     }
 
     public function learningProfile()
@@ -88,6 +104,11 @@ class User extends Authenticatable
         return $this->hasMany(ProgressReport::class, 'student_id')->latest('period_ends_at');
     }
 
+    public function courseProgress()
+    {
+        return $this->hasMany(CourseProgress::class, 'student_id')->latest('last_seen_at');
+    }
+
     public function teacherAssignments()
     {
         return $this->hasMany(TeacherAssignment::class, 'teacher_id')->latest();
@@ -120,8 +141,7 @@ class User extends Authenticatable
         return $this->subscriptions()
             ->whereIn('status', [Subscription::STATUS_ACTIVE, Subscription::STATUS_TRIAL])
             ->where(function ($query) {
-                $query->whereNull('ends_at')
-                    ->orWhere('ends_at', '>', now());
+                $query->whereNull('ends_at')->orWhere('ends_at', '>', now());
             })
             ->first();
     }
@@ -134,20 +154,13 @@ class User extends Authenticatable
     public function hasRole(string $roleName): bool
     {
         $roleName = mb_strtolower(trim($roleName));
+        if ($roleName === '') return false;
 
-        if ($roleName === '') {
-            return false;
-        }
-
-        if ($this->role && mb_strtolower((string) $this->role->name) === $roleName) {
-            return true;
-        }
+        if ($this->role && mb_strtolower((string) $this->role->name) === $roleName) return true;
 
         if ($this->relationLoaded('roles')) {
             foreach ($this->roles as $role) {
-                if ($role && mb_strtolower((string) $role->name) === $roleName) {
-                    return true;
-                }
+                if ($role && mb_strtolower((string) $role->name) === $roleName) return true;
             }
         }
 
@@ -156,16 +169,18 @@ class User extends Authenticatable
 
     public function isAdmin(): bool
     {
-        if ((int) ($this->role_id ?? 0) === 1) {
-            return true;
-        }
-
+        if ((int) ($this->role_id ?? 0) === 1) return true;
         return $this->hasRole('admin');
     }
 
     public function isTeacher(): bool
     {
         return $this->hasRole('teacher') || $this->hasRole('enseignant');
+    }
+
+    public function isParent(): bool
+    {
+        return $this->hasRole('parent') || (bool) $this->parentProfile;
     }
 
     public function isStudent(): bool
