@@ -27,6 +27,10 @@ class EnsureAdmin
             return $next($request);
         }
 
+        if ($user && $this->isDepartmentResponsibleAllowed($request, (int) $user->id)) {
+            return $next($request);
+        }
+
         Auth::logout();
         $request->session()->invalidate();
         $request->session()->regenerateToken();
@@ -114,6 +118,42 @@ class EnsureAdmin
             ->where(function ($query) {
                 $query->where('role_title', 'like', '%Secrétaire général%')
                     ->orWhere('role_title', 'like', '%Coordinateur général%');
+            })
+            ->exists();
+    }
+
+    private function isDepartmentResponsibleAllowed(Request $request, int $userId): bool
+    {
+        if (!Schema::hasTable('pedagogical_responsibilities')) {
+            return false;
+        }
+
+        $routeName = (string) optional($request->route())->getName();
+
+        $allowedRoutes = [
+            'admin.classes.index',
+            'admin.classes.store',
+            'admin.classes.update',
+            'admin.classes.delete',
+            'admin.subjects.index',
+            'admin.subjects.store',
+            'admin.subjects.update',
+            'admin.subjects.delete',
+            'admin.logout',
+            'admin.logout.history',
+        ];
+
+        if (!in_array($routeName, $allowedRoutes, true)) {
+            return false;
+        }
+
+        return DB::table('pedagogical_responsibilities')
+            ->where('user_id', $userId)
+            ->where('is_active', true)
+            ->where(function ($query) {
+                $query->where('scope_type', 'department')
+                    ->orWhere('role_title', 'like', '%Responsable de département%')
+                    ->orWhere('role_title', 'like', '%filière%');
             })
             ->exists();
     }
