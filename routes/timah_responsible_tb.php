@@ -23,3 +23,7 @@ Route::get('/responsable-departement/dashboard', function () {
         'dashboardTitle' => 'TB Responsable département / filière',
     ]);
 })->middleware(['auth', 'no.cache'])->name('responsible.department.dashboard');
+
+Route::get('/referent-pedagogique/dashboard', function () {
+    return view('supervision.pedagogical-referent');
+})->middleware(['auth', 'no.cache'])->name('referent.pedagogical.dashboard');
