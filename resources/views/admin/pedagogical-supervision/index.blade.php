@@ -43,7 +43,7 @@
 
 <div class="secretary-highlight">
     <strong>Poste central : Secrétaire général / Coordinateur général</strong>
-    <span>Cette personne pilote toute la plateforme. Pour la créer, choisis la personne à droite, mets le titre <b>Secrétaire général</b> ou <b>Secrétaire général / Coordinateur général</b>, puis garde la portée sur <b>Plateforme entière</b>.</span>
+    <span>Cette personne pilote toute la plateforme. Pour la créer, choisis la personne à droite, sélectionne le titre <b>Secrétaire général / Coordinateur général</b>, puis garde la portée sur <b>Plateforme entière</b>.</span>
 </div>
 
 <div class="supervision-note">
@@ -82,7 +82,20 @@
         @csrf
         <h3>Nommer le Secrétaire général ou un responsable</h3>
         <label>Personne<select name="user_id" required><option value="">Choisir</option>@foreach($users as $user)<option value="{{ $user->id }}">{{ $user->full_name ?: ($user->name ?: $user->username) }} {{ $user->phone }}</option>@endforeach</select></label>
-        <label>Titre<input name="role_title" required placeholder="Secrétaire général / Coordinateur général"></label>
+        <label>Titre
+            <select name="role_title" required>
+                <option value="Secrétaire général / Coordinateur général">Secrétaire général / Coordinateur général</option>
+                <option value="Coordinateur général">Coordinateur général</option>
+                <option value="Responsable enseignement général francophone">Responsable enseignement général francophone</option>
+                <option value="Responsable enseignement technique">Responsable enseignement technique</option>
+                <option value="Responsable enseignement anglophone">Responsable enseignement anglophone</option>
+                <option value="Responsable primaire et maternelle">Responsable primaire et maternelle</option>
+                <option value="Responsable classes d’examen">Responsable classes d’examen</option>
+                <option value="Responsable de département / filière">Responsable de département / filière</option>
+                <option value="Référent pédagogique">Référent pédagogique</option>
+                <option value="Superviseur pédagogique">Superviseur pédagogique</option>
+            </select>
+        </label>
         <label>Portée<select name="scope_type"><option value="platform">Plateforme entière</option><option value="division">Type d’enseignement</option><option value="department">Département / filière</option></select></label>
         <label>Type d’enseignement<select name="teaching_division_id"><option value="">Aucun</option>@foreach($divisions as $division)<option value="{{ $division->id }}">{{ $division->name }}</option>@endforeach</select></label>
         <label>Département<select name="teaching_department_id"><option value="">Aucun</option>@foreach($departments as $department)<option value="{{ $department->id }}">{{ $department->name }}</option>@endforeach</select></label>
