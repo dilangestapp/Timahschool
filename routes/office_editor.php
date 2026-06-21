@@ -25,7 +25,9 @@ Route::get('/teacher/messages', function (Request $request) {
             ->whereHas('studentProfile', fn ($query) => $query->whereIn('school_class_id', $classIds))
             ->orderBy('full_name')
             ->orderBy('name')
-            ->get();
+            ->get()
+            ->filter(fn ($student) => $student && $student->id)
+            ->values();
     }
 
     $messages = collect();
@@ -65,11 +67,11 @@ Route::get('/teacher/messages', function (Request $request) {
             'attachment_count' => $studentMessages->filter(fn ($message) => !empty($message->attachment_path))->count(),
             'sort_timestamp' => $latest?->created_at?->timestamp ?? 0,
         ];
-    })->sortByDesc('sort_timestamp')->values();
+    })->filter(fn ($thread) => $thread && $thread->student && $thread->student->id)->sortByDesc('sort_timestamp')->values();
 
     $selectedStudentId = (int) $request->query('student');
-    if (!$threads->contains(fn ($thread) => (int) $thread->student->id === $selectedStudentId)) {
-        $selectedStudentId = (int) optional($threads->first())->student->id;
+    if (!$threads->contains(fn ($thread) => (int) ($thread->student?->id ?? 0) === $selectedStudentId)) {
+        $selectedStudentId = (int) ($threads->first()?->student?->id ?? 0);
     }
 
     if ($selectedStudentId && Schema::hasTable('teacher_messages')) {
@@ -84,7 +86,7 @@ Route::get('/teacher/messages', function (Request $request) {
     return view('teacher.messages.safe', [
         'threads' => $threads,
         'selectedStudentId' => $selectedStudentId,
-        'selectedThread' => $threads->first(fn ($thread) => (int) $thread->student->id === $selectedStudentId),
+        'selectedThread' => $threads->first(fn ($thread) => (int) ($thread->student?->id ?? 0) === $selectedStudentId),
         'assignments' => $assignments,
     ]);
 })->middleware(['auth', 'no.cache', \App\Http\Middleware\EnsureTeacher::class])->name('teacher.messages.safe.index');
