@@ -27,3 +27,7 @@ Route::get('/course-office/{course}/document/{key}', [\App\Http\Controllers\Teac
 
 Route::post('/course-office/{course}/save/{key}', [\App\Http\Controllers\Teacher\CourseOfficeController::class, 'callback'])
     ->name('onlyoffice.courses.callback');
+
+if (file_exists(base_path('routes/timah_supervision.php'))) {
+    require base_path('routes/timah_supervision.php');
+}
