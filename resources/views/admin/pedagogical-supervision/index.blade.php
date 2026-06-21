@@ -24,7 +24,7 @@
     .supervision-form{background:#fff;border:1px solid #e2e8f0;border-radius:18px;padding:16px;box-shadow:0 12px 28px rgba(15,23,42,.06)}
     .supervision-form h3{margin-top:0}.supervision-form label{display:block;font-weight:800;font-size:13px;margin-top:10px;color:#334155}
     .supervision-form input,.supervision-form select,.supervision-form textarea{width:100%;box-sizing:border-box;margin-top:5px;border:1px solid #cbd5e1;border-radius:12px;padding:10px;background:#fff;color:#0f172a}.supervision-form textarea{min-height:78px}
-    .supervision-list{display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-bottom:18px}.supervision-item{border-top:1px solid #e5e7eb;padding:12px 0}.supervision-item strong{display:block}.supervision-item small{display:inline-block;background:#eef2ff;color:#3730a3;border-radius:999px;padding:4px 8px;margin-top:4px}.severity-warning{background:#fff7ed!important;color:#c2410c!important}.severity-urgent{background:#fef2f2!important;color:#b91c1c!important}.secretary-highlight{border:1px solid #bfdbfe;background:linear-gradient(135deg,#eff6ff,#f8fafc);border-radius:18px;padding:16px;margin-bottom:18px}.secretary-highlight strong{display:block;font-size:18px;color:#0f172a}.secretary-highlight span{display:block;margin-top:6px;color:#64748b;line-height:1.55}@media(max-width:980px){.supervision-forms,.supervision-list{grid-template-columns:1fr}}
+    .supervision-list{display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-bottom:18px}.supervision-item{border-top:1px solid #e5e7eb;padding:12px 0}.supervision-item strong{display:block}.supervision-item small{display:inline-block;background:#eef2ff;color:#3730a3;border-radius:999px;padding:4px 8px;margin-top:4px}.severity-warning{background:#fff7ed!important;color:#c2410c!important}.severity-urgent{background:#fef2f2!important;color:#b91c1c!important}.secretary-highlight{border:1px solid #bfdbfe;background:linear-gradient(135deg,#eff6ff,#f8fafc);border-radius:18px;padding:16px;margin-bottom:18px}.secretary-highlight strong{display:block;font-size:18px;color:#0f172a}.secretary-highlight span{display:block;margin-top:6px;color:#64748b;line-height:1.55}.tb-preview{margin-top:12px;border:1px solid #bbf7d0;background:#f0fdf4;border-radius:16px;padding:12px;color:#14532d}.tb-preview strong{display:block;color:#14532d;font-size:14px}.tb-preview span{display:block;margin-top:4px;font-size:13px;line-height:1.5}.tb-guide{display:grid;gap:8px;margin-top:12px}.tb-guide div{border:1px solid #e2e8f0;border-radius:12px;padding:9px;background:#f8fafc}.tb-guide b{color:#0f172a}.tb-guide small{display:block;margin-top:3px;color:#64748b}@media(max-width:980px){.supervision-forms,.supervision-list{grid-template-columns:1fr}}
 </style>
 
 <div class="admin-grid admin-grid--stats">
@@ -83,7 +83,7 @@
         <h3>Nommer le Secrétaire général ou un responsable</h3>
         <label>Personne<select name="user_id" required><option value="">Choisir</option>@foreach($users as $user)<option value="{{ $user->id }}">{{ $user->full_name ?: ($user->name ?: $user->username) }} {{ $user->phone }}</option>@endforeach</select></label>
         <label>Titre
-            <select name="role_title" required>
+            <select name="role_title" required data-tb-title>
                 <option value="Secrétaire général / Coordinateur général">Secrétaire général / Coordinateur général</option>
                 <option value="Coordinateur général">Coordinateur général</option>
                 <option value="Responsable enseignement général francophone">Responsable enseignement général francophone</option>
@@ -96,6 +96,17 @@
                 <option value="Superviseur pédagogique">Superviseur pédagogique</option>
             </select>
         </label>
+        <div class="tb-preview" data-tb-preview>
+            <strong>Tableau de bord attribué</strong>
+            <span data-tb-preview-text>Ce compte aura accès au TB Secrétaire général : /secretariat/dashboard</span>
+        </div>
+        <div class="tb-guide">
+            <div><b>Secrétaire général / Coordinateur général</b><small>TB global de pilotage : /secretariat/dashboard</small></div>
+            <div><b>Responsable type d’enseignement</b><small>TB type d’enseignement : /responsable-enseignement/dashboard</small></div>
+            <div><b>Responsable département / filière</b><small>TB département : /responsable-departement/dashboard</small></div>
+            <div><b>Référent pédagogique</b><small>TB qualité pédagogique : /referent-pedagogique/dashboard</small></div>
+            <div><b>Superviseur pédagogique</b><small>TB suivi quotidien : /superviseur-pedagogique/dashboard</small></div>
+        </div>
         <label>Portée<select name="scope_type"><option value="platform">Plateforme entière</option><option value="division">Type d’enseignement</option><option value="department">Département / filière</option></select></label>
         <label>Type d’enseignement<select name="teaching_division_id"><option value="">Aucun</option>@foreach($divisions as $division)<option value="{{ $division->id }}">{{ $division->name }}</option>@endforeach</select></label>
         <label>Département<select name="teaching_department_id"><option value="">Aucun</option>@foreach($departments as $department)<option value="{{ $department->id }}">{{ $department->name }}</option>@endforeach</select></label>
@@ -126,7 +137,7 @@
 </div>
 
 <div class="admin-grid admin-grid--two">
-    <section class="admin-panel"><div class="admin-panel__head"><h2>Responsables affectés</h2></div><div class="admin-panel__body admin-table-wrap"><table class="admin-table"><thead><tr><th>Personne</th><th>Responsabilité</th><th>Zone</th><th>Statut</th></tr></thead><tbody>@forelse($responsibilities as $responsibility)<tr><td>{{ $responsibility->full_name ?: ($responsibility->name ?: $responsibility->username) }}</td><td>{{ $responsibility->role_title }}</td><td>{{ $responsibility->department_name ?: ($responsibility->division_name ?: 'Plateforme entière') }}</td><td><span class="admin-badge">{{ $responsibility->is_active ? 'Actif' : 'Inactif' }}</span></td></tr>@empty<tr><td colspan="4" class="admin-empty">Aucune responsabilité attribuée.</td></tr>@endforelse</tbody></table></div></section>
+    <section class="admin-panel"><div class="admin-panel__head"><h2>Responsables affectés</h2></div><div class="admin-panel__body admin-table-wrap"><table class="admin-table"><thead><tr><th>Personne</th><th>Responsabilité</th><th>Zone</th><th>TB</th><th>Statut</th></tr></thead><tbody>@forelse($responsibilities as $responsibility)@php $tbLink = str_contains($responsibility->role_title, 'Secrétaire général') || str_contains($responsibility->role_title, 'Coordinateur général') ? '/secretariat/dashboard' : (str_contains($responsibility->role_title, 'Superviseur pédagogique') ? '/superviseur-pedagogique/dashboard' : (str_contains($responsibility->role_title, 'Référent pédagogique') ? '/referent-pedagogique/dashboard' : ($responsibility->scope_type === 'division' ? '/responsable-enseignement/dashboard' : ($responsibility->scope_type === 'department' ? '/responsable-departement/dashboard' : '/supervision/tb')))); @endphp<tr><td>{{ $responsibility->full_name ?: ($responsibility->name ?: $responsibility->username) }}</td><td>{{ $responsibility->role_title }}</td><td>{{ $responsibility->department_name ?: ($responsibility->division_name ?: 'Plateforme entière') }}</td><td><span class="admin-badge">{{ $tbLink }}</span></td><td><span class="admin-badge">{{ $responsibility->is_active ? 'Actif' : 'Inactif' }}</span></td></tr>@empty<tr><td colspan="5" class="admin-empty">Aucune responsabilité attribuée.</td></tr>@endforelse</tbody></table></div></section>
     <section class="admin-panel"><div class="admin-panel__head"><h2>Notes de suivi</h2></div><div class="admin-panel__body admin-table-wrap"><table class="admin-table"><thead><tr><th>Objet</th><th>Cible</th><th>Niveau</th><th>Statut</th></tr></thead><tbody>@forelse($notes as $note)<tr><td>{{ $note->title }}</td><td>{{ $note->target_name ?: ($note->department_name ?: ($note->division_name ?: 'Plateforme')) }}</td><td><span class="admin-badge severity-{{ $note->severity }}">{{ $note->severity }}</span></td><td>{{ $note->status }}</td></tr>@empty<tr><td colspan="4" class="admin-empty">Aucune note de suivi.</td></tr>@endforelse</tbody></table></div></section>
 </div>
 
@@ -134,5 +145,23 @@
     <div class="admin-panel__head"><h2>Rapport par département / filière</h2></div>
     <div class="admin-panel__body admin-table-wrap"><table class="admin-table"><thead><tr><th>Département</th><th>Cours</th><th>TD</th><th>Questions ouvertes</th></tr></thead><tbody>@forelse($departmentReports as $report)<tr><td>{{ $report['department']->name }}</td><td>{{ $report['courses'] }}</td><td>{{ $report['td'] }}</td><td>{{ $report['open_questions'] }}</td></tr>@empty<tr><td colspan="4" class="admin-empty">Aucun rapport disponible.</td></tr>@endforelse</tbody></table></div>
 </section>
+<script>
+(() => {
+    const title = document.querySelector('[data-tb-title]');
+    const text = document.querySelector('[data-tb-preview-text]');
+    if (!title || !text) return;
+    const resolve = (value) => {
+        if (value.includes('Secrétaire général') || value.includes('Coordinateur général')) return 'Ce compte aura accès au TB Secrétaire général : /secretariat/dashboard';
+        if (value.includes('Superviseur pédagogique')) return 'Ce compte aura accès au TB Superviseur pédagogique : /superviseur-pedagogique/dashboard';
+        if (value.includes('Référent pédagogique')) return 'Ce compte aura accès au TB Référent pédagogique : /referent-pedagogique/dashboard';
+        if (value.includes('département') || value.includes('filière')) return 'Ce compte aura accès au TB Responsable département / filière : /responsable-departement/dashboard';
+        if (value.includes('Responsable')) return 'Ce compte aura accès au TB Responsable type d’enseignement : /responsable-enseignement/dashboard';
+        return 'Ce compte sera redirigé automatiquement via /supervision/tb';
+    };
+    const refresh = () => text.textContent = resolve(title.value || '');
+    title.addEventListener('change', refresh);
+    refresh();
+})();
+</script>
 @endif
 @endsection
