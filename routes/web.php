@@ -206,7 +206,14 @@ Route::middleware(['auth', 'no.cache', EnsureTeacher::class])->prefix('teacher')
     Route::post('/td/sources/{tdSource}/analyze', [TeacherTdSourceController::class, 'analyze'])->name('td.sources.analyze');
     Route::post('/td/sources/{tdSource}/generate', [TeacherTdSourceController::class, 'generate'])->name('td.sources.generate');
     Route::get('/td/sources/{tdSource}/file', [TeacherTdSourceController::class, 'file'])->name('td.sources.file');
-    Route::get('/messages', [TeacherMessageController::class, 'index'])->name('messages.index');
+    Route::get('/messages', function () {
+        return view('teacher.messages.index', [
+            'threads' => collect(),
+            'selectedStudentId' => 0,
+            'selectedThread' => null,
+            'assignments' => collect(),
+        ]);
+    })->name('messages.index');
     Route::get('/messages/{message}', [TeacherMessageController::class, 'show'])->name('messages.show');
     Route::post('/messages/{message}/reply', [TeacherMessageController::class, 'reply'])->name('messages.reply');
     Route::get('/messages/{message}/attachment', [TeacherMessageController::class, 'attachment'])->name('messages.attachment');
