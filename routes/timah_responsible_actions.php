@@ -12,6 +12,10 @@ Route::get('/suivi-pedagogique-relances', function () {
     return view('supervision.notes-center');
 })->middleware(['auth', 'no.cache'])->name('responsibilities.followups.index');
 
+Route::get('/suivi-pedagogique-relances/nouveau', function () {
+    return view('supervision.followup-create');
+})->middleware(['auth', 'no.cache'])->name('responsibilities.followups.create');
+
 Route::post('/responsabilites/notes/{note}/status', function ($note) {
     if (!auth()->check()) {
         abort(403);
