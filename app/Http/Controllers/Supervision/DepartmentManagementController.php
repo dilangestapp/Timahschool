@@ -21,16 +21,22 @@ class DepartmentManagementController extends Controller
         $context = $this->departmentContext();
         abort_unless($context['allowed'], 403);
 
-        $classes = Schema::hasTable('school_classes')
-            ? DB::table('school_classes')->orderBy('level')->orderBy('order')->orderBy('name')->get()
-            : collect();
+        $classes = Schema::hasTable('school_classes') ? DB::table('school_classes')->orderBy('level')->orderBy('order')->orderBy('name')->get() : collect();
+        $subjects = Schema::hasTable('subjects') ? DB::table('subjects')->orderBy('order')->orderBy('name')->get() : collect();
 
         return view('supervision.department-classes', [
             'department' => $context['department'],
             'linkedClassId' => $context['department']->school_class_id ?? null,
+            'linkedSubjectId' => $context['department']->subject_id ?? null,
             'classes' => $classes,
+            'subjects' => $subjects,
             'levels' => $this->levels,
         ]);
+    }
+
+    public function subjects()
+    {
+        return $this->classes();
     }
 
     public function storeClass(Request $request)
@@ -88,22 +94,6 @@ class DepartmentManagementController extends Controller
         $this->linkDepartmentColumn($context['department']->id, 'school_class_id', $class);
 
         return back()->with('success', 'Classe mise à jour et liée au département.');
-    }
-
-    public function subjects()
-    {
-        $context = $this->departmentContext();
-        abort_unless($context['allowed'], 403);
-
-        $subjects = Schema::hasTable('subjects')
-            ? DB::table('subjects')->orderBy('order')->orderBy('name')->get()
-            : collect();
-
-        return view('supervision.department-subjects', [
-            'department' => $context['department'],
-            'linkedSubjectId' => $context['department']->subject_id ?? null,
-            'subjects' => $subjects,
-        ]);
     }
 
     public function storeSubject(Request $request)
