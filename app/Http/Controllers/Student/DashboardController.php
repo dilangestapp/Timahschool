@@ -94,7 +94,7 @@ class DashboardController extends Controller
             'route' => route('student.td.show', $td),
         ])->values();
 
-        return view('student.dashboard_v2', [
+        return view('student.dashboard', [
             'user' => $user,
             'studentProfile' => $studentProfile,
             'subscription' => $this->safeActiveSubscription($user),
