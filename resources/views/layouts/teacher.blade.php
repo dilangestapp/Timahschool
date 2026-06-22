@@ -129,6 +129,9 @@
         </section>
     </main>
 </div>
+@if(file_exists(public_path('assets/js/teacher-voice-cache.js')))
+    <script src="{{ asset('assets/js/teacher-voice-cache.js') }}" defer></script>
+@endif
 @stack('scripts')
 </body>
 </html>
