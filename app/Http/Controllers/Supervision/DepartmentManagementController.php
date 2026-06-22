@@ -25,35 +25,40 @@ class DepartmentManagementController extends Controller
         abort_unless($context['allowed'], 403);
 
         $department = $context['department'];
+        $this->backfillLegacyLinks($department);
+
         $levels = $this->levelsForDepartment($department);
-        $filterLevels = $this->filterLevelsForDepartment($department);
+        $classIds = $this->departmentClassIds($department);
+        $subjectIds = $this->departmentSubjectIds($department);
 
         $classes = collect();
         if (Schema::hasTable('school_classes')) {
-            $classesQuery = DB::table('school_classes')->orderBy('level')->orderBy('order')->orderBy('name');
-            if (!empty($filterLevels) && Schema::hasColumn('school_classes', 'level')) {
-                $classesQuery->whereIn('level', $filterLevels);
-            } elseif ($department->school_class_id ?? null) {
-                $classesQuery->where('id', $department->school_class_id);
+            $query = DB::table('school_classes')->orderBy('level')->orderBy('order')->orderBy('name');
+            if ($classIds->isNotEmpty()) {
+                $query->whereIn('id', $classIds->all());
             } else {
-                $classesQuery->whereRaw('1 = 0');
+                $query->whereRaw('1 = 0');
             }
-            $classes = $classesQuery->get();
+            $classes = $query->get();
         }
 
         $subjects = collect();
-        if (Schema::hasTable('subjects') && ($department->subject_id ?? null)) {
-            $subjects = DB::table('subjects')
-                ->where('id', $department->subject_id)
-                ->orderBy('order')
-                ->orderBy('name')
-                ->get();
+        if (Schema::hasTable('subjects')) {
+            $query = DB::table('subjects')->orderBy('order')->orderBy('name');
+            if ($subjectIds->isNotEmpty()) {
+                $query->whereIn('id', $subjectIds->all());
+            } else {
+                $query->whereRaw('1 = 0');
+            }
+            $subjects = $query->get();
         }
 
         return view('supervision.department-classes', [
             'department' => $department,
             'linkedClassId' => $department->school_class_id ?? null,
             'linkedSubjectId' => $department->subject_id ?? null,
+            'linkedClassIds' => $classIds->all(),
+            'linkedSubjectIds' => $subjectIds->all(),
             'classes' => $classes,
             'subjects' => $subjects,
             'levels' => $levels ?: ['enseignement_technique' => 'Enseignement technique'],
@@ -71,7 +76,9 @@ class DepartmentManagementController extends Controller
         abort_unless($context['allowed'], 403);
         abort_unless(Schema::hasTable('school_classes'), 404);
 
-        $levels = $this->levelsForDepartment($context['department']);
+        $department = $context['department'];
+        $levels = $this->levelsForDepartment($department);
+
         $request->validate([
             'name' => ['required', 'string', 'max:255', Rule::unique('school_classes', 'name')],
             'level' => ['required', Rule::in(array_keys($levels ?: $this->allLevels))],
@@ -90,9 +97,10 @@ class DepartmentManagementController extends Controller
             'updated_at' => now(),
         ]));
 
-        $this->linkDepartmentColumn($context['department']->id, 'school_class_id', $id);
+        $this->attachDepartmentClass($department->id, $id);
+        $this->setLegacyColumnIfEmpty($department->id, 'school_class_id', $id);
 
-        return back()->with('success', 'Classe créée et liée au département. Elle est aussi visible côté admin.');
+        return back()->with('success', 'Classe créée et ajoutée au département. Les anciennes classes restent liées.');
     }
 
     public function updateClass(Request $request, int $class)
@@ -101,7 +109,9 @@ class DepartmentManagementController extends Controller
         abort_unless($context['allowed'], 403);
         abort_unless(Schema::hasTable('school_classes'), 404);
 
-        $levels = $this->levelsForDepartment($context['department']);
+        $department = $context['department'];
+        $levels = $this->levelsForDepartment($department);
+
         $request->validate([
             'name' => ['required', 'string', 'max:255', Rule::unique('school_classes', 'name')->ignore($class)],
             'level' => ['required', Rule::in(array_keys($levels ?: $this->allLevels))],
@@ -119,9 +129,10 @@ class DepartmentManagementController extends Controller
             'updated_at' => now(),
         ]));
 
-        $this->linkDepartmentColumn($context['department']->id, 'school_class_id', $class);
+        $this->attachDepartmentClass($department->id, $class);
+        $this->setLegacyColumnIfEmpty($department->id, 'school_class_id', $class);
 
-        return back()->with('success', 'Classe mise à jour et liée au département.');
+        return back()->with('success', 'Classe mise à jour et conservée dans le département.');
     }
 
     public function storeSubject(Request $request)
@@ -129,6 +140,8 @@ class DepartmentManagementController extends Controller
         $context = $this->departmentContext();
         abort_unless($context['allowed'], 403);
         abort_unless(Schema::hasTable('subjects'), 404);
+
+        $department = $context['department'];
 
         $request->validate([
             'name' => ['required', 'string', 'max:255', Rule::unique('subjects', 'name')],
@@ -150,9 +163,10 @@ class DepartmentManagementController extends Controller
             'updated_at' => now(),
         ]));
 
-        $this->linkDepartmentColumn($context['department']->id, 'subject_id', $id);
+        $this->attachDepartmentSubject($department->id, $id);
+        $this->setLegacyColumnIfEmpty($department->id, 'subject_id', $id);
 
-        return back()->with('success', 'Matière créée et liée au département. Elle est aussi visible côté admin.');
+        return back()->with('success', 'Matière créée et ajoutée au département. Les anciennes matières restent liées.');
     }
 
     public function updateSubject(Request $request, int $subject)
@@ -160,7 +174,10 @@ class DepartmentManagementController extends Controller
         $context = $this->departmentContext();
         abort_unless($context['allowed'], 403);
         abort_unless(Schema::hasTable('subjects'), 404);
-        abort_unless((int) ($context['department']->subject_id ?? 0) === $subject, 403);
+
+        $department = $context['department'];
+        $subjectIds = $this->departmentSubjectIds($department);
+        abort_unless($subjectIds->contains($subject) || (int) ($department->subject_id ?? 0) === $subject, 403);
 
         $request->validate([
             'name' => ['required', 'string', 'max:255', Rule::unique('subjects', 'name')->ignore($subject)],
@@ -181,7 +198,10 @@ class DepartmentManagementController extends Controller
             'updated_at' => now(),
         ]));
 
-        return back()->with('success', 'Matière du département mise à jour.');
+        $this->attachDepartmentSubject($department->id, $subject);
+        $this->setLegacyColumnIfEmpty($department->id, 'subject_id', $subject);
+
+        return back()->with('success', 'Matière mise à jour et conservée dans le département.');
     }
 
     private function departmentContext(): array
@@ -213,38 +233,9 @@ class DepartmentManagementController extends Controller
     private function levelsForDepartment(object $department): array
     {
         $haystack = $this->departmentHaystack($department);
-
-        if (str_contains($haystack, 'tech')) {
-            return ['enseignement_technique' => 'Enseignement technique'];
-        }
-
-        if (str_contains($haystack, 'general') || str_contains($haystack, 'général')) {
-            return ['enseignement_general' => 'Enseignement général'];
-        }
-
-        if (str_contains($haystack, 'primaire') || str_contains($haystack, 'primary')) {
-            return ['primaire' => 'Primaire'];
-        }
-
-        return [];
-    }
-
-    private function filterLevelsForDepartment(object $department): array
-    {
-        $haystack = $this->departmentHaystack($department);
-
-        if (str_contains($haystack, 'tech')) {
-            return ['enseignement_technique', 'secondaire_technique', 'technical', 'technique'];
-        }
-
-        if (str_contains($haystack, 'general') || str_contains($haystack, 'général')) {
-            return ['enseignement_general', 'secondaire_general', 'general'];
-        }
-
-        if (str_contains($haystack, 'primaire') || str_contains($haystack, 'primary')) {
-            return ['primaire', 'primary'];
-        }
-
+        if (str_contains($haystack, 'tech')) return ['enseignement_technique' => 'Enseignement technique'];
+        if (str_contains($haystack, 'general') || str_contains($haystack, 'général')) return ['enseignement_general' => 'Enseignement général'];
+        if (str_contains($haystack, 'primaire') || str_contains($haystack, 'primary')) return ['primaire' => 'Primaire'];
         return [];
     }
 
@@ -254,14 +245,70 @@ class DepartmentManagementController extends Controller
         if (($department->teaching_division_id ?? null) && Schema::hasTable('teaching_divisions')) {
             $divisionType = (string) DB::table('teaching_divisions')->where('id', $department->teaching_division_id)->value('type');
         }
-
         return Str::lower(($department->name ?? '') . ' ' . ($department->code ?? '') . ' ' . $divisionType);
     }
 
-    private function linkDepartmentColumn(int $departmentId, string $column, int $value): void
+    private function departmentClassIds(object $department): \Illuminate\Support\Collection
+    {
+        $ids = collect();
+        if (Schema::hasTable('teaching_department_school_class')) {
+            $ids = DB::table('teaching_department_school_class')->where('teaching_department_id', $department->id)->pluck('school_class_id');
+        }
+        if ($ids->isEmpty() && ($department->school_class_id ?? null)) {
+            $ids = collect([(int) $department->school_class_id]);
+        }
+        return $ids->map(fn ($id) => (int) $id)->unique()->values();
+    }
+
+    private function departmentSubjectIds(object $department): \Illuminate\Support\Collection
+    {
+        $ids = collect();
+        if (Schema::hasTable('teaching_department_subject')) {
+            $ids = DB::table('teaching_department_subject')->where('teaching_department_id', $department->id)->pluck('subject_id');
+        }
+        if ($ids->isEmpty() && ($department->subject_id ?? null)) {
+            $ids = collect([(int) $department->subject_id]);
+        }
+        return $ids->map(fn ($id) => (int) $id)->unique()->values();
+    }
+
+    private function attachDepartmentClass(int $departmentId, int $classId): void
+    {
+        if (Schema::hasTable('teaching_department_school_class')) {
+            DB::table('teaching_department_school_class')->updateOrInsert(
+                ['teaching_department_id' => $departmentId, 'school_class_id' => $classId],
+                ['updated_at' => now(), 'created_at' => now()]
+            );
+        }
+    }
+
+    private function attachDepartmentSubject(int $departmentId, int $subjectId): void
+    {
+        if (Schema::hasTable('teaching_department_subject')) {
+            DB::table('teaching_department_subject')->updateOrInsert(
+                ['teaching_department_id' => $departmentId, 'subject_id' => $subjectId],
+                ['updated_at' => now(), 'created_at' => now()]
+            );
+        }
+    }
+
+    private function backfillLegacyLinks(object $department): void
+    {
+        if (($department->school_class_id ?? null)) {
+            $this->attachDepartmentClass($department->id, (int) $department->school_class_id);
+        }
+        if (($department->subject_id ?? null)) {
+            $this->attachDepartmentSubject($department->id, (int) $department->subject_id);
+        }
+    }
+
+    private function setLegacyColumnIfEmpty(int $departmentId, string $column, int $value): void
     {
         if (Schema::hasTable('teaching_departments') && Schema::hasColumn('teaching_departments', $column)) {
-            DB::table('teaching_departments')->where('id', $departmentId)->update([$column => $value, 'updated_at' => now()]);
+            $current = DB::table('teaching_departments')->where('id', $departmentId)->value($column);
+            if (!$current) {
+                DB::table('teaching_departments')->where('id', $departmentId)->update([$column => $value, 'updated_at' => now()]);
+            }
         }
     }
 
