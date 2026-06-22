@@ -83,14 +83,9 @@ class CourseController extends Controller
         abort_unless($profile && $profile->school_class_id, 403);
 
         $this->authorizeCourse($course, $profile->school_class_id);
-        abort_unless($course->document_path, 404);
+        abort_unless($course->document_path || $course->hasRichContent(), 404);
 
-        $path = storage_path('app/' . $course->document_path);
-        abort_unless(file_exists($path), 404);
-
-        return response()->file($path, [
-            'Content-Type' => $course->document_mime ?: 'application/octet-stream',
-        ]);
+        return redirect()->route('documents.course.official', $course);
     }
 
     public function downloadDocument(Course $course)
@@ -99,12 +94,9 @@ class CourseController extends Controller
         abort_unless($profile && $profile->school_class_id, 403);
 
         $this->authorizeCourse($course, $profile->school_class_id);
-        abort_unless($course->document_path, 404);
+        abort_unless($course->document_path || $course->hasRichContent(), 404);
 
-        $path = storage_path('app/' . $course->document_path);
-        abort_unless(file_exists($path), 404);
-
-        return response()->download($path, $course->document_name ?: basename($path));
+        return redirect()->route('documents.course.download', $course);
     }
 
     protected function authorizeCourse(Course $course, int $schoolClassId): void
