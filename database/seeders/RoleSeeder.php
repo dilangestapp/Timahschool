@@ -4,31 +4,41 @@ namespace Database\Seeders;
 
 use Illuminate\Database\Seeder;
 use App\Models\Role;
-use App\Models\Permission;
 
 class RoleSeeder extends Seeder
 {
     public function run(): void
     {
-        // Créer les rôles
-        Role::create([
-            'name' => 'admin',
-            'display_name' => 'Administrateur',
-            'description' => 'Contrôle total de la plateforme',
-        ]);
+        $roles = [
+            'admin' => [
+                'display_name' => 'Administrateur',
+                'description' => 'Administration de la plateforme',
+            ],
+            'teacher' => [
+                'display_name' => 'Enseignant',
+                'description' => 'Gestion des cours et TD',
+            ],
+            'technical_supervisor' => [
+                'display_name' => 'Responsable Enseignement Technique',
+                'description' => 'Suivi pedagogique de la section technique',
+            ],
+            'student' => [
+                'display_name' => 'Eleve',
+                'description' => 'Acces aux cours et TD',
+            ],
+        ];
 
-        Role::create([
-            'name' => 'teacher',
-            'display_name' => 'Enseignant',
-            'description' => 'Gestion des contenus et réponses aux questions',
-        ]);
+        foreach ($roles as $name => $role) {
+            Role::query()->updateOrCreate(
+                ['name' => $name],
+                [
+                    'guard_name' => 'web',
+                    'display_name' => $role['display_name'],
+                    'description' => $role['description'],
+                ]
+            );
+        }
 
-        Role::create([
-            'name' => 'student',
-            'display_name' => 'Élève',
-            'description' => 'Accès aux cours et apprentissage',
-        ]);
-
-        $this->command->info('Rôles créés avec succès !');
+        $this->command->info('Roles mis a jour.');
     }
 }
