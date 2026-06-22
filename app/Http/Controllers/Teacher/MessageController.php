@@ -6,10 +6,12 @@ use App\Http\Controllers\Controller;
 use App\Models\TeacherAssignment;
 use App\Models\TeacherMessage;
 use App\Models\User;
+use App\Services\AnonymousVoiceTransformer;
 use Illuminate\Http\Request;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\Schema;
 use Illuminate\Support\Facades\Storage;
+use Illuminate\Support\Str;
 
 class MessageController extends Controller
 {
@@ -271,7 +273,17 @@ class MessageController extends Controller
     {
         if (!$request->hasFile('attachment')) return [null, null, null, null];
         $file = $request->file('attachment');
-        return [$file->store('teacher_messages', 'local'), $file->getClientOriginalName(), $file->getMimeType(), $file->getSize()];
+        $mime = (string) $file->getMimeType();
+        $extension = strtolower((string) $file->getClientOriginalExtension());
+        $isAudio = Str::startsWith($mime, 'audio/') || in_array($extension, ['mp3', 'wav', 'ogg', 'm4a', 'webm', 'aac', '3gp', 'amr', 'mp4'], true);
+
+        if ($isAudio) {
+            $voice = app(AnonymousVoiceTransformer::class)->store($file, 'teacher_messages');
+            $path = $voice['path'];
+            return [$path, $voice['name'] ?? $file->getClientOriginalName(), 'audio/mpeg', Storage::disk('local')->exists($path) ? Storage::disk('local')->size($path) : $file->getSize()];
+        }
+
+        return [$file->store('teacher_messages', 'local'), $file->getClientOriginalName(), $mime, $file->getSize()];
     }
 
     protected function authorizeMessage(TeacherMessage $message): void
