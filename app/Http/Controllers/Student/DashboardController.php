@@ -19,7 +19,7 @@ class DashboardController extends Controller
         $user = auth()->user();
         $studentProfile = $this->safe(fn () => $user?->studentProfile);
         $classId = $studentProfile?->school_class_id;
-        $className = $this->safeClassName($studentProfile);
+        $className = $this->safe(fn () => $studentProfile?->schoolClass?->name);
         $studentExamCountdown = $this->safe(fn () => ExamCountdown::forClass($className));
 
         $allCourses = $this->loadCourses($classId);
@@ -34,64 +34,32 @@ class DashboardController extends Controller
 
         $openedIds = $tdAttempts->pluck('td_set_id')->unique();
         $unopenedTdSets = $allTdSets->whereNotIn('id', $openedIds)->values();
+        $pendingQuizzes = collect();
 
-        $pendingQuizzes = $this->loadPendingQuizzes($user?->id, $classId);
-
-        $totalResources = $allTdSets->count() + $allCourses->count() + $pendingQuizzes->count();
+        $totalResources = $allTdSets->count() + $allCourses->count();
         $consultedResources = $tdOpenedCount;
         $progressPercent = $totalResources > 0 ? min(100, (int) round(($consultedResources / $totalResources) * 100)) : 0;
-        $pendingCount = $unopenedTdSets->count() + $pendingQuizzes->count();
+        $pendingCount = $unopenedTdSets->count();
 
-        $subjectStats = $allTdSets->merge($allCourses)
-            ->groupBy(fn ($item) => $this->subjectName($item))
-            ->map(fn ($items, $name) => ['name' => $name, 'count' => $items->count()])
-            ->sortByDesc('count')
-            ->take(6)
-            ->values();
+        $subjectStats = collect();
+        foreach ($allTdSets->toBase() as $td) {
+            $subjectStats->push(['name' => $td->subject->name ?? 'Sans matiere', 'count' => 1]);
+        }
+        foreach ($allCourses->toBase() as $course) {
+            $subjectStats->push(['name' => $course->subject->name ?? 'Sans matiere', 'count' => 1]);
+        }
+        $subjectStats = $subjectStats->groupBy('name')->map(fn ($items, $name) => ['name' => $name, 'count' => $items->sum('count')])->values();
 
         $typeStats = collect([
             ['label' => 'TD', 'total' => $allTdSets->count(), 'pending' => $unopenedTdSets->count()],
             ['label' => 'Cours', 'total' => $allCourses->count(), 'pending' => 0],
-            ['label' => 'Quiz', 'total' => $pendingQuizzes->count(), 'pending' => $pendingQuizzes->count()],
+            ['label' => 'Quiz', 'total' => 0, 'pending' => 0],
         ]);
 
-        $weeklyActivity = collect(range(6, 0))->map(function ($daysAgo) use ($tdAttempts) {
-            $day = now()->subDays($daysAgo);
-            $value = $tdAttempts->filter(function ($attempt) use ($day) {
-                $date = $attempt->opened_at ?: $attempt->created_at;
-                return $date && method_exists($date, 'isSameDay') && $date->isSameDay($day);
-            })->count();
-
-            return [
-                'label' => $day->locale('fr')->translatedFormat('D'),
-                'date' => $day->format('d/m'),
-                'value' => $value,
-            ];
-        })->values();
-
-        $latestEvents = $allTdSets->map(fn ($td) => [
-            'type' => 'TD',
-            'title' => $td->title ?? 'TD',
-            'subject' => $this->subjectName($td),
-            'date' => $this->publicationDate($td),
-            'access' => ($td->access_level ?? null) === TdSet::ACCESS_FREE ? 'Gratuit' : 'Premium',
-            'route' => route('student.td.show', $td),
-        ])->merge($allCourses->map(fn ($course) => [
-            'type' => 'Cours',
-            'title' => $course->title ?? $course->name ?? 'Cours',
-            'subject' => $this->subjectName($course),
-            'date' => $this->publicationDate($course),
-            'access' => 'Cours',
-            'route' => route('student.courses.show', $course),
-        ]))->sortByDesc(fn ($item) => optional($item['date'])->timestamp ?? 0)->take(8)->values();
-
-        $pendingReminders = $unopenedTdSets->take(6)->map(fn ($td) => [
-            'type' => 'TD non consulté',
-            'title' => $td->title ?? 'TD',
-            'subject' => $this->subjectName($td),
-            'date' => $this->publicationDate($td),
-            'priority' => ($td->access_level ?? null) === TdSet::ACCESS_FREE ? 'À ouvrir maintenant' : 'À consulter avec abonnement',
-            'route' => route('student.td.show', $td),
+        $weeklyActivity = collect(range(6, 0))->map(fn ($daysAgo) => [
+            'label' => now()->subDays($daysAgo)->locale('fr')->translatedFormat('D'),
+            'date' => now()->subDays($daysAgo)->format('d/m'),
+            'value' => 0,
         ])->values();
 
         return view('student.dashboard', [
@@ -113,54 +81,32 @@ class DashboardController extends Controller
             'subjectStats' => $subjectStats,
             'typeStats' => $typeStats,
             'weeklyActivity' => $weeklyActivity,
-            'latestEvents' => $latestEvents,
-            'pendingReminders' => $pendingReminders,
+            'latestEvents' => collect(),
+            'pendingReminders' => collect(),
             'studentExamCountdown' => $studentExamCountdown,
         ]);
     }
 
     protected function loadCourses(?int $classId)
     {
-        if (!$classId || !$this->hasTableWithColumns('courses', ['school_class_id'])) {
-            return collect();
-        }
-
+        if (!$classId || !$this->tableReady('courses', ['school_class_id'])) return collect();
         return $this->safe(function () use ($classId) {
             $query = Course::query()->where('school_class_id', $classId);
-
-            if ($this->hasColumn('courses', 'status')) {
-                $query->where('status', Course::STATUS_PUBLISHED);
-            }
-
-            if ($this->hasTableWithColumns('subjects', ['id']) && $this->hasColumn('courses', 'subject_id')) {
-                $query->with('subject');
-            }
-
-            $query->orderByDesc($this->dateColumn('courses'));
-
+            if ($this->columnReady('courses', 'status')) $query->where('status', Course::STATUS_PUBLISHED);
+            if ($this->columnReady('courses', 'subject_id')) $query->with('subject');
+            if ($this->columnReady('courses', 'published_at')) $query->orderByDesc('published_at');
             return $query->take(100)->get();
         }, collect());
     }
 
     protected function loadTdSets(?int $classId)
     {
-        if (!$classId || !$this->hasTableWithColumns('td_sets', ['school_class_id'])) {
-            return collect();
-        }
-
+        if (!$classId || !$this->tableReady('td_sets', ['school_class_id'])) return collect();
         return $this->safe(function () use ($classId) {
             $query = TdSet::query()->where('school_class_id', $classId);
-
-            if ($this->hasColumn('td_sets', 'status')) {
-                $query->where('status', TdSet::STATUS_PUBLISHED);
-            }
-
-            if ($this->hasTableWithColumns('subjects', ['id']) && $this->hasColumn('td_sets', 'subject_id')) {
-                $query->with('subject');
-            }
-
-            $query->orderByDesc($this->dateColumn('td_sets'));
-
+            if ($this->columnReady('td_sets', 'status')) $query->where('status', TdSet::STATUS_PUBLISHED);
+            if ($this->columnReady('td_sets', 'subject_id')) $query->with('subject');
+            if ($this->columnReady('td_sets', 'published_at')) $query->orderByDesc('published_at');
             return $query->take(100)->get();
         }, collect());
     }
@@ -168,110 +114,26 @@ class DashboardController extends Controller
     protected function loadTdAttempts(?int $studentId, $tdIds)
     {
         $tdIds = collect($tdIds)->filter()->values();
-
-        if (!$studentId || $tdIds->isEmpty() || !$this->hasTableWithColumns('td_attempts', ['student_id', 'td_set_id'])) {
-            return collect();
-        }
-
-        return $this->safe(function () use ($studentId, $tdIds) {
-            return TdAttempt::query()
-                ->where('student_id', $studentId)
-                ->whereIn('td_set_id', $tdIds)
-                ->get();
-        }, collect());
-    }
-
-    protected function loadPendingQuizzes(?int $studentId, ?int $classId)
-    {
-        if (!$studentId || !$classId || !class_exists('App\\Models\\Quiz')) {
-            return collect();
-        }
-
-        if (!$this->hasTableWithColumns('quizzes', ['status']) || !$this->hasTableWithColumns('quiz_attempts', ['user_id'])) {
-            return collect();
-        }
-
-        return $this->safe(function () use ($studentId, $classId) {
-            $quizClass = 'App\\Models\\Quiz';
-
-            return $quizClass::query()
-                ->whereHas('subject.classSubject', fn ($q) => $q->where('school_class_id', $classId))
-                ->where('status', 'published')
-                ->whereDoesntHave('attempts', fn ($q) => $q->where('user_id', $studentId))
-                ->take(6)
-                ->get();
-        }, collect());
-    }
-
-    protected function safeClassName($studentProfile): ?string
-    {
-        if (!$studentProfile || !$this->hasTableWithColumns('school_classes', ['id'])) {
-            return null;
-        }
-
-        return $this->safe(fn () => $studentProfile->schoolClass?->name);
+        if (!$studentId || $tdIds->isEmpty() || !$this->tableReady('td_attempts', ['student_id', 'td_set_id'])) return collect();
+        return $this->safe(fn () => TdAttempt::query()->where('student_id', $studentId)->whereIn('td_set_id', $tdIds)->get(), collect());
     }
 
     protected function safeActiveSubscription($user): ?Subscription
     {
-        if (!$user || !$this->hasTableWithColumns('subscriptions', ['user_id', 'status'])) {
-            return null;
-        }
-
-        return $this->safe(function () use ($user) {
-            $query = $user->subscriptions()->whereIn('status', [Subscription::STATUS_ACTIVE, Subscription::STATUS_TRIAL]);
-
-            if ($this->hasColumn('subscriptions', 'ends_at')) {
-                $query->where(function ($builder) {
-                    $builder->whereNull('ends_at')->orWhere('ends_at', '>', now());
-                });
-            }
-
-            return $query->first();
-        });
+        if (!$user || !$this->tableReady('subscriptions', ['user_id', 'status'])) return null;
+        return $this->safe(fn () => $user->subscriptions()->whereIn('status', [Subscription::STATUS_ACTIVE, Subscription::STATUS_TRIAL])->first());
     }
 
-    protected function subjectName($item): string
+    protected function tableReady(string $table, array $columns = []): bool
     {
-        if (method_exists($item, 'relationLoaded') && $item->relationLoaded('subject')) {
-            return $item->subject->name ?? 'Sans matière';
-        }
-
-        return 'Sans matière';
-    }
-
-    protected function publicationDate($item)
-    {
-        return $item->published_at ?? $item->created_at ?? null;
-    }
-
-    protected function dateColumn(string $table): string
-    {
-        foreach (['published_at', 'created_at', 'updated_at', 'id'] as $column) {
-            if ($this->hasColumn($table, $column)) {
-                return $column;
-            }
-        }
-
-        return 'id';
-    }
-
-    protected function hasTableWithColumns(string $table, array $columns = []): bool
-    {
-        if (!$this->safe(fn () => Schema::hasTable($table), false)) {
-            return false;
-        }
-
+        if (!$this->safe(fn () => Schema::hasTable($table), false)) return false;
         foreach ($columns as $column) {
-            if (!$this->hasColumn($table, $column)) {
-                return false;
-            }
+            if (!$this->columnReady($table, $column)) return false;
         }
-
         return true;
     }
 
-    protected function hasColumn(string $table, string $column): bool
+    protected function columnReady(string $table, string $column): bool
     {
         return (bool) $this->safe(fn () => Schema::hasColumn($table, $column), false);
     }
