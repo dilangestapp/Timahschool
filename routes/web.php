@@ -37,11 +37,13 @@ use App\Http\Controllers\Teacher\StudentActivityController as TeacherStudentActi
 use App\Http\Controllers\Teacher\TdQuestionController as TeacherTdQuestionController;
 use App\Http\Controllers\Teacher\TdSetController as TeacherTdSetController;
 use App\Http\Controllers\Teacher\TdSourceController as TeacherTdSourceController;
+use App\Http\Controllers\Technical\DashboardController as TechnicalDashboardController;
 use App\Http\Controllers\Webhook\NotchPayWebhookController;
 use App\Http\Middleware\EnsureAdmin;
 use App\Http\Middleware\EnsureParent;
 use App\Http\Middleware\EnsureStudent;
 use App\Http\Middleware\EnsureTeacher;
+use App\Http\Middleware\EnsureTechnicalSupervisor;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
 
@@ -63,6 +65,10 @@ Route::get('/logout', function (Request $request) {
 
     if ($user && method_exists($user, 'isAdmin') && $user->isAdmin()) {
         return redirect()->route('admin.dashboard');
+    }
+
+    if ($user && method_exists($user, 'isTechnicalSupervisor') && $user->isTechnicalSupervisor()) {
+        return redirect()->route('technical.dashboard');
     }
 
     if ($user && method_exists($user, 'isTeacher') && $user->isTeacher()) {
@@ -167,6 +173,12 @@ Route::prefix($adminPath)->name('admin.')->group(function () {
         Route::post('/payments/{id}/delete', [AdminPaymentController::class, 'delete'])->name('payments.delete');
         Route::post('/logout', [AdminLoginController::class, 'logout'])->name('logout');
     });
+});
+
+Route::middleware(['auth', 'no.cache', EnsureTechnicalSupervisor::class])->prefix('responsable-technique')->name('technical.')->group(function () {
+    Route::get('/', fn () => redirect()->route('technical.dashboard'))->name('home');
+    Route::get('/tableau-de-bord', [TechnicalDashboardController::class, 'index'])->name('dashboard');
+    Route::get('/dashboard', [TechnicalDashboardController::class, 'index'])->name('dashboard.alias');
 });
 
 Route::middleware(['auth', 'no.cache', EnsureTeacher::class])->prefix('teacher')->name('teacher.')->group(function () {
