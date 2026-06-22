@@ -47,7 +47,7 @@
 <div class="admin-shell">
     <aside class="admin-sidebar">
         <div class="admin-sidebar__top">
-            <a href="{{ route('technical.dashboard') }}" class="admin-brand">
+            <a href="{{ route('technical.dashboard') }}" class="admin-brand" data-tech-nav="overview">
                 @if($platformLogo)
                     <img src="{{ $platformLogo }}" alt="{{ $platformName }}" style="height:44px;width:auto;display:block;">
                 @else
@@ -58,12 +58,12 @@
 
         <nav class="admin-nav">
             <div class="admin-nav__group-label">Section technique</div>
-            <a href="{{ route('technical.dashboard') }}" class="admin-link {{ request()->routeIs('technical.dashboard') ? 'is-active' : '' }}">Tableau de bord</a>
-            <a href="#technical-classes" class="admin-link">Classes techniques</a>
-            <a href="#technical-teachers" class="admin-link">Enseignants</a>
-            <a href="#technical-courses" class="admin-link">Cours</a>
-            <a href="#technical-td" class="admin-link">TD / controles</a>
-            <a href="#technical-alerts" class="admin-link">Alertes</a>
+            <a href="{{ route('technical.dashboard') }}" class="admin-link {{ request()->routeIs('technical.dashboard') ? 'is-active' : '' }}" data-tech-nav="overview">Tableau de bord</a>
+            <a href="#technical-classes" class="admin-link" data-tech-nav="classes">Classes techniques</a>
+            <a href="#technical-teachers" class="admin-link" data-tech-nav="teachers">Enseignants</a>
+            <a href="#technical-courses" class="admin-link" data-tech-nav="courses">Cours</a>
+            <a href="#technical-td" class="admin-link" data-tech-nav="td">TD / controles</a>
+            <a href="#technical-alerts" class="admin-link" data-tech-nav="alerts">Alertes</a>
         </nav>
 
         <div class="admin-sidebar__bottom">
@@ -118,11 +118,90 @@
     applyTheme(localStorage.getItem(storageKey) || root.getAttribute('data-theme') || 'light');
     updateToggleLabels();
     document.querySelectorAll('[data-theme-toggle]').forEach((button) => button.addEventListener('click', () => { applyTheme(root.getAttribute('data-theme') === 'dark' ? 'light' : 'dark'); updateToggleLabels(); }));
+
     const openNav = () => document.body.classList.add('admin-nav-open');
     const closeNav = () => document.body.classList.remove('admin-nav-open');
     document.querySelectorAll('[data-admin-nav-toggle]').forEach((button) => button.addEventListener('click', openNav));
     document.querySelectorAll('[data-admin-nav-close]').forEach((item) => item.addEventListener('click', closeNav));
     document.querySelectorAll('.admin-sidebar .admin-link').forEach((link) => link.addEventListener('click', closeNav));
+
+    const navMap = {
+        overview: null,
+        classes: '#technical-classes',
+        teachers: '#technical-teachers',
+        courses: '#technical-courses',
+        td: '#technical-courses',
+        alerts: '#technical-alerts'
+    };
+
+    const clearPanelClasses = () => {
+        document.body.classList.remove('tech-panel-mode', 'tech-panel-classes', 'tech-panel-teachers', 'tech-panel-courses', 'tech-panel-td', 'tech-panel-alerts');
+    };
+
+    const setActiveNav = (panel) => {
+        document.querySelectorAll('[data-tech-nav]').forEach((link) => {
+            link.classList.toggle('is-active', link.getAttribute('data-tech-nav') === panel);
+        });
+    };
+
+    const openDetailsFor = (selector) => {
+        if (!selector) return null;
+        const target = document.querySelector(selector);
+        if (!target) return null;
+        const details = target.tagName && target.tagName.toLowerCase() === 'details' ? target : target.closest('details');
+        if (details) details.open = true;
+        return target;
+    };
+
+    const showTechPanel = (panel, pushHistory = true) => {
+        const safePanel = navMap.hasOwnProperty(panel) ? panel : 'overview';
+        clearPanelClasses();
+        setActiveNav(safePanel);
+
+        if (safePanel === 'overview') {
+            if (pushHistory) history.replaceState(null, '', '{{ route('technical.dashboard') }}');
+            window.scrollTo({ top: 0, behavior: 'smooth' });
+            return;
+        }
+
+        document.body.classList.add('tech-panel-mode', 'tech-panel-' + safePanel);
+        const selector = navMap[safePanel];
+        const target = openDetailsFor(selector);
+
+        if (safePanel === 'td') {
+            const tdTarget = document.querySelector('#technical-td');
+            if (tdTarget) setTimeout(() => tdTarget.scrollIntoView({ behavior: 'smooth', block: 'start' }), 80);
+        } else if (target) {
+            setTimeout(() => target.scrollIntoView({ behavior: 'smooth', block: 'start' }), 80);
+        }
+
+        if (pushHistory) {
+            const hash = safePanel === 'td' ? '#technical-td' : selector;
+            history.replaceState(null, '', hash || '{{ route('technical.dashboard') }}');
+        }
+    };
+
+    document.querySelectorAll('[data-tech-nav]').forEach((link) => {
+        link.addEventListener('click', (event) => {
+            if (!document.querySelector('.technical-page')) return;
+            const panel = link.getAttribute('data-tech-nav') || 'overview';
+            event.preventDefault();
+            showTechPanel(panel);
+            closeNav();
+        });
+    });
+
+    const hashPanel = {
+        '#technical-classes': 'classes',
+        '#technical-teachers': 'teachers',
+        '#technical-courses': 'courses',
+        '#technical-td': 'td',
+        '#technical-alerts': 'alerts'
+    };
+
+    if (document.querySelector('.technical-page') && hashPanel[window.location.hash]) {
+        showTechPanel(hashPanel[window.location.hash], false);
+    }
 })();
 </script>
 @stack('scripts')
