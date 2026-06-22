@@ -21,8 +21,14 @@ class EnsureTeacher
         $isStudent = $user && method_exists($user, 'isStudent') && $user->isStudent();
         $hasStudentProfile = (bool) optional($user)->studentProfile;
         $isAdmin = $user && method_exists($user, 'isAdmin') && $user->isAdmin();
+        $isTechnicalSupervisor = $user && method_exists($user, 'isTechnicalSupervisor') && $user->isTechnicalSupervisor();
 
         if (!$isTeacher) {
+            if ($isTechnicalSupervisor && Route::has('technical.dashboard')) {
+                return redirect()->route('technical.dashboard')
+                    ->with('warning', 'Vous etes connecte en profil responsable technique.');
+            }
+
             if (($isStudent || $hasStudentProfile) && Route::has('student.dashboard')) {
                 return redirect()->route('student.dashboard')
                     ->with('warning', 'Vous êtes connecté en profil élève. Redirection vers votre espace élève.');
