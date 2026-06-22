@@ -5,6 +5,9 @@
 @section('page_subtitle', 'Créez, filtrez, modifiez les comptes et gérez les élèves sans afficher tous les formulaires en même temps.')
 
 @section('content')
+@php
+    $technicalRole = $roles->firstWhere('name', 'technical_supervisor');
+@endphp
 <div class="admin-compact-page">
     @if($tableMissing)
         <div class="admin-empty-box">La table <strong>users</strong> est introuvable dans la base.</div>
@@ -12,9 +15,34 @@
         <div class="admin-summary-strip">
             <div class="admin-summary-card"><strong>{{ $users->count() }}</strong><span>compte(s) affiché(s)</span></div>
             <div class="admin-summary-card"><strong>{{ $users->filter(fn($u) => method_exists($u, 'isAdmin') && $u->isAdmin())->count() }}</strong><span>admins</span></div>
+            <div class="admin-summary-card"><strong>{{ $users->filter(fn($u) => method_exists($u, 'isTechnicalSupervisor') && $u->isTechnicalSupervisor())->count() }}</strong><span>responsables techniques</span></div>
             <div class="admin-summary-card"><strong>{{ $users->filter(fn($u) => method_exists($u, 'isTeacher') && $u->isTeacher())->count() }}</strong><span>enseignants</span></div>
             <div class="admin-summary-card"><strong>{{ $users->filter(fn($u) => method_exists($u, 'isStudent') && $u->isStudent())->count() }}</strong><span>élèves</span></div>
         </div>
+
+        <details class="admin-collapse-box" open>
+            <summary>Créer directement un Responsable Enseignement Technique</summary>
+            <div class="admin-collapse-box__body">
+                @if($technicalRole)
+                    <form method="POST" action="{{ route('admin.users.store') }}" class="admin-form">
+                        @csrf
+                        <input type="hidden" name="role_id" value="{{ $technicalRole->id }}">
+                        <input type="hidden" name="status" value="active">
+                        <div class="admin-form-grid">
+                            <div class="form-group"><label>Nom complet</label><input type="text" name="full_name" value="{{ old('full_name') }}" required></div>
+                            <div class="form-group"><label>Nom d'utilisateur</label><input type="text" name="username" value="{{ old('username') }}" required></div>
+                            <div class="form-group"><label>Email</label><input type="email" name="email" value="{{ old('email') }}" placeholder="Facultatif"></div>
+                            <div class="form-group"><label>Téléphone</label><input type="text" name="phone" value="{{ old('phone') }}" placeholder="Facultatif"></div>
+                            <div class="form-group admin-form-grid__full"><label>Mot de passe initial</label><input type="text" name="password" value="{{ old('password') }}" required></div>
+                        </div>
+                        <div class="admin-actions"><button type="submit" class="btn btn--primary">Créer le responsable technique</button></div>
+                        <p class="admin-muted" style="margin-top:10px;">Ce compte aura directement accès à l'espace Responsable Technique après connexion sur /login.</p>
+                    </form>
+                @else
+                    <div class="admin-empty-box">Le rôle Responsable Enseignement Technique sera disponible après exécution des migrations.</div>
+                @endif
+            </div>
+        </details>
 
         <details class="admin-collapse-box">
             <summary>Créer un nouvel utilisateur</summary>
