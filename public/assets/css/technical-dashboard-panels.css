@@ -1,0 +1,42 @@
+body[data-ui-role="technical-supervisor"].tech-panel-mode .technical-page > .technical-kpi-grid,
+body[data-ui-role="technical-supervisor"].tech-panel-mode .technical-page > .ts-section,
+body[data-ui-role="technical-supervisor"].tech-panel-mode .technical-page > .ts-two {
+    display: none !important;
+}
+
+body[data-ui-role="technical-supervisor"].tech-panel-mode.tech-panel-alerts .technical-page > .ts-two,
+body[data-ui-role="technical-supervisor"].tech-panel-mode.tech-panel-classes #technical-classes,
+body[data-ui-role="technical-supervisor"].tech-panel-mode.tech-panel-teachers #technical-teachers,
+body[data-ui-role="technical-supervisor"].tech-panel-mode.tech-panel-courses #technical-courses,
+body[data-ui-role="technical-supervisor"].tech-panel-mode.tech-panel-td #technical-courses {
+    display: block !important;
+}
+
+body[data-ui-role="technical-supervisor"].tech-panel-mode.tech-panel-alerts .technical-page > .ts-two > .ts-section {
+    display: none !important;
+}
+
+body[data-ui-role="technical-supervisor"].tech-panel-mode.tech-panel-alerts #technical-alerts {
+    display: block !important;
+}
+
+body[data-ui-role="technical-supervisor"].tech-panel-mode.tech-panel-classes #technical-classes,
+body[data-ui-role="technical-supervisor"].tech-panel-mode.tech-panel-teachers #technical-teachers,
+body[data-ui-role="technical-supervisor"].tech-panel-mode.tech-panel-courses #technical-courses,
+body[data-ui-role="technical-supervisor"].tech-panel-mode.tech-panel-td #technical-courses,
+body[data-ui-role="technical-supervisor"].tech-panel-mode.tech-panel-alerts #technical-alerts {
+    margin-top: 0 !important;
+}
+
+body[data-ui-role="technical-supervisor"].tech-panel-mode #technical-classes,
+body[data-ui-role="technical-supervisor"].tech-panel-mode #technical-teachers,
+body[data-ui-role="technical-supervisor"].tech-panel-mode #technical-courses,
+body[data-ui-role="technical-supervisor"].tech-panel-mode #technical-alerts {
+    min-height: calc(100vh - 170px) !important;
+}
+
+body[data-ui-role="technical-supervisor"] .admin-link.is-active {
+    background: #2563eb !important;
+    color: #ffffff !important;
+    border-color: #2563eb !important;
+}
