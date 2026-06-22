@@ -10,12 +10,25 @@ use App\Models\StudentProfile;
 use App\Models\User;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Hash;
+use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Schema;
-use Illuminate\Support\Str;
 
 class CoursePublicationNotifier
 {
     public function coursePublished(Course $course, ?User $publisher = null): void
+    {
+        try {
+            $this->runCoursePublished($course, $publisher);
+        } catch (\Throwable $e) {
+            Log::warning('Course publication notification skipped', [
+                'course_id' => $course->id ?? null,
+                'publisher_id' => $publisher->id ?? null,
+                'error' => $e->getMessage(),
+            ]);
+        }
+    }
+
+    protected function runCoursePublished(Course $course, ?User $publisher = null): void
     {
         if (!Schema::hasTable('student_profiles')) {
             return;
@@ -28,13 +41,21 @@ class CoursePublicationNotifier
             ->filter(fn ($profile) => $profile->user instanceof User);
 
         foreach ($students as $profile) {
-            $student = $profile->user;
-            $this->ensureCourseProgress($course, $student);
-            $this->notifyStudent($course, $student);
+            try {
+                $student = $profile->user;
+                $this->ensureCourseProgress($course, $student);
+                $this->notifyStudent($course, $student);
 
-            $parent = $this->ensureParentForStudent($profile, $student);
-            if ($parent) {
-                $this->notifyParent($course, $parent, $student);
+                $parent = $this->ensureParentForStudent($profile, $student);
+                if ($parent) {
+                    $this->notifyParent($course, $parent, $student);
+                }
+            } catch (\Throwable $e) {
+                Log::warning('Course publication notification skipped for student', [
+                    'course_id' => $course->id ?? null,
+                    'student_profile_id' => $profile->id ?? null,
+                    'error' => $e->getMessage(),
+                ]);
             }
         }
 
@@ -45,37 +66,45 @@ class CoursePublicationNotifier
 
     public function courseOpened(Course $course, User $student): void
     {
-        if (!Schema::hasTable('course_progress')) {
-            return;
-        }
+        try {
+            if (!Schema::hasTable('course_progress')) {
+                return;
+            }
 
-        CourseProgress::query()->updateOrCreate(
-            ['course_id' => $course->id, 'student_id' => $student->id],
-            [
-                'status' => CourseProgress::STATUS_OPENED,
-                'progress_percent' => DB::raw('GREATEST(progress_percent, 25)'),
-                'opened_at' => DB::raw('COALESCE(opened_at, NOW())'),
-                'last_seen_at' => now(),
-            ]
-        );
+            CourseProgress::query()->updateOrCreate(
+                ['course_id' => $course->id, 'student_id' => $student->id],
+                [
+                    'status' => CourseProgress::STATUS_OPENED,
+                    'progress_percent' => DB::raw('GREATEST(progress_percent, 25)'),
+                    'opened_at' => DB::raw('COALESCE(opened_at, NOW())'),
+                    'last_seen_at' => now(),
+                ]
+            );
+        } catch (\Throwable $e) {
+            Log::warning('Course opened tracking skipped', ['course_id' => $course->id ?? null, 'student_id' => $student->id ?? null, 'error' => $e->getMessage()]);
+        }
     }
 
     public function courseCompleted(Course $course, User $student): void
     {
-        if (!Schema::hasTable('course_progress')) {
-            return;
-        }
+        try {
+            if (!Schema::hasTable('course_progress')) {
+                return;
+            }
 
-        CourseProgress::query()->updateOrCreate(
-            ['course_id' => $course->id, 'student_id' => $student->id],
-            [
-                'status' => CourseProgress::STATUS_COMPLETED,
-                'progress_percent' => 100,
-                'opened_at' => DB::raw('COALESCE(opened_at, NOW())'),
-                'last_seen_at' => now(),
-                'completed_at' => now(),
-            ]
-        );
+            CourseProgress::query()->updateOrCreate(
+                ['course_id' => $course->id, 'student_id' => $student->id],
+                [
+                    'status' => CourseProgress::STATUS_COMPLETED,
+                    'progress_percent' => 100,
+                    'opened_at' => DB::raw('COALESCE(opened_at, NOW())'),
+                    'last_seen_at' => now(),
+                    'completed_at' => now(),
+                ]
+            );
+        } catch (\Throwable $e) {
+            Log::warning('Course completed tracking skipped', ['course_id' => $course->id ?? null, 'student_id' => $student->id ?? null, 'error' => $e->getMessage()]);
+        }
     }
 
     private function ensureCourseProgress(Course $course, User $student): void
@@ -96,8 +125,8 @@ class CoursePublicationNotifier
             return null;
         }
 
-        $name = trim((string) ($profile->parent_name ?: $student->learningProfile?->parent_name));
-        $phone = $this->normalizePhone((string) ($profile->parent_phone ?: $student->learningProfile?->parent_phone));
+        $name = trim((string) ($profile->parent_name ?? ''));
+        $phone = $this->normalizePhone((string) ($profile->parent_phone ?? ''));
 
         if ($phone === '') {
             return null;
@@ -110,19 +139,32 @@ class CoursePublicationNotifier
 
         $this->attachParentRole($parent);
 
-        ParentProfile::query()->updateOrCreate(
-            ['user_id' => $parent->id],
-            [
-                'full_name' => $name !== '' ? $name : ($parent->full_name ?: $parent->name),
-                'phone' => $phone,
-                'status' => ParentProfile::STATUS_ACTIVE,
-                'activated_at' => DB::raw('COALESCE(activated_at, NOW())'),
-            ]
-        );
+        $profilePayload = $this->filterForTable('parent_profiles', [
+            'user_id' => $parent->id,
+            'full_name' => $name !== '' ? $name : ($parent->full_name ?: $parent->name),
+            'phone' => $phone,
+            'status' => defined(ParentProfile::class.'::STATUS_ACTIVE') ? ParentProfile::STATUS_ACTIVE : 'active',
+            'activated_at' => DB::raw('COALESCE(activated_at, NOW())'),
+            'updated_at' => now(),
+            'created_at' => now(),
+        ]);
+
+        if (!empty($profilePayload)) {
+            ParentProfile::query()->updateOrCreate(['user_id' => $parent->id], $profilePayload);
+        }
+
+        $pivotPayload = $this->filterForTable('student_parent', [
+            'student_id' => $student->id,
+            'parent_id' => $parent->id,
+            'relationship' => 'parent',
+            'is_primary' => true,
+            'updated_at' => now(),
+            'created_at' => now(),
+        ]);
 
         DB::table('student_parent')->updateOrInsert(
             ['student_id' => $student->id, 'parent_id' => $parent->id],
-            ['relationship' => 'parent', 'is_primary' => true, 'updated_at' => now(), 'created_at' => now()]
+            collect($pivotPayload)->except(['student_id', 'parent_id'])->all()
         );
 
         return $parent;
@@ -152,7 +194,7 @@ class CoursePublicationNotifier
             return;
         }
 
-        $payload = [
+        $payload = $this->filterForTable('mobile_notifications', [
             'user_id' => $userId,
             'school_class_id' => $course->school_class_id,
             'audience' => $audience,
@@ -161,25 +203,33 @@ class CoursePublicationNotifier
             'message' => $message,
             'target_type' => 'course',
             'target_id' => $course->id,
-            'published_at' => now(),
-            'updated_at' => now(),
-            'created_at' => now(),
-        ];
-
-        if (Schema::hasColumn('mobile_notifications', 'data')) {
-            $payload['data'] = json_encode(array_merge([
+            'data' => json_encode(array_merge([
                 'course_id' => $course->id,
                 'subject' => $course->subject?->name,
                 'class' => $course->schoolClass?->name,
-            ], $extra), JSON_UNESCAPED_UNICODE);
+            ], $extra), JSON_UNESCAPED_UNICODE),
+            'published_at' => now(),
+            'updated_at' => now(),
+            'created_at' => now(),
+        ]);
+
+        if (empty($payload)) {
+            return;
         }
 
-        $updates = collect($payload)->except(['created_at'])->all();
+        $keys = $this->filterForTable('mobile_notifications', [
+            'user_id' => $userId,
+            'type' => $type,
+            'target_type' => 'course',
+            'target_id' => $course->id,
+        ]);
 
-        DB::table('mobile_notifications')->updateOrInsert(
-            ['user_id' => $userId, 'type' => $type, 'target_type' => 'course', 'target_id' => $course->id],
-            $updates
-        );
+        if (count($keys) === 4) {
+            DB::table('mobile_notifications')->updateOrInsert($keys, collect($payload)->except(array_keys($keys))->all());
+            return;
+        }
+
+        DB::table('mobile_notifications')->insert($payload);
     }
 
     private function courseTitleLine(Course $course): string
@@ -190,23 +240,17 @@ class CoursePublicationNotifier
 
     private function parentUserPayload(string $name, string $phone): array
     {
-        $columns = Schema::getColumnListing('users');
-        $payload = [];
-        $put = function (string $column, mixed $value) use (&$payload, $columns) {
-            if (in_array($column, $columns, true)) {
-                $payload[$column] = $value;
-            }
-        };
-
-        $put('name', $name);
-        $put('full_name', $name);
-        $put('username', $this->uniqueUsername('parent' . preg_replace('/\D+/', '', $phone)));
-        $put('phone', $phone);
-        $put('email', $this->uniqueEmail('parent_' . (preg_replace('/\D+/', '', $phone) ?: time()) . '@timahacademy.local'));
-        $put('status', 'active');
-        $put('password', Hash::make($phone));
-
-        return $payload;
+        return $this->filterForTable('users', [
+            'name' => $name,
+            'full_name' => $name,
+            'username' => $this->uniqueUsername('parent' . preg_replace('/\D+/', '', $phone)),
+            'phone' => $phone,
+            'email' => $this->uniqueEmail('parent_' . (preg_replace('/\D+/', '', $phone) ?: time()) . '@timahacademy.local'),
+            'status' => 'active',
+            'password' => Hash::make($phone),
+            'created_at' => now(),
+            'updated_at' => now(),
+        ]);
     }
 
     private function attachParentRole(User $user): void
@@ -217,16 +261,19 @@ class CoursePublicationNotifier
 
         $role = Role::query()->where('name', 'parent')->first();
         if (!$role) {
-            $payload = ['name' => 'parent'];
-            foreach (['guard_name' => 'web', 'display_name' => 'Parent', 'description' => 'Compte parent TIMAH ACADEMY'] as $column => $value) {
-                if (Schema::hasColumn('roles', $column)) {
-                    $payload[$column] = $value;
-                }
-            }
-            $role = Role::query()->create($payload);
+            $role = Role::query()->create($this->filterForTable('roles', [
+                'name' => 'parent',
+                'guard_name' => 'web',
+                'display_name' => 'Parent',
+                'description' => 'Compte parent TIMAH ACADEMY',
+                'created_at' => now(),
+                'updated_at' => now(),
+            ]));
         }
 
-        $user->roles()->syncWithoutDetaching([$role->id]);
+        if (method_exists($user, 'roles')) {
+            $user->roles()->syncWithoutDetaching([$role->id]);
+        }
     }
 
     private function uniqueUsername(string $base): string
@@ -254,5 +301,17 @@ class CoursePublicationNotifier
     private function normalizePhone(string $phone): string
     {
         return preg_replace('/[^0-9+]/', '', trim($phone));
+    }
+
+    private function filterForTable(string $table, array $payload): array
+    {
+        if (!Schema::hasTable($table)) {
+            return [];
+        }
+
+        $columns = Schema::getColumnListing($table);
+        return collect($payload)
+            ->filter(fn ($value, $column) => in_array($column, $columns, true))
+            ->all();
     }
 }
