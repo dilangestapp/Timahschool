@@ -23,19 +23,20 @@ class AnonymousVoiceTransformer
             ];
         }
 
-        $targetRelativePath = $directory . '/anonymized/' . pathinfo($sourceRelativePath, PATHINFO_FILENAME) . '-voice-anonyme.mp3';
+        $targetRelativePath = $directory . '/voice/' . pathinfo($sourceRelativePath, PATHINFO_FILENAME) . '-voice-naturelle.mp3';
         $targetAbsolutePath = Storage::disk('local')->path($targetRelativePath);
 
         Storage::disk('local')->makeDirectory(dirname($targetRelativePath));
 
+        // Voix naturelle : pas de changement de hauteur, pas d'effet robot.
+        // On nettoie légèrement et on augmente le volume pour une écoute claire.
         $filter = implode(',', [
-            'asetrate=44100*1.08',
-            'atempo=0.93',
-            'aresample=44100',
-            'highpass=f=140',
-            'lowpass=f=3200',
-            'afftdn=nf=-18',
-            'acompressor=threshold=-18dB:ratio=2.2:attack=20:release=250',
+            'highpass=f=80',
+            'lowpass=f=12000',
+            'afftdn=nf=-20',
+            'dynaudnorm=f=150:g=12:p=0.95',
+            'acompressor=threshold=-20dB:ratio=2.5:attack=8:release=120:makeup=6dB',
+            'volume=1.8',
         ]);
 
         $process = new Process([
@@ -53,7 +54,7 @@ class AnonymousVoiceTransformer
             '-c:a',
             'libmp3lame',
             '-b:a',
-            '128k',
+            '160k',
             $targetAbsolutePath,
         ]);
 
@@ -61,7 +62,7 @@ class AnonymousVoiceTransformer
         $process->run();
 
         if (!$process->isSuccessful() || !is_file($targetAbsolutePath) || filesize($targetAbsolutePath) === 0) {
-            Log::warning('Anonymous voice transformation failed. Falling back to original audio.', [
+            Log::warning('Voice enhancement failed. Falling back to original audio.', [
                 'original' => $sourceRelativePath,
                 'error' => $process->getErrorOutput(),
             ]);
@@ -77,7 +78,7 @@ class AnonymousVoiceTransformer
 
         return [
             'path' => $targetRelativePath,
-            'name' => 'voice-anonyme-' . now()->format('Ymd-His') . '.mp3',
+            'name' => 'voice-naturelle-' . now()->format('Ymd-His') . '.mp3',
             'transformed' => true,
         ];
     }
