@@ -12,6 +12,7 @@ class DocumentBrandingService
     public function courseData(Course $course, ?string $publicUrl = null): array
     {
         $url = $publicUrl ?: URL::current();
+        $landingUrl = 'https://timahacademy.online';
 
         return [
             'brand_initials' => 'TA',
@@ -19,8 +20,9 @@ class DocumentBrandingService
             'slogan' => 'Pour apprendre, réviser et réussir.',
             'signature' => 'Une solution Cabrel Tech',
             'site' => 'timahacademy.online',
-            'qr_url' => $this->qrUrl($url),
+            'qr_url' => $this->qrUrl($landingUrl),
             'public_url' => $url,
+            'landing_url' => $landingUrl,
             'title' => $course->title,
             'subtitle' => trim(($course->schoolClass->name ?? 'Classe').' · '.($course->subject->name ?? 'Matière')),
             'author' => $course->creator->full_name ?? $course->creator->name ?? $course->creator->username ?? null,
@@ -38,6 +40,7 @@ class DocumentBrandingService
     public function tdData(TdSet $td, bool $correction = false, ?string $publicUrl = null): array
     {
         $url = $publicUrl ?: URL::current();
+        $landingUrl = 'https://timahacademy.online';
 
         return [
             'brand_initials' => 'TA',
@@ -45,8 +48,9 @@ class DocumentBrandingService
             'slogan' => 'Pour apprendre, réviser et réussir.',
             'signature' => 'Une solution Cabrel Tech',
             'site' => 'timahacademy.online',
-            'qr_url' => $this->qrUrl($url),
+            'qr_url' => $this->qrUrl($landingUrl),
             'public_url' => $url,
+            'landing_url' => $landingUrl,
             'title' => ($correction ? 'Corrigé - ' : '').$td->title,
             'subtitle' => trim(($td->schoolClass->name ?? 'Classe').' · '.($td->subject->name ?? 'Matière').' · '.($td->chapter_label ?: 'TD')),
             'author' => $td->author->full_name ?? $td->author->name ?? $td->author->username ?? null,
