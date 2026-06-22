@@ -61,6 +61,32 @@ class ManagementController extends Controller
         return back()->with('success', 'Classe technique mise a jour.');
     }
 
+    public function deleteClass(SchoolClass $class)
+    {
+        $this->abortIfNotTechnicalClass($class);
+
+        $linked = [
+            'eleves' => $this->countLinked('student_profiles', 'school_class_id', $class->id),
+            'affectations' => $this->countLinked('teacher_assignments', 'school_class_id', $class->id),
+            'cours' => $this->countLinked('courses', 'school_class_id', $class->id),
+            'td' => $this->countLinked('td_sets', 'school_class_id', $class->id),
+        ];
+
+        $total = array_sum($linked);
+        if ($total > 0) {
+            return back()->with('error', 'Suppression bloquee : cette classe contient deja des donnees liees. Desactivez-la ou retirez d abord les affectations, cours, TD et eleves.');
+        }
+
+        DB::transaction(function () use ($class) {
+            if (Schema::hasTable('class_subject')) {
+                DB::table('class_subject')->where('school_class_id', $class->id)->delete();
+            }
+            $class->delete();
+        });
+
+        return back()->with('success', 'Classe technique supprimee.');
+    }
+
     public function storeSubject(Request $request)
     {
         $request->validate([
@@ -101,6 +127,28 @@ class ManagementController extends Controller
         ]));
 
         return back()->with('success', 'Matiere mise a jour.');
+    }
+
+    public function deleteSubject(Subject $subject)
+    {
+        $linked = [
+            'affectations' => $this->countLinked('teacher_assignments', 'subject_id', $subject->id),
+            'cours' => $this->countLinked('courses', 'subject_id', $subject->id),
+            'td' => $this->countLinked('td_sets', 'subject_id', $subject->id),
+        ];
+
+        if (array_sum($linked) > 0) {
+            return back()->with('error', 'Suppression bloquee : cette matiere est deja utilisee dans des affectations, cours ou TD. Desactivez-la plutot.');
+        }
+
+        DB::transaction(function () use ($subject) {
+            if (Schema::hasTable('class_subject')) {
+                DB::table('class_subject')->where('subject_id', $subject->id)->delete();
+            }
+            $subject->delete();
+        });
+
+        return back()->with('success', 'Matiere supprimee.');
     }
 
     public function storeTeacher(Request $request)
@@ -158,6 +206,37 @@ class ManagementController extends Controller
         }
 
         return back()->with('success', 'Statut enseignant mis a jour.');
+    }
+
+    public function deleteTeacher(User $teacher)
+    {
+        if (!$teacher->isTeacher()) {
+            return back()->with('error', 'Ce compte n est pas un enseignant.');
+        }
+
+        $technicalClassIds = SchoolClass::query()
+            ->where('level', 'enseignement_technique')
+            ->pluck('id');
+
+        $linkedAssignments = $technicalClassIds->isEmpty()
+            ? 0
+            : TeacherAssignment::query()->where('teacher_id', $teacher->id)->whereIn('school_class_id', $technicalClassIds)->count();
+
+        $linkedCourses = $this->countLinked('courses', 'created_by', $teacher->id);
+        $linkedTds = $this->countLinked('td_sets', 'author_user_id', $teacher->id);
+
+        if (($linkedAssignments + $linkedCourses + $linkedTds) > 0) {
+            return back()->with('error', 'Suppression bloquee : cet enseignant possede encore des affectations, cours ou TD. Desactivez-le ou retirez d abord ses liens.');
+        }
+
+        DB::transaction(function () use ($teacher) {
+            if (Schema::hasTable('role_user')) {
+                DB::table('role_user')->where('user_id', $teacher->id)->delete();
+            }
+            $teacher->delete();
+        });
+
+        return back()->with('success', 'Enseignant supprime.');
     }
 
     public function storeAssignment(Request $request)
@@ -239,6 +318,14 @@ class ManagementController extends Controller
         return back()->with('success', 'Cours technique archive.');
     }
 
+    public function deleteCourse(Course $course)
+    {
+        $this->abortIfNotTechnicalClass($course->schoolClass);
+        $course->delete();
+
+        return back()->with('success', 'Cours technique supprime.');
+    }
+
     public function publishTd(TdSet $td)
     {
         $this->abortIfNotTechnicalClass($td->schoolClass);
@@ -258,6 +345,19 @@ class ManagementController extends Controller
         ]));
 
         return back()->with('success', 'TD technique archive.');
+    }
+
+    public function deleteTd(TdSet $td)
+    {
+        $this->abortIfNotTechnicalClass($td->schoolClass);
+
+        if ($this->countLinked('td_attempts', 'td_set_id', $td->id) > 0) {
+            return back()->with('error', 'Suppression bloquee : ce TD contient deja des tentatives ou soumissions. Archivez-le plutot.');
+        }
+
+        $td->delete();
+
+        return back()->with('success', 'TD technique supprime.');
     }
 
     protected function abortIfNotTechnicalClass(?SchoolClass $class): void
@@ -282,6 +382,15 @@ class ManagementController extends Controller
         return collect($data)
             ->filter(fn ($value, $column) => Schema::hasColumn($table, $column))
             ->all();
+    }
+
+    protected function countLinked(string $table, string $column, int $id): int
+    {
+        if (!Schema::hasTable($table) || !Schema::hasColumn($table, $column)) {
+            return 0;
+        }
+
+        return (int) DB::table($table)->where($column, $id)->count();
     }
 
     protected function uniqueSlug(string $table, string $value, ?int $ignoreId = null): string
