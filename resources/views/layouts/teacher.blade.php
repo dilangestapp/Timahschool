@@ -43,6 +43,7 @@
         body[data-ui-role="teacher"] .teacher-subpage-main a { text-decoration: none; }
         @media (max-width: 1180px) { .resp-brand { min-width: 150px; } }
     </style>
+    @stack('head')
     @stack('styles')
 </head>
 <body data-ui-role="teacher" data-ui-group="@yield('ui_group', 'workspace')">
