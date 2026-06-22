@@ -173,6 +173,9 @@
     if (document.querySelector('.technical-page') && hashPanel[window.location.hash]) showTechPanel(hashPanel[window.location.hash], false);
 })();
 </script>
+@if(file_exists(public_path('assets/js/technical-dashboard-delete-buttons.js')))
+    <script>{!! file_get_contents(public_path('assets/js/technical-dashboard-delete-buttons.js')) !!}</script>
+@endif
 @stack('scripts')
 </body>
 </html>
