@@ -31,6 +31,10 @@ class RedirectIfAuthenticated
                 return redirect()->route('admin.dashboard');
             }
 
+            if ($user && method_exists($user, 'isTechnicalSupervisor') && $user->isTechnicalSupervisor() && Route::has('technical.dashboard')) {
+                return redirect()->route('technical.dashboard');
+            }
+
             if ($user && method_exists($user, 'isTeacher') && $user->isTeacher() && Route::has('teacher.dashboard')) {
                 return redirect()->route('teacher.dashboard');
             }
