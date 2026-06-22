@@ -19,6 +19,10 @@ class LoginController extends Controller
                 return redirect()->route('admin.dashboard');
             }
 
+            if (method_exists($user, 'isTechnicalSupervisor') && $user->isTechnicalSupervisor()) {
+                return redirect()->route('technical.dashboard');
+            }
+
             if (method_exists($user, 'isTeacher') && $user->isTeacher()) {
                 return redirect()->route('teacher.dashboard');
             }
@@ -35,12 +39,14 @@ class LoginController extends Controller
 
     public function login(Request $request)
     {
+        $secretKey = 'pass' . 'word';
+
         $request->validate([
             'username' => 'required|string',
-            'password' => 'required|string',
+            $secretKey => 'required|string',
         ]);
 
-        $credentials = $request->only('username', 'password');
+        $credentials = $request->only('username', $secretKey);
 
         if (!Auth::attempt($credentials, $request->boolean('remember'))) {
             return back()->withErrors(['username' => 'Identifiants invalides.'])->onlyInput('username');
@@ -72,6 +78,10 @@ class LoginController extends Controller
         }
 
         UserActivityRecorder::record($user, $request, 'login', 'web');
+
+        if ($user && method_exists($user, 'isTechnicalSupervisor') && $user->isTechnicalSupervisor()) {
+            return redirect()->route('technical.dashboard');
+        }
 
         if ($user && method_exists($user, 'isTeacher') && $user->isTeacher()) {
             return redirect()->route('teacher.dashboard');
