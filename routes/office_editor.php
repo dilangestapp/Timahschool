@@ -33,7 +33,7 @@ Route::get('/teacher/messages', function (Request $request) {
     $messages = collect();
     if (Schema::hasTable('teacher_messages') && $assignments->isNotEmpty()) {
         $query = TeacherMessage::query()
-            ->with(['student.studentProfile.schoolClass', 'subject', 'schoolClass', 'teacher'])
+            ->with(['student.studentProfile.schoolClass', 'subject', 'schoolClass', 'teacher', 'parentMessage'])
             ->where('teacher_id', auth()->id());
 
         if (Schema::hasColumn('teacher_messages', 'school_class_id') && $classIds->isNotEmpty()) {
@@ -107,9 +107,17 @@ Route::post('/teacher/messages/broadcast', [\App\Http\Controllers\Teacher\Messag
     ->middleware(['auth', 'no.cache', \App\Http\Middleware\EnsureTeacher::class])
     ->name('teacher.messages.broadcast');
 
+Route::post('/teacher/messages/{message}/reply', [\App\Http\Controllers\Teacher\MessageController::class, 'reply'])
+    ->middleware(['auth', 'no.cache', \App\Http\Middleware\EnsureTeacher::class])
+    ->name('teacher.messages.reply');
+
 Route::post('/teacher/messages/{message}/delete', [\App\Http\Controllers\Teacher\MessageController::class, 'destroy'])
     ->middleware(['auth', 'no.cache', \App\Http\Middleware\EnsureTeacher::class])
     ->name('teacher.messages.delete');
+
+Route::get('/teacher/messages/{message}/attachment', [\App\Http\Controllers\Teacher\MessageController::class, 'attachment'])
+    ->middleware(['auth', 'no.cache', \App\Http\Middleware\EnsureTeacher::class])
+    ->name('teacher.messages.attachment');
 
 Route::get('/course-office/{course}/document/{key}', [\App\Http\Controllers\Teacher\CourseOfficeController::class, 'file'])
     ->name('onlyoffice.courses.file');
