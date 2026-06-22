@@ -26,7 +26,7 @@
                     <span class="teacher-pill teacher-pill--alt">{{ $row['corrected'] }} corrigées</span>
                     <span class="teacher-pill" style="background:#fff3e0;color:#e65100;">{{ $row['pending'] }} à corriger</span>
                     <span class="teacher-pill" style="background:#ffebee;color:#c62828;">{{ $row['late'] }} retards</span>
-                    <a href="{{ route('teacher.td.sets.show', $row['td']->id) }}" class="teacher-btn teacher-btn--ghost">Voir</a>
+                    <a href="{{ route('teacher.td.sets.edit', $row['td']->id) }}" class="teacher-btn teacher-btn--ghost">Voir / corriger</a>
                 </div>
             </div>
         @empty
