@@ -2,12 +2,12 @@
 <html lang="fr">
 <head>
     <meta charset="UTF-8">
-    <title>Tableau de bord</title>
+    <title>@yield('title', 'Tableau de bord')</title>
 </head>
 <body>
 <div class="resp-shell">
     <header class="resp-navbar">Section Technique</header>
-    <main class="resp-page">CONTENU</main>
+    <main class="resp-page">@yield('content')</main>
 </div>
 </body>
 </html>
