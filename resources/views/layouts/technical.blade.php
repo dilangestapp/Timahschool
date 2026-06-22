@@ -95,6 +95,9 @@
             @if(session('warning'))<div class="admin-alert admin-alert--warning">{{ session('warning') }}</div>@endif
             @if(session('error'))<div class="admin-alert admin-alert--error">{{ session('error') }}</div>@endif
             @yield('content')
+            @if(file_exists(public_path('assets/css/technical-dashboard-polish.css')))
+                <style>{!! file_get_contents(public_path('assets/css/technical-dashboard-polish.css')) !!}</style>
+            @endif
         </main>
     </div>
 </div>
