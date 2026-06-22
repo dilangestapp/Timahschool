@@ -178,6 +178,14 @@ class User extends Authenticatable
         return $this->hasRole('teacher') || $this->hasRole('enseignant');
     }
 
+    public function isTechnicalSupervisor(): bool
+    {
+        return $this->hasRole('technical_supervisor')
+            || $this->hasRole('responsable_technique')
+            || $this->hasRole('responsable-technique')
+            || $this->hasRole('responsable enseignement technique');
+    }
+
     public function isParent(): bool
     {
         return $this->hasRole('parent') || (bool) $this->parentProfile;
