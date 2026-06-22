@@ -17,8 +17,17 @@ class CourseController extends Controller
     public function index(Request $request)
     {
         $assignments = $this->assignments();
-        $query = Course::query()->with(['schoolClass', 'subject', 'creator']);
-        $this->applyAssignments($query, $assignments);
+        $baseQuery = Course::query()
+            ->with(['schoolClass', 'subject', 'creator'])
+            ->where('created_by', auth()->id());
+        $this->applyAssignments($baseQuery, $assignments);
+
+        $statusCounters = (clone $baseQuery)
+            ->selectRaw('status, COUNT(*) as total')
+            ->groupBy('status')
+            ->pluck('total', 'status');
+
+        $query = clone $baseQuery;
 
         $status = trim((string) $request->get('status', ''));
         if ($status !== '') {
@@ -47,6 +56,12 @@ class CourseController extends Controller
             'courses' => $courses,
             'assignments' => $assignments,
             'filters' => $request->only('status', 'q'),
+            'statusCounters' => [
+                'draft' => (int) ($statusCounters[Course::STATUS_DRAFT] ?? 0),
+                'published' => (int) ($statusCounters[Course::STATUS_PUBLISHED] ?? 0),
+                'archived' => (int) ($statusCounters[Course::STATUS_ARCHIVED] ?? 0),
+                'total' => (int) $statusCounters->sum(),
+            ],
         ]);
     }
 
@@ -68,7 +83,8 @@ class CourseController extends Controller
             'objectives' => ['nullable', 'string'],
             'content_html' => ['nullable', 'string'],
             'order' => ['nullable', 'integer', 'min:0'],
-            'status' => ['required', 'in:draft,published,archived'],
+            'status' => ['nullable', 'in:draft,published,archived'],
+            'action_mode' => ['nullable', 'in:save_private,publish_now,archive_now'],
             'document' => ['nullable', 'file', 'max:20480', 'mimes:pdf,doc,docx,ppt,pptx,txt,rtf,odt'],
         ], [
             'document.mimes' => 'Formats autorisés : PDF, DOC, DOCX, PPT, PPTX, TXT, RTF, ODT.',
@@ -80,10 +96,11 @@ class CourseController extends Controller
 
         [$documentPath, $documentName, $documentMime, $documentSize] = $this->storeDocument($request);
         [$contentHtml, $contentText] = $this->normalizeContent($data['content_html'] ?? null);
+        $status = $this->statusFromAction($request, $data['status'] ?? Course::STATUS_DRAFT);
 
         if (!$documentPath && !$contentHtml) {
             return back()->withInput()->withErrors([
-                'content_html' => 'Ajoutez soit un contenu rédigé, soit un document joint, ou les deux.',
+                'content_html' => 'Ajoutez soit un contenu rédigé, soit un document joint, ou les deux. Le cours peut rester en brouillon dans votre espace.',
             ]);
         }
 
@@ -97,8 +114,8 @@ class CourseController extends Controller
             'objectives' => $data['objectives'] ?? null,
             'level' => $assignment->schoolClass->name ?? null,
             'order' => $data['order'] ?? 0,
-            'status' => $data['status'],
-            'published_at' => $data['status'] === Course::STATUS_PUBLISHED ? now() : null,
+            'status' => $status,
+            'published_at' => $status === Course::STATUS_PUBLISHED ? now() : null,
             'document_path' => $documentPath,
             'document_name' => $documentName,
             'document_mime' => $documentMime,
@@ -115,6 +132,12 @@ class CourseController extends Controller
         $course = Course::query()->create($payload);
         if ($course->status === Course::STATUS_PUBLISHED) {
             $notifier->coursePublished($course->fresh(['subject', 'schoolClass', 'creator']), auth()->user());
+        }
+
+        if ($course->status === Course::STATUS_DRAFT) {
+            return redirect()
+                ->route('teacher.courses.index', ['status' => Course::STATUS_DRAFT])
+                ->with('success', 'Cours gardé dans votre espace personnel. Il reste invisible pour les élèves jusqu’à publication.');
         }
 
         return redirect()->route('teacher.courses.index')->with('success', 'Cours enregistré avec succès. Les notifications internes ont été préparées si le cours est publié.');
@@ -141,7 +164,8 @@ class CourseController extends Controller
             'objectives' => ['nullable', 'string'],
             'content_html' => ['nullable', 'string'],
             'order' => ['nullable', 'integer', 'min:0'],
-            'status' => ['required', 'in:draft,published,archived'],
+            'status' => ['nullable', 'in:draft,published,archived'],
+            'action_mode' => ['nullable', 'in:save_private,publish_now,archive_now'],
             'document' => ['nullable', 'file', 'max:20480', 'mimes:pdf,doc,docx,ppt,pptx,txt,rtf,odt'],
             'remove_document' => ['nullable', 'boolean'],
         ], [
@@ -150,14 +174,15 @@ class CourseController extends Controller
         ]);
 
         [$contentHtml, $contentText] = $this->normalizeContent($data['content_html'] ?? null);
+        $status = $this->statusFromAction($request, $data['status'] ?? $course->status ?? Course::STATUS_DRAFT);
 
         $updates = [
             'title' => $data['title'],
             'description' => $data['description'] ?? null,
             'objectives' => $data['objectives'] ?? null,
             'order' => $data['order'] ?? 0,
-            'status' => $data['status'],
-            'published_at' => $data['status'] === Course::STATUS_PUBLISHED ? ($course->published_at ?? now()) : null,
+            'status' => $status,
+            'published_at' => $status === Course::STATUS_PUBLISHED ? ($course->published_at ?? now()) : null,
         ];
 
         if (Schema::hasColumn('courses', 'content_html')) {
@@ -192,13 +217,19 @@ class CourseController extends Controller
 
         if (!$futureDocumentPath && !$futureContentHtml) {
             return back()->withInput()->withErrors([
-                'content_html' => 'Ajoutez soit un contenu rédigé, soit un document joint, ou les deux.',
+                'content_html' => 'Ajoutez soit un contenu rédigé, soit un document joint, ou les deux. Le cours peut rester en brouillon dans votre espace.',
             ]);
         }
 
         $course->update($updates);
         if (!$wasPublished && $course->status === Course::STATUS_PUBLISHED) {
             $notifier->coursePublished($course->fresh(['subject', 'schoolClass', 'creator']), auth()->user());
+        }
+
+        if ($course->status === Course::STATUS_DRAFT) {
+            return redirect()
+                ->route('teacher.courses.index', ['status' => Course::STATUS_DRAFT])
+                ->with('success', 'Cours conservé dans votre espace personnel. Il reste invisible pour les élèves jusqu’à publication.');
         }
 
         return redirect()->route('teacher.courses.index')->with('success', 'Cours mis à jour avec succès.');
@@ -267,6 +298,10 @@ class CourseController extends Controller
 
     protected function authorizeCourse(Course $course): void
     {
+        if (Schema::hasColumn('courses', 'created_by')) {
+            abort_unless((int) $course->created_by === (int) auth()->id(), 403);
+        }
+
         $assignments = $this->assignments();
         $allowed = $assignments->contains(function ($assignment) use ($course) {
             return (int) $assignment->school_class_id === (int) $course->school_class_id
@@ -326,6 +361,16 @@ class CourseController extends Controller
         if ($path && Storage::disk('local')->exists($path)) {
             Storage::disk('local')->delete($path);
         }
+    }
+
+    protected function statusFromAction(Request $request, string $fallback): string
+    {
+        return match ($request->input('action_mode')) {
+            'save_private' => Course::STATUS_DRAFT,
+            'publish_now' => Course::STATUS_PUBLISHED,
+            'archive_now' => Course::STATUS_ARCHIVED,
+            default => in_array($fallback, [Course::STATUS_DRAFT, Course::STATUS_PUBLISHED, Course::STATUS_ARCHIVED], true) ? $fallback : Course::STATUS_DRAFT,
+        };
     }
 
     protected function normalizeContent(?string $html): array
