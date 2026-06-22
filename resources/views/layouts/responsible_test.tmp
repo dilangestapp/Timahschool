@@ -3,6 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <title>@yield('title', 'Tableau de bord')</title>
+    <link rel="stylesheet" href="{{ asset('assets/css/responsible-dashboard.css') }}">
 </head>
 <body>
 <div class="resp-shell">
