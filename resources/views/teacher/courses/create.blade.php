@@ -2,7 +2,7 @@
 
 @section('title', 'Nouveau cours')
 @section('page_title', 'Nouveau cours enseignant')
-@section('page_subtitle', 'Rédigez un cours dans un vrai éditeur riche, joignez un document et publiez quand vous êtes prêt.')
+@section('page_subtitle', 'Gardez votre cours dans votre espace personnel, traitez-le progressivement, puis publiez-le seulement quand il est prêt.')
 
 @push('head')
     <script src="https://cdn.jsdelivr.net/npm/tinymce@7/tinymce.min.js" referrerpolicy="origin"></script>
@@ -13,9 +13,22 @@
     <div class="teacher-section__head">
         <div>
             <h2>Créer un cours</h2>
-            <p class="teacher-muted">Vous pouvez enregistrer un cours rédigé, un document joint, ou les deux en même temps.</p>
+            <p class="teacher-muted">Le cours peut rester en brouillon privé dans votre espace enseignant. Les élèves ne le verront qu’après publication.</p>
         </div>
         <a href="{{ route('teacher.courses.index') }}" class="teacher-btn teacher-btn--ghost">Retour à mes cours</a>
+    </div>
+
+    <div class="teacher-form-card" style="margin-bottom:16px;">
+        <div class="teacher-form-grid teacher-form-grid--two">
+            <div>
+                <strong style="display:block;color:#1a237e;margin-bottom:6px;">1. Garder dans mon espace</strong>
+                <p class="teacher-muted" style="margin:0;">Vous importez ou rédigez le cours sans le rendre visible. Il reste dans vos brouillons.</p>
+            </div>
+            <div>
+                <strong style="display:block;color:#1a237e;margin-bottom:6px;">2. Traiter puis publier</strong>
+                <p class="teacher-muted" style="margin:0;">Quand le contenu est corrigé, complet et prêt, vous le publiez pour les élèves et le mobile.</p>
+            </div>
+        </div>
     </div>
 
     @if($assignments->isEmpty())
@@ -60,12 +73,13 @@
                 </div>
 
                 <div class="teacher-form-group">
-                    <label for="status">Statut</label>
+                    <label for="status">Visibilité du cours</label>
                     <select id="status" name="status" class="teacher-select" required>
-                        <option value="draft" @selected(old('status', 'draft') === 'draft')>Brouillon</option>
-                        <option value="published" @selected(old('status') === 'published')>Publié</option>
-                        <option value="archived" @selected(old('status') === 'archived')>Archivé</option>
+                        <option value="draft" @selected(old('status', 'draft') === 'draft')>Brouillon privé — garder dans mon espace</option>
+                        <option value="published" @selected(old('status') === 'published')>Publier maintenant pour les élèves</option>
+                        <option value="archived" @selected(old('status') === 'archived')>Archiver</option>
                     </select>
+                    <small class="teacher-help">Brouillon privé = visible seulement par vous dans Mes cours.</small>
                 </div>
 
                 <div class="teacher-form-group teacher-form-group--full">
@@ -76,13 +90,14 @@
 
                 <div class="teacher-form-group teacher-form-group--full">
                     <label for="content_html">Contenu rédigé du cours</label>
-                    <div class="teacher-editor-note">Interface de rédaction enrichie type traitement de texte : titres, couleurs, tableaux, images, listes, liens, citations, plein écran.</div>
+                    <div class="teacher-editor-note">Vous pouvez laisser ce contenu incomplet et l’améliorer plus tard. Word/DOCX se traite avec ONLYOFFICE ; PDF reste consultable fidèlement ou récupérable en texte si possible.</div>
                     <textarea id="content_html" name="content_html" class="teacher-editor-source">{!! old('content_html') !!}</textarea>
                 </div>
             </div>
 
             <div class="teacher-form-actions">
-                <button type="submit" class="teacher-btn teacher-btn--primary">Enregistrer le cours</button>
+                <button type="submit" name="action_mode" value="save_private" class="teacher-btn teacher-btn--primary">Garder dans mon espace</button>
+                <button type="submit" name="action_mode" value="publish_now" class="teacher-btn teacher-btn--ghost">Publier maintenant</button>
                 <a href="{{ route('teacher.courses.index') }}" class="teacher-btn teacher-btn--ghost">Annuler</a>
             </div>
         </form>
