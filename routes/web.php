@@ -38,6 +38,7 @@ use App\Http\Controllers\Teacher\TdQuestionController as TeacherTdQuestionContro
 use App\Http\Controllers\Teacher\TdSetController as TeacherTdSetController;
 use App\Http\Controllers\Teacher\TdSourceController as TeacherTdSourceController;
 use App\Http\Controllers\Technical\DashboardController as TechnicalDashboardController;
+use App\Http\Controllers\Technical\ManagementController as TechnicalManagementController;
 use App\Http\Controllers\Webhook\NotchPayWebhookController;
 use App\Http\Middleware\EnsureAdmin;
 use App\Http\Middleware\EnsureParent;
@@ -179,6 +180,19 @@ Route::middleware(['auth', 'no.cache', EnsureTechnicalSupervisor::class])->prefi
     Route::get('/', fn () => redirect()->route('technical.dashboard'))->name('home');
     Route::get('/tableau-de-bord', [TechnicalDashboardController::class, 'index'])->name('dashboard');
     Route::get('/dashboard', [TechnicalDashboardController::class, 'index'])->name('dashboard.alias');
+    Route::post('/classes', [TechnicalManagementController::class, 'storeClass'])->name('classes.store');
+    Route::post('/classes/{class}/update', [TechnicalManagementController::class, 'updateClass'])->name('classes.update');
+    Route::post('/matieres', [TechnicalManagementController::class, 'storeSubject'])->name('subjects.store');
+    Route::post('/matieres/{subject}/update', [TechnicalManagementController::class, 'updateSubject'])->name('subjects.update');
+    Route::post('/enseignants', [TechnicalManagementController::class, 'storeTeacher'])->name('teachers.store');
+    Route::post('/enseignants/{teacher}/toggle', [TechnicalManagementController::class, 'toggleTeacher'])->name('teachers.toggle');
+    Route::post('/affectations', [TechnicalManagementController::class, 'storeAssignment'])->name('assignments.store');
+    Route::post('/affectations/{assignment}/toggle', [TechnicalManagementController::class, 'toggleAssignment'])->name('assignments.toggle');
+    Route::post('/affectations/{assignment}/delete', [TechnicalManagementController::class, 'deleteAssignment'])->name('assignments.delete');
+    Route::post('/cours/{course}/publish', [TechnicalManagementController::class, 'publishCourse'])->name('courses.publish');
+    Route::post('/cours/{course}/archive', [TechnicalManagementController::class, 'archiveCourse'])->name('courses.archive');
+    Route::post('/td/{td}/publish', [TechnicalManagementController::class, 'publishTd'])->name('td.publish');
+    Route::post('/td/{td}/archive', [TechnicalManagementController::class, 'archiveTd'])->name('td.archive');
 });
 
 Route::middleware(['auth', 'no.cache', EnsureTeacher::class])->prefix('teacher')->name('teacher.')->group(function () {
