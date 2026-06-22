@@ -6,9 +6,11 @@ use App\Http\Controllers\Controller;
 use App\Models\Course;
 use App\Models\SchoolClass;
 use App\Models\StudentProfile;
+use App\Models\Subject;
 use App\Models\TdAttempt;
 use App\Models\TdSet;
 use App\Models\TeacherAssignment;
+use App\Models\User;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Schema;
@@ -19,13 +21,15 @@ class DashboardController extends Controller
     {
         $technicalClasses = $this->technicalClasses();
         $classIds = $technicalClasses->pluck('id')->values();
-        $assignments = $this->technicalAssignments($classIds);
+        $assignments = $this->technicalAssignments($classIds, false);
+        $activeAssignments = $assignments->where('is_active', true);
         $teacherIds = $assignments->pluck('teacher_id')->filter()->unique()->values();
-        $assignmentIds = $assignments->pluck('id')->filter()->values();
 
         $courses = $this->technicalCourses($classIds);
         $tdSets = $this->technicalTdSets($classIds);
         $attempts = $this->technicalAttempts($tdSets->pluck('id')->values());
+        $subjects = $this->subjects();
+        $teachers = $this->teachers();
 
         $teacherCourseCounts = $courses->groupBy('created_by')->map->count();
         $teacherTdCounts = $tdSets->groupBy('author_user_id')->map->count();
@@ -41,18 +45,22 @@ class DashboardController extends Controller
                     'status' => $teacher->status ?? 'active',
                     'subjects' => $items->pluck('subject.name')->filter()->unique()->values(),
                     'classes' => $items->pluck('schoolClass.name')->filter()->unique()->values(),
+                    'active_assignments' => $items->where('is_active', true)->count(),
                     'courses' => (int) ($teacherCourseCounts[$teacherId] ?? 0),
                     'td' => (int) ($teacherTdCounts[$teacherId] ?? 0),
                 ];
             })
             ->values();
 
-        $classRows = $technicalClasses->map(function ($class) use ($courses, $tdSets, $assignments) {
-            $classAssignments = $assignments->where('school_class_id', $class->id);
+        $classRows = $technicalClasses->map(function ($class) use ($courses, $tdSets, $activeAssignments) {
+            $classAssignments = $activeAssignments->where('school_class_id', $class->id);
 
             return [
                 'id' => $class->id,
                 'name' => $class->name,
+                'description' => $class->description,
+                'order' => $class->order,
+                'is_active' => (bool) ($class->is_active ?? true),
                 'level' => $class->level ?? 'enseignement_technique',
                 'students' => (int) ($class->student_profiles_count ?? 0),
                 'teachers' => $classAssignments->pluck('teacher_id')->filter()->unique()->count(),
@@ -76,15 +84,18 @@ class DashboardController extends Controller
             'submitted_attempts' => $attempts->whereIn('status', [TdAttempt::STATUS_SUBMITTED, TdAttempt::STATUS_COMPLETED, TdAttempt::STATUS_CORRECTED, TdAttempt::STATUS_GRADED])->count(),
         ];
 
-        $alerts = $this->buildAlerts($technicalClasses, $assignments, $courses, $tdSets, $teacherRows);
+        $alerts = $this->buildAlerts($technicalClasses, $activeAssignments, $courses, $tdSets, $teacherRows);
 
         return view('technical.dashboard', [
             'stats' => $stats,
             'technicalClasses' => $technicalClasses,
             'classRows' => $classRows,
             'teacherRows' => $teacherRows,
-            'recentCourses' => $courses->sortByDesc('updated_at')->take(8)->values(),
-            'recentTds' => $tdSets->sortByDesc('updated_at')->take(8)->values(),
+            'assignments' => $assignments->sortBy(fn ($a) => ($a->schoolClass->name ?? '') . ($a->subject->name ?? ''))->values(),
+            'subjects' => $subjects,
+            'teachers' => $teachers,
+            'recentCourses' => $courses->sortByDesc('updated_at')->take(12)->values(),
+            'recentTds' => $tdSets->sortByDesc('updated_at')->take(12)->values(),
             'alerts' => $alerts,
             'courseStatusCounts' => $courses->groupBy('status')->map->count(),
             'tdStatusCounts' => $tdSets->groupBy('status')->map->count(),
@@ -109,16 +120,16 @@ class DashboardController extends Controller
         return $query->get();
     }
 
-    protected function technicalAssignments(Collection $classIds): Collection
+    protected function technicalAssignments(Collection $classIds, bool $activeOnly = true): Collection
     {
         if ($classIds->isEmpty() || !Schema::hasTable('teacher_assignments')) {
             return collect();
         }
 
         return TeacherAssignment::query()
-            ->with(['teacher', 'schoolClass', 'subject'])
+            ->with(['teacher.roles', 'teacher.role', 'schoolClass', 'subject'])
             ->whereIn('school_class_id', $classIds)
-            ->when(Schema::hasColumn('teacher_assignments', 'is_active'), fn ($q) => $q->where('is_active', true))
+            ->when($activeOnly && Schema::hasColumn('teacher_assignments', 'is_active'), fn ($q) => $q->where('is_active', true))
             ->get();
     }
 
@@ -155,6 +166,29 @@ class DashboardController extends Controller
         return DB::table('td_attempts')->whereIn('td_set_id', $tdIds)->get();
     }
 
+    protected function subjects(): Collection
+    {
+        if (!Schema::hasTable('subjects')) {
+            return collect();
+        }
+
+        return Subject::query()->orderBy('order')->orderBy('name')->get();
+    }
+
+    protected function teachers(): Collection
+    {
+        if (!Schema::hasTable('users')) {
+            return collect();
+        }
+
+        return User::query()
+            ->with(['roles', 'role'])
+            ->get()
+            ->filter(fn ($user) => method_exists($user, 'isTeacher') && $user->isTeacher())
+            ->sortBy(fn ($user) => $user->full_name ?? $user->name ?? $user->username)
+            ->values();
+    }
+
     protected function countStudents(Collection $classIds): int
     {
         if ($classIds->isEmpty() || !Schema::hasTable('student_profiles')) {
@@ -172,7 +206,7 @@ class DashboardController extends Controller
             $alerts->push([
                 'level' => 'warning',
                 'title' => 'Aucune classe technique configuree',
-                'message' => 'Ajoutez des classes avec le niveau Enseignement technique dans le backoffice pour alimenter ce tableau de bord.',
+                'message' => 'Ajoutez directement les classes techniques depuis ce tableau de bord.',
             ]);
 
             return $alerts;
