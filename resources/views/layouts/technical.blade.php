@@ -98,6 +98,9 @@
             @if(file_exists(public_path('assets/css/technical-dashboard-polish.css')))
                 <style>{!! file_get_contents(public_path('assets/css/technical-dashboard-polish.css')) !!}</style>
             @endif
+            @if(file_exists(public_path('assets/css/technical-dashboard-panels.css')))
+                <style>{!! file_get_contents(public_path('assets/css/technical-dashboard-panels.css')) !!}</style>
+            @endif
         </main>
     </div>
 </div>
@@ -125,25 +128,9 @@
     document.querySelectorAll('[data-admin-nav-close]').forEach((item) => item.addEventListener('click', closeNav));
     document.querySelectorAll('.admin-sidebar .admin-link').forEach((link) => link.addEventListener('click', closeNav));
 
-    const navMap = {
-        overview: null,
-        classes: '#technical-classes',
-        teachers: '#technical-teachers',
-        courses: '#technical-courses',
-        td: '#technical-courses',
-        alerts: '#technical-alerts'
-    };
-
-    const clearPanelClasses = () => {
-        document.body.classList.remove('tech-panel-mode', 'tech-panel-classes', 'tech-panel-teachers', 'tech-panel-courses', 'tech-panel-td', 'tech-panel-alerts');
-    };
-
-    const setActiveNav = (panel) => {
-        document.querySelectorAll('[data-tech-nav]').forEach((link) => {
-            link.classList.toggle('is-active', link.getAttribute('data-tech-nav') === panel);
-        });
-    };
-
+    const navMap = { overview: null, classes: '#technical-classes', teachers: '#technical-teachers', courses: '#technical-courses', td: '#technical-courses', alerts: '#technical-alerts' };
+    const clearPanelClasses = () => document.body.classList.remove('tech-panel-mode', 'tech-panel-classes', 'tech-panel-teachers', 'tech-panel-courses', 'tech-panel-td', 'tech-panel-alerts');
+    const setActiveNav = (panel) => document.querySelectorAll('[data-tech-nav]').forEach((link) => link.classList.toggle('is-active', link.getAttribute('data-tech-nav') === panel));
     const openDetailsFor = (selector) => {
         if (!selector) return null;
         const target = document.querySelector(selector);
@@ -152,56 +139,38 @@
         if (details) details.open = true;
         return target;
     };
-
     const showTechPanel = (panel, pushHistory = true) => {
-        const safePanel = navMap.hasOwnProperty(panel) ? panel : 'overview';
+        if (!document.querySelector('.technical-page')) return;
+        const safePanel = Object.prototype.hasOwnProperty.call(navMap, panel) ? panel : 'overview';
         clearPanelClasses();
         setActiveNav(safePanel);
-
         if (safePanel === 'overview') {
             if (pushHistory) history.replaceState(null, '', '{{ route('technical.dashboard') }}');
             window.scrollTo({ top: 0, behavior: 'smooth' });
             return;
         }
-
         document.body.classList.add('tech-panel-mode', 'tech-panel-' + safePanel);
         const selector = navMap[safePanel];
         const target = openDetailsFor(selector);
-
         if (safePanel === 'td') {
             const tdTarget = document.querySelector('#technical-td');
             if (tdTarget) setTimeout(() => tdTarget.scrollIntoView({ behavior: 'smooth', block: 'start' }), 80);
         } else if (target) {
             setTimeout(() => target.scrollIntoView({ behavior: 'smooth', block: 'start' }), 80);
         }
-
-        if (pushHistory) {
-            const hash = safePanel === 'td' ? '#technical-td' : selector;
-            history.replaceState(null, '', hash || '{{ route('technical.dashboard') }}');
-        }
+        if (pushHistory) history.replaceState(null, '', safePanel === 'td' ? '#technical-td' : selector);
     };
-
     document.querySelectorAll('[data-tech-nav]').forEach((link) => {
         link.addEventListener('click', (event) => {
-            if (!document.querySelector('.technical-page')) return;
             const panel = link.getAttribute('data-tech-nav') || 'overview';
+            if (!document.querySelector('.technical-page')) return;
             event.preventDefault();
             showTechPanel(panel);
             closeNav();
         });
     });
-
-    const hashPanel = {
-        '#technical-classes': 'classes',
-        '#technical-teachers': 'teachers',
-        '#technical-courses': 'courses',
-        '#technical-td': 'td',
-        '#technical-alerts': 'alerts'
-    };
-
-    if (document.querySelector('.technical-page') && hashPanel[window.location.hash]) {
-        showTechPanel(hashPanel[window.location.hash], false);
-    }
+    const hashPanel = { '#technical-classes': 'classes', '#technical-teachers': 'teachers', '#technical-courses': 'courses', '#technical-td': 'td', '#technical-alerts': 'alerts' };
+    if (document.querySelector('.technical-page') && hashPanel[window.location.hash]) showTechPanel(hashPanel[window.location.hash], false);
 })();
 </script>
 @stack('scripts')
