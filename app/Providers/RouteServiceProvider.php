@@ -39,6 +39,11 @@ class RouteServiceProvider extends ServiceProvider
                     ->group(base_path('routes/teacher_extras.php'));
             }
 
+            if (file_exists(base_path('routes/document_branding.php'))) {
+                Route::middleware('web')
+                    ->group(base_path('routes/document_branding.php'));
+            }
+
             if (file_exists(base_path('routes/office_editor.php'))) {
                 Route::middleware('web')
                     ->group(base_path('routes/office_editor.php'));
