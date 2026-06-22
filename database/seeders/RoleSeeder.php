@@ -22,6 +22,10 @@ class RoleSeeder extends Seeder
                 'display_name' => 'Responsable Enseignement Technique',
                 'description' => 'Suivi pedagogique de la section technique',
             ],
+            'department_responsible' => [
+                'display_name' => 'Responsable de departement',
+                'description' => 'Suivi pedagogique d un departement ou d une filiere',
+            ],
             'student' => [
                 'display_name' => 'Eleve',
                 'description' => 'Acces aux cours et TD',
