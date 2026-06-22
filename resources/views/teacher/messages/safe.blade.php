@@ -2,28 +2,29 @@
 
 @section('title', 'Messagerie enseignant')
 @section('page_title', 'Messagerie')
-@section('page_subtitle', 'Version stable de la messagerie enseignant.')
+@section('page_subtitle', 'Conversations rapides avec vos élèves affectés, style WhatsApp.')
 
 @section('content')
 @php
     $threads = collect($threads ?? []);
     $assignments = collect($assignments ?? []);
+    $selectedThread = $selectedThread ?? null;
 @endphp
 
 <style>
-    .msg-wrap{display:grid;gap:18px}.msg-hero{background:linear-gradient(135deg,#0f172a,#1d4ed8);color:#fff;border-radius:24px;padding:22px}.msg-hero h2{margin:0 0 8px;font-size:2rem}.msg-hero p{color:#dbeafe}.msg-grid{display:grid;grid-template-columns:360px 1fr;gap:16px}.msg-card{background:#fff;border:1px solid #e2e8f0;border-radius:18px;padding:16px;box-shadow:0 12px 28px rgba(15,23,42,.05)}.msg-thread{display:block;border:1px solid #e5e7eb;border-radius:14px;padding:12px;margin-bottom:10px;text-decoration:none;color:#0f172a;background:#f8fafc}.msg-thread.active{border-color:#2563eb;background:#eff6ff}.msg-thread strong{display:block}.msg-thread span{color:#64748b}.msg-empty{padding:18px;background:#f8fafc;border-radius:14px;color:#64748b}.msg-form{display:grid;gap:10px}.msg-form textarea,.msg-form input,.msg-form select{border:1px solid #cbd5e1;border-radius:12px;padding:10px}.msg-btn{border:0;border-radius:12px;background:#16a34a;color:#fff;padding:12px;font-weight:900;cursor:pointer}.msg-bubble{background:#f8fafc;border:1px solid #e5e7eb;border-radius:14px;padding:12px;margin-bottom:10px}.msg-bubble.me{background:#dcfce7;border-color:#bbf7d0}.msg-meta{font-size:12px;color:#64748b;margin-top:5px}@media(max-width:900px){.msg-grid{grid-template-columns:1fr}}
+    .wa-shell{display:grid;gap:16px}.wa-hero{background:linear-gradient(135deg,#052e2b,#128c7e 58%,#25d366);color:#fff;border-radius:28px;padding:22px;box-shadow:0 22px 60px rgba(18,140,126,.24);position:relative;overflow:hidden}.wa-hero:after{content:"";position:absolute;inset:auto -40px -80px auto;width:220px;height:220px;background:rgba(255,255,255,.12);border-radius:999px}.wa-hero h2{margin:0 0 6px;font-size:clamp(1.4rem,2vw,2.2rem);font-weight:950}.wa-hero p{margin:0;color:#dcfce7;max-width:780px}.wa-quick{background:#fff;border:1px solid #dbeafe;border-radius:24px;padding:14px;box-shadow:0 16px 42px rgba(15,23,42,.07)}.wa-quick summary{cursor:pointer;list-style:none;font-weight:950;color:#0f172a;display:flex;align-items:center;justify-content:space-between}.wa-quick summary::-webkit-details-marker{display:none}.wa-quick summary span{color:#128c7e}.wa-grid{display:grid;grid-template-columns:minmax(290px,380px) minmax(0,1fr);height:min(76vh,820px);min-height:650px;background:#fff;border:1px solid #dbeafe;border-radius:28px;overflow:hidden;box-shadow:0 20px 60px rgba(15,23,42,.08)}.wa-sidebar{display:flex;flex-direction:column;background:#f8fafc;border-right:1px solid #e2e8f0;min-width:0}.wa-sidebar-head{padding:16px;background:#fff;border-bottom:1px solid #e2e8f0}.wa-sidebar-head h3{margin:0 0 12px;font-size:1.15rem;font-weight:950}.wa-search{display:flex;align-items:center;gap:8px;background:#f1f5f9;border:1px solid #e2e8f0;border-radius:999px;padding:10px 12px}.wa-search input{border:0;background:transparent;outline:0;width:100%;font-weight:700;color:#0f172a}.wa-thread-list{overflow:auto;padding:10px}.wa-thread{display:grid;grid-template-columns:48px minmax(0,1fr) auto;gap:10px;align-items:center;text-decoration:none;color:#0f172a;padding:10px;border-radius:18px;margin-bottom:6px;border:1px solid transparent}.wa-thread:hover{background:#eef7f2}.wa-thread.active{background:#e7f8ef;border-color:#9be7b3}.wa-avatar{width:48px;height:48px;border-radius:50%;display:grid;place-items:center;background:linear-gradient(135deg,#128c7e,#25d366);color:#fff;font-weight:950;font-size:1.05rem;box-shadow:0 10px 24px rgba(18,140,126,.24)}.wa-thread-title{font-weight:950;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.wa-thread-sub{font-size:.88rem;color:#64748b;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.wa-thread-time{font-size:.76rem;color:#64748b;text-align:right}.wa-badge{display:inline-grid;place-items:center;min-width:22px;height:22px;border-radius:999px;background:#25d366;color:#052e2b;font-size:.74rem;font-weight:950;margin-top:6px}.wa-chat{display:flex;flex-direction:column;min-width:0;background:#efeae2;background-image:radial-gradient(rgba(18,140,126,.08) 1px,transparent 1px);background-size:18px 18px}.wa-chat-head{display:flex;align-items:center;gap:12px;background:#f8fafc;border-bottom:1px solid #e2e8f0;padding:12px 16px}.wa-chat-head h3{margin:0;font-size:1.1rem;font-weight:950}.wa-chat-head small{display:block;color:#64748b;font-weight:700}.wa-chat-actions{margin-left:auto;display:flex;gap:8px}.wa-icon-btn{border:0;border-radius:12px;background:#e2e8f0;color:#0f172a;font-weight:950;padding:9px 11px;cursor:pointer;text-decoration:none}.wa-messages{flex:1;overflow:auto;padding:18px;display:flex;flex-direction:column;gap:8px}.wa-day{align-self:center;background:rgba(255,255,255,.8);border:1px solid rgba(148,163,184,.35);border-radius:999px;padding:6px 12px;font-size:.78rem;color:#64748b;font-weight:900;margin:8px 0}.wa-bubble-wrap{display:flex;flex-direction:column;max-width:min(76%,680px);align-self:flex-start}.wa-bubble-wrap.me{align-self:flex-end}.wa-bubble{position:relative;background:#fff;border-radius:18px 18px 18px 4px;padding:10px 12px;box-shadow:0 3px 10px rgba(15,23,42,.08);border:1px solid rgba(226,232,240,.8)}.wa-bubble-wrap.me .wa-bubble{background:#d9fdd3;border-color:#bbf7d0;border-radius:18px 18px 4px 18px}.wa-reply-quote{border-left:4px solid #128c7e;background:rgba(18,140,126,.08);border-radius:10px;padding:8px;margin-bottom:8px;color:#475569;font-size:.86rem}.wa-text{white-space:pre-wrap;line-height:1.45;color:#0f172a}.wa-meta{display:flex;justify-content:flex-end;gap:6px;align-items:center;color:#64748b;font-size:.72rem;font-weight:800;margin-top:6px}.wa-ticks{color:#128c7e;font-size:.9rem}.wa-attachment{display:block;text-decoration:none;color:#0f172a;border:1px solid rgba(148,163,184,.35);background:rgba(255,255,255,.72);border-radius:14px;padding:8px;margin-bottom:8px;overflow:hidden}.wa-attachment img{display:block;max-width:260px;max-height:220px;border-radius:12px;object-fit:cover}.wa-file{display:flex;align-items:center;gap:10px}.wa-file-icon{width:42px;height:42px;border-radius:12px;background:#fee2e2;color:#dc2626;display:grid;place-items:center;font-weight:950}.wa-audio{width:260px;max-width:100%}.wa-msg-tools{display:flex;gap:6px;margin-top:6px;opacity:.72}.wa-tool{border:0;background:rgba(15,23,42,.06);border-radius:999px;padding:5px 9px;font-size:.72rem;font-weight:900;cursor:pointer;color:#334155}.wa-tool.danger{color:#dc2626}.wa-composer{background:#f8fafc;border-top:1px solid #e2e8f0;padding:12px 14px}.wa-reply-preview{display:none;background:#e7f8ef;border-left:4px solid #128c7e;border-radius:14px;padding:10px;margin-bottom:10px;color:#0f172a}.wa-reply-preview.is-visible{display:flex;justify-content:space-between;gap:10px}.wa-compose-form{display:grid;grid-template-columns:auto 1fr auto;gap:10px;align-items:end}.wa-compose-form textarea{min-height:48px;max-height:140px;resize:vertical;border:1px solid #dbe3ee;border-radius:18px;padding:13px 14px;outline:none;background:#fff;font-weight:700}.wa-send{border:0;border-radius:18px;background:#25d366;color:#052e2b;font-weight:950;padding:14px 18px;cursor:pointer}.wa-file-input{display:none}.wa-attach{border:1px solid #dbe3ee;background:#fff;border-radius:18px;padding:14px 16px;font-weight:950;cursor:pointer;color:#128c7e}.wa-broadcast-form{display:grid;grid-template-columns:minmax(180px,260px) 1fr auto;gap:10px;margin-top:12px}.wa-broadcast-form select,.wa-broadcast-form input{border:1px solid #dbe3ee;border-radius:14px;padding:12px;background:#fff}.wa-broadcast-form button{border:0;border-radius:14px;background:#128c7e;color:#fff;font-weight:950;padding:12px 18px}.wa-empty{background:rgba(255,255,255,.78);border:1px dashed #cbd5e1;border-radius:18px;color:#64748b;padding:18px;font-weight:800}.wa-mobile-thread-title{display:none}.wa-toast{position:fixed;left:50%;bottom:24px;transform:translateX(-50%);background:#0f172a;color:#fff;border-radius:999px;padding:10px 16px;font-weight:900;z-index:9999;opacity:0;pointer-events:none;transition:.2s}.wa-toast.show{opacity:1}@media(max-width:980px){.wa-grid{grid-template-columns:1fr;height:auto;min-height:0}.wa-sidebar{border-right:0;border-bottom:1px solid #e2e8f0;max-height:360px}.wa-chat{min-height:620px}.wa-broadcast-form{grid-template-columns:1fr}.wa-mobile-thread-title{display:block}.wa-bubble-wrap{max-width:88%}}@media(max-width:640px){.wa-hero{padding:18px;border-radius:22px}.wa-grid{border-radius:22px}.wa-compose-form{grid-template-columns:auto 1fr}.wa-send{grid-column:1/3}.wa-chat-head{padding:10px 12px}.wa-messages{padding:12px}.wa-bubble-wrap{max-width:94%}.wa-thread-list{max-height:300px}}
 </style>
 
-<div class="msg-wrap">
-    <section class="msg-hero">
-        <h2>Messagerie enseignant</h2>
-        <p>Cette version stable permet d’ouvrir la messagerie et d’envoyer des messages aux élèves affectés.</p>
+<div class="wa-shell">
+    <section class="wa-hero">
+        <h2>💬 Messagerie TIMAH</h2>
+        <p>Discutez avec vos élèves affectés, envoyez des fichiers, répondez à un message précis, copiez, supprimez de votre côté et suivez les messages non lus.</p>
     </section>
 
     @if($assignments->isNotEmpty())
-        <section class="msg-card">
-            <h3>Message à toute une classe</h3>
-            <form method="POST" action="{{ route('teacher.messages.broadcast') }}" class="msg-form">
+        <details class="wa-quick">
+            <summary>📣 Envoyer une annonce à une classe <span>ouvrir</span></summary>
+            <form method="POST" action="{{ route('teacher.messages.broadcast') }}" class="wa-broadcast-form">
                 @csrf
                 <select name="school_class_id" required>
                     @foreach($assignments->unique('school_class_id') as $assignment)
@@ -31,57 +32,210 @@
                     @endforeach
                 </select>
                 <input type="text" name="message" placeholder="Message à envoyer à toute la classe" required>
-                <button class="msg-btn" type="submit">Envoyer à la classe</button>
+                <button type="submit">Envoyer</button>
             </form>
-        </section>
+        </details>
     @endif
 
-    <section class="msg-grid">
-        <aside class="msg-card">
-            <h3>Élèves affectés</h3>
-            @forelse($threads as $thread)
-                @php
-                    $student = $thread->student;
-                    $name = $student->full_name ?? $student->name ?? $student->username ?? 'Élève';
-                @endphp
-                <a class="msg-thread {{ (int)($selectedStudentId ?? 0) === (int)$student->id ? 'active' : '' }}" href="{{ route('teacher.messages.index', ['student' => $student->id]) }}">
-                    <strong>{{ $name }}</strong>
-                    <span>{{ $student->studentProfile->schoolClass->name ?? 'Classe inconnue' }}</span>
-                </a>
-            @empty
-                <div class="msg-empty">Aucun élève affecté à ce compte enseignant.</div>
-            @endforelse
+    <section class="wa-grid">
+        <aside class="wa-sidebar">
+            <div class="wa-sidebar-head">
+                <h3>Conversations</h3>
+                <label class="wa-search">🔎 <input type="search" id="waSearch" placeholder="Rechercher un élève"></label>
+            </div>
+            <div class="wa-thread-list" id="waThreadList">
+                @forelse($threads as $thread)
+                    @php
+                        $student = $thread->student;
+                        $name = $student->full_name ?? $student->name ?? $student->username ?? 'Élève';
+                        $initials = collect(explode(' ', trim($name)))->filter()->take(2)->map(fn($part)=>mb_strtoupper(mb_substr($part,0,1)))->join('') ?: 'E';
+                        $latest = $thread->latest_message ?? null;
+                        $latestText = $latest ? ($latest->isFromTeacher() ? 'Vous : ' : '') . ($latest->message ?: 'Pièce jointe') : 'Démarrer la conversation';
+                        $time = $latest?->created_at?->format('H:i') ?? '';
+                        $unread = (int) ($thread->unread_count ?? 0);
+                    @endphp
+                    <a class="wa-thread {{ (int)($selectedStudentId ?? 0) === (int)$student->id ? 'active' : '' }}" data-name="{{ strtolower($name) }}" href="{{ route('teacher.messages.index', ['student' => $student->id]) }}">
+                        <div class="wa-avatar">{{ $initials }}</div>
+                        <div style="min-width:0">
+                            <div class="wa-thread-title">{{ $name }}</div>
+                            <div class="wa-thread-sub">{{ $latestText }}</div>
+                            <div class="wa-thread-sub">{{ $student->studentProfile->schoolClass->name ?? 'Classe inconnue' }}</div>
+                        </div>
+                        <div class="wa-thread-time">
+                            <div>{{ $time }}</div>
+                            @if($unread > 0)<span class="wa-badge">{{ $unread }}</span>@endif
+                        </div>
+                    </a>
+                @empty
+                    <div class="wa-empty">Aucun élève affecté à ce compte enseignant. Dès qu’un élève est lié à vos classes, il apparaîtra ici.</div>
+                @endforelse
+            </div>
         </aside>
 
-        <main class="msg-card">
+        <main class="wa-chat">
             @if($selectedThread ?? null)
                 @php
                     $student = $selectedThread->student;
                     $studentName = $student->full_name ?? $student->name ?? $student->username ?? 'Élève';
+                    $studentInitials = collect(explode(' ', trim($studentName)))->filter()->take(2)->map(fn($part)=>mb_strtoupper(mb_substr($part,0,1)))->join('') ?: 'E';
                     $messages = collect($selectedThread->messages ?? []);
+                    $lastDay = null;
                 @endphp
-                <h3>Conversation avec {{ $studentName }}</h3>
-                @forelse($messages as $message)
-                    <div class="msg-bubble {{ method_exists($message, 'isFromTeacher') && $message->isFromTeacher() ? 'me' : '' }}">
-                        <div>{{ $message->message }}</div>
-                        <div class="msg-meta">{{ $message->created_at?->format('d/m/Y H:i') }}</div>
+                <header class="wa-chat-head">
+                    <div class="wa-avatar">{{ $studentInitials }}</div>
+                    <div>
+                        <h3>{{ $studentName }}</h3>
+                        <small>{{ $student->studentProfile->schoolClass->name ?? 'Classe inconnue' }} · {{ $messages->count() }} message(s)</small>
                     </div>
-                @empty
-                    <div class="msg-empty">Aucun message avec cet élève.</div>
-                @endforelse
+                    <div class="wa-chat-actions">
+                        <a class="wa-icon-btn" href="{{ route('teacher.messages.index') }}" title="Fermer la conversation">✕</a>
+                    </div>
+                </header>
 
-                <form class="msg-form" method="POST" action="{{ route('teacher.messages.send') }}" enctype="multipart/form-data">
-                    @csrf
-                    <input type="hidden" name="student_id" value="{{ $student->id }}">
-                    <input type="hidden" name="teacher_assignment_id" value="{{ $selectedThread->assignment->id ?? '' }}">
-                    <textarea name="message" placeholder="Écrire un message"></textarea>
-                    <input type="file" name="attachment">
-                    <button class="msg-btn" type="submit">Envoyer</button>
-                </form>
+                <div class="wa-messages" id="waMessages">
+                    @forelse($messages as $message)
+                        @php
+                            $isMe = method_exists($message, 'isFromTeacher') && $message->isFromTeacher();
+                            $day = $message->created_at?->format('d/m/Y');
+                            $parent = $message->parentMessage ?? null;
+                            $attachmentUrl = ($message->attachment_path && \Illuminate\Support\Facades\Route::has('teacher.messages.attachment')) ? route('teacher.messages.attachment', $message) : null;
+                        @endphp
+                        @if($day && $day !== $lastDay)
+                            <div class="wa-day">{{ $message->created_at?->isToday() ? 'Aujourd’hui' : ($message->created_at?->isYesterday() ? 'Hier' : $day) }}</div>
+                            @php $lastDay = $day; @endphp
+                        @endif
+                        <div class="wa-bubble-wrap {{ $isMe ? 'me' : '' }}" id="msg-{{ $message->id }}">
+                            <div class="wa-bubble">
+                                @if($parent)
+                                    <div class="wa-reply-quote">
+                                        <strong>{{ $parent->isFromTeacher() ? 'Vous' : ($studentName ?? 'Élève') }}</strong><br>
+                                        {{ \Illuminate\Support\Str::limit($parent->message, 120) }}
+                                    </div>
+                                @endif
+
+                                @if($message->attachment_path && $attachmentUrl)
+                                    <a class="wa-attachment" href="{{ $attachmentUrl }}" target="_blank" rel="noopener">
+                                        @if($message->isImageAttachment())
+                                            <img src="{{ $attachmentUrl }}" alt="{{ $message->attachment_name ?? 'Image' }}">
+                                        @elseif($message->isAudioAttachment())
+                                            <div class="wa-file" style="margin-bottom:8px"><span class="wa-file-icon">🎙️</span><strong>{{ $message->attachment_name ?? 'Audio' }}</strong></div>
+                                            <audio class="wa-audio" src="{{ $attachmentUrl }}" controls></audio>
+                                        @else
+                                            <div class="wa-file"><span class="wa-file-icon">📄</span><div><strong>{{ $message->attachment_name ?? 'Document' }}</strong><br><small>{{ $message->humanAttachmentSize() }}</small></div></div>
+                                        @endif
+                                    </a>
+                                @endif
+
+                                @if(trim((string)$message->message) !== '')
+                                    <div class="wa-text">{{ $message->message }}</div>
+                                @endif
+                                <div class="wa-meta">
+                                    <span>{{ $message->created_at?->format('H:i') }}</span>
+                                    @if($isMe)
+                                        <span class="wa-ticks">{{ $message->read_at ? '✓✓' : '✓' }}</span>
+                                    @endif
+                                </div>
+                            </div>
+                            <div class="wa-msg-tools">
+                                <button class="wa-tool" type="button" data-reply-id="{{ $message->id }}" data-reply-text="{{ e(\Illuminate\Support\Str::limit($message->message ?: ($message->attachment_name ?: 'Pièce jointe'), 120)) }}">Répondre</button>
+                                <button class="wa-tool" type="button" data-copy-text="{{ e($message->message) }}">Copier</button>
+                                <form method="POST" action="{{ route('teacher.messages.delete', $message) }}" onsubmit="return confirm('Supprimer ce message de votre affichage ?')">
+                                    @csrf
+                                    <button class="wa-tool danger" type="submit">Supprimer</button>
+                                </form>
+                            </div>
+                        </div>
+                    @empty
+                        <div class="wa-empty">Aucun message avec cet élève. Écrivez le premier message pour démarrer la conversation.</div>
+                    @endforelse
+                </div>
+
+                <footer class="wa-composer">
+                    <div class="wa-reply-preview" id="replyPreview"><div><strong>Réponse à</strong><br><span id="replyText"></span></div><button class="wa-tool danger" type="button" id="cancelReply">Annuler</button></div>
+                    <form class="wa-compose-form" method="POST" action="{{ route('teacher.messages.send') }}" enctype="multipart/form-data">
+                        @csrf
+                        <input type="hidden" name="student_id" value="{{ $student->id }}">
+                        <input type="hidden" name="teacher_assignment_id" value="{{ $selectedThread->assignment->id ?? '' }}">
+                        <input type="hidden" name="parent_message_id" id="parentMessageId" value="">
+                        <label class="wa-attach" title="Joindre image, PDF, Word, audio ou autre fichier">📎<input class="wa-file-input" type="file" name="attachment" id="waAttachment"></label>
+                        <textarea name="message" id="waTextArea" placeholder="Message" autocomplete="off"></textarea>
+                        <button class="wa-send" type="submit">➤</button>
+                    </form>
+                    <small id="fileNameLabel" style="display:block;margin-top:8px;color:#64748b;font-weight:800"></small>
+                </footer>
             @else
-                <div class="msg-empty">Sélectionnez un élève pour ouvrir une conversation.</div>
+                <header class="wa-chat-head"><div class="wa-avatar">💬</div><div><h3>Sélectionnez une conversation</h3><small>Choisissez un élève à gauche pour discuter.</small></div></header>
+                <div class="wa-messages"><div class="wa-empty">Aucune conversation sélectionnée.</div></div>
             @endif
         </main>
     </section>
 </div>
+<div class="wa-toast" id="waToast">Copié</div>
+
+<script>
+(() => {
+    const list = document.getElementById('waThreadList');
+    const search = document.getElementById('waSearch');
+    if (search && list) {
+        search.addEventListener('input', () => {
+            const q = search.value.trim().toLowerCase();
+            list.querySelectorAll('.wa-thread').forEach(item => {
+                item.style.display = (item.dataset.name || '').includes(q) ? 'grid' : 'none';
+            });
+        });
+    }
+
+    const messages = document.getElementById('waMessages');
+    if (messages) messages.scrollTop = messages.scrollHeight;
+
+    const toast = document.getElementById('waToast');
+    const showToast = (text) => {
+        if (!toast) return;
+        toast.textContent = text;
+        toast.classList.add('show');
+        setTimeout(() => toast.classList.remove('show'), 1400);
+    };
+
+    document.querySelectorAll('[data-copy-text]').forEach(btn => {
+        btn.addEventListener('click', async () => {
+            const text = btn.dataset.copyText || '';
+            if (!text) return showToast('Rien à copier');
+            try { await navigator.clipboard.writeText(text); showToast('Message copié'); }
+            catch (e) { showToast('Copie impossible'); }
+        });
+    });
+
+    const replyPreview = document.getElementById('replyPreview');
+    const replyText = document.getElementById('replyText');
+    const parentInput = document.getElementById('parentMessageId');
+    const cancelReply = document.getElementById('cancelReply');
+    const textArea = document.getElementById('waTextArea');
+    document.querySelectorAll('[data-reply-id]').forEach(btn => {
+        btn.addEventListener('click', () => {
+            if (!replyPreview || !replyText || !parentInput) return;
+            parentInput.value = btn.dataset.replyId || '';
+            replyText.textContent = btn.dataset.replyText || 'Message';
+            replyPreview.classList.add('is-visible');
+            textArea?.focus();
+        });
+    });
+    cancelReply?.addEventListener('click', () => {
+        if (parentInput) parentInput.value = '';
+        replyPreview?.classList.remove('is-visible');
+    });
+
+    const file = document.getElementById('waAttachment');
+    const fileLabel = document.getElementById('fileNameLabel');
+    file?.addEventListener('change', () => {
+        fileLabel.textContent = file.files?.[0]?.name ? 'Pièce jointe : ' + file.files[0].name : '';
+    });
+
+    setTimeout(() => {
+        if (document.visibilityState === 'visible') {
+            const active = document.querySelector('.wa-thread.active');
+            if (active && !document.querySelector('textarea:focus')) window.location.reload();
+        }
+    }, 45000);
+})();
+</script>
 @endsection
