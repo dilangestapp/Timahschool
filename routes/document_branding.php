@@ -3,6 +3,10 @@
 use App\Http\Controllers\BrandedDocumentController;
 use Illuminate\Support\Facades\Route;
 
+Route::get('/student/courses/{course}', [BrandedDocumentController::class, 'course'])
+    ->middleware(['auth', 'no.cache'])
+    ->name('student.courses.official-direct');
+
 Route::middleware(['auth', 'no.cache'])->prefix('documents-officiels')->name('documents.')->group(function () {
     Route::get('/cours/{course}', [BrandedDocumentController::class, 'course'])->name('course.official');
     Route::get('/cours/{course}/fichier', [BrandedDocumentController::class, 'courseEmbed'])->name('course.embed');
