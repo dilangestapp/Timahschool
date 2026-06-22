@@ -3,6 +3,8 @@
     $userName = $currentUser->full_name ?? $currentUser->name ?? $currentUser->username ?? 'Enseignant';
     $initial = mb_substr((string) $userName, 0, 1);
     $hasWeeklyProgram = \Illuminate\Support\Facades\Route::has('teacher.weekly-program.index');
+    $hasAnnualProgram = \Illuminate\Support\Facades\Route::has('teacher.annual-programs.index');
+    $hasTdCorrections = \Illuminate\Support\Facades\Route::has('teacher.td.corrections.index');
 @endphp
 <!DOCTYPE html>
 <html lang="fr">
@@ -45,10 +47,15 @@
             <a href="{{ route('teacher.classes.index') }}" class="resp-nav__item {{ request()->routeIs('teacher.classes.*') ? 'is-active' : '' }}"><span class="resp-icon">▱</span> Classes</a>
             <a href="{{ route('teacher.courses.index') }}" class="resp-nav__item {{ request()->routeIs('teacher.courses.*') ? 'is-active' : '' }}"><span class="resp-icon">▭</span> Cours</a>
             <a href="{{ route('teacher.td.sets.index') }}" class="resp-nav__item {{ request()->routeIs('teacher.td.sets.*') ? 'is-active' : '' }}"><span class="resp-icon">☑</span> TD</a>
+            @if($hasTdCorrections)
+                <a href="{{ route('teacher.td.corrections.index') }}" class="resp-nav__item {{ request()->routeIs('teacher.td.corrections.*') ? 'is-active' : '' }}"><span class="resp-icon">✓</span> Corrigés</a>
+            @endif
             <a href="{{ route('teacher.td.questions.index') }}" class="resp-nav__item {{ request()->routeIs('teacher.td.questions.*') ? 'is-active' : '' }}"><span class="resp-icon">?</span> Questions</a>
             <a href="{{ route('teacher.messages.index') }}" class="resp-nav__item {{ request()->routeIs('teacher.messages.*') ? 'is-active' : '' }}"><span class="resp-icon">◌</span> Messages</a>
             <a href="{{ route('teacher.students.activity') }}" class="resp-nav__item {{ request()->routeIs('teacher.students.*') ? 'is-active' : '' }}"><span class="resp-icon">◉</span> Suivi</a>
-            @if($hasWeeklyProgram)
+            @if($hasAnnualProgram)
+                <a href="{{ route('teacher.annual-programs.index') }}" class="resp-nav__item {{ request()->routeIs('teacher.annual-programs.*') ? 'is-active' : '' }}"><span class="resp-icon">▥</span> Programme annuel</a>
+            @elseif($hasWeeklyProgram)
                 <a href="{{ route('teacher.weekly-program.index') }}" class="resp-nav__item {{ request()->routeIs('teacher.weekly-program.*') ? 'is-active' : '' }}"><span class="resp-icon">▣</span> Programme</a>
             @endif
         </nav>
@@ -73,6 +80,9 @@
         @yield('content')
     </main>
 </div>
+@if(file_exists(public_path('assets/js/teacher-voice-cache.js')))
+    <script src="{{ asset('assets/js/teacher-voice-cache.js') }}" defer></script>
+@endif
 @stack('scripts')
 </body>
 </html>
