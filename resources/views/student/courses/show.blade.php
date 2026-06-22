@@ -19,9 +19,7 @@
         </div>
         <div class="student-course-reader__actions">
             <a href="{{ route('student.courses.index') }}" class="btn btn--ghost">Retour</a>
-            @if($course->hasDocument())
-                <a href="{{ route('student.courses.document', $course) }}" target="_blank" class="btn btn--primary">Ouvrir le document</a>
-            @endif
+            <a href="{{ route('documents.course.official', $course) }}" target="_blank" class="btn btn--primary">Version officielle TIMAH</a>
         </div>
     </div>
 
@@ -54,10 +52,11 @@
                     <div>
                         <strong>{{ $course->document_name }}</strong>
                         <div class="muted">{{ strtoupper(pathinfo($course->document_name, PATHINFO_EXTENSION)) ?: 'DOC' }} • {{ $course->humanDocumentSize() }}</div>
+                        <div class="muted">La version publique contient l’identité TIMAH ACADEMY, la signature Cabrel Tech et un QR code.</div>
                     </div>
                     <div class="student-course-document-box__actions">
-                        <a href="{{ route('student.courses.document', $course) }}" target="_blank" class="btn btn--primary">Ouvrir</a>
-                        <a href="{{ route('student.courses.document.download', $course) }}" class="btn btn--ghost">Télécharger</a>
+                        <a href="{{ route('documents.course.official', $course) }}" target="_blank" class="btn btn--primary">Ouvrir la version officielle</a>
+                        <a href="{{ route('documents.course.download', $course) }}" class="btn btn--ghost">Télécharger version officielle</a>
                     </div>
                 </div>
             </section>
