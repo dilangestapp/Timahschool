@@ -22,7 +22,7 @@ class TdPdfDocumentController extends Controller
     public function studentDocument(TdSet $td)
     {
         $this->ensureStudentAccess($td);
-        return $this->documentResponse($td, false, false);
+        return redirect()->route('documents.td.official', $td);
     }
 
     public function studentCorrection(TdSet $td)
@@ -39,7 +39,7 @@ class TdPdfDocumentController extends Controller
             return back()->with('info', 'Le corrigé de ce TD sera disponible après la fin du temps de travail défini.');
         }
 
-        return $this->documentResponse($td, true, false);
+        return redirect()->route('documents.td.correction.official', $td);
     }
 
     private function ensureStudentAccess(TdSet $td): void
