@@ -164,17 +164,8 @@ class TdController extends Controller
         abort_unless($teacherId, 422, 'Aucun enseignant référent n’est affecté à ce TD.');
 
         $thread = TdQuestionThread::query()->firstOrCreate(
-            [
-                'td_set_id' => $td->id,
-                'student_id' => $user->id,
-            ],
-            [
-                'school_class_id' => $td->school_class_id,
-                'subject_id' => $td->subject_id,
-                'teacher_id' => $teacherId,
-                'status' => TdQuestionThread::STATUS_OPEN,
-                'last_message_at' => now(),
-            ]
+            ['td_set_id' => $td->id, 'student_id' => $user->id],
+            ['school_class_id' => $td->school_class_id, 'subject_id' => $td->subject_id, 'teacher_id' => $teacherId, 'status' => TdQuestionThread::STATUS_OPEN, 'last_message_at' => now()]
         );
 
         $attachmentPath = null;
@@ -198,10 +189,7 @@ class TdController extends Controller
             'is_read' => false,
         ]);
 
-        $thread->update([
-            'status' => TdQuestionThread::STATUS_OPEN,
-            'last_message_at' => now(),
-        ]);
+        $thread->update(['status' => TdQuestionThread::STATUS_OPEN, 'last_message_at' => now()]);
 
         return back()->with('success', 'Votre question a été envoyée.');
     }
@@ -212,9 +200,9 @@ class TdController extends Controller
         if ($response = $this->ensureStudentCanAccessTd($td, $user)) {
             return $response;
         }
-        abort_unless($td->document_path, 404);
+        abort_unless($td->document_path || $td->editable_html || $td->instructions_html, 404);
 
-        return Storage::disk('public')->response($td->document_path, $td->document_name ?: basename($td->document_path));
+        return redirect()->route('documents.td.official', $td);
     }
 
     public function correctionDocument(TdSet $td)
@@ -224,19 +212,15 @@ class TdController extends Controller
             return $response;
         }
 
-        $attempt = TdAttempt::query()
-            ->where('td_set_id', $td->id)
-            ->where('student_id', $user->id)
-            ->latest('id')
-            ->first();
+        $attempt = TdAttempt::query()->where('td_set_id', $td->id)->where('student_id', $user->id)->latest('id')->first();
 
         if (!$td->correctionIsAvailableFor($user, $attempt)) {
             return back()->with('info', 'Le corrigé de ce TD sera disponible après la fin du temps de traitement défini par l’enseignant et après validation du TD.');
         }
 
-        abort_unless($td->correction_document_path, 404);
+        abort_unless($td->correction_document_path || $td->correction_html, 404);
 
-        return Storage::disk('public')->response($td->correction_document_path, $td->correction_document_name ?: basename($td->correction_document_path));
+        return redirect()->route('documents.td.correction.official', $td);
     }
 
     public function attachment(TdQuestionMessage $message)
@@ -259,36 +243,23 @@ class TdController extends Controller
         }
 
         return collect($attributes)
-            ->filter(fn ($value, $key) => array_key_exists($key, $columns))
+            ->filter(fn ($value, $key) => isset($columns[$key]))
             ->all();
     }
 
-    protected function ensureStudentCanAccessTd(TdSet $td, $user, bool $strictPublished = false): ?Response
+    protected function ensureStudentCanAccessTd(TdSet $td, $user, bool $touchAccess = false): ?Response
     {
-        $profile = optional($user)->studentProfile;
-
-        if (!$profile) {
-            if ($user && method_exists($user, 'isTeacher') && $user->isTeacher()) {
-                return redirect()->route('teacher.dashboard')
-                    ->with('warning', 'Vous êtes connecté en profil enseignant. Redirection vers votre espace enseignant.');
-            }
-
-            return redirect()->route('student.dashboard')
-                ->with('error', 'Profil élève introuvable pour accéder à ce TD.');
-        }
-
-        if ((int) $td->school_class_id !== (int) $profile->school_class_id) {
-            return redirect()->route('student.td.index')
-                ->with('warning', 'Ce TD n’appartient pas à votre classe.');
-        }
-
-        if ($strictPublished && $td->status !== TdSet::STATUS_PUBLISHED) {
-            abort(404);
-        }
+        $profile = $user?->studentProfile;
+        abort_unless($profile, 403);
+        abort_unless((int) $td->school_class_id === (int) $profile->school_class_id, 403);
+        abort_unless($td->status === TdSet::STATUS_PUBLISHED, 404);
 
         if (!$td->canStudentAccess($user)) {
-            return redirect()->route('student.subscription.required')
-                ->with('info', 'Ce TD est réservé aux abonnés actifs.');
+            return redirect()->route('subscription.required')->with('warning', 'Un abonnement actif est nécessaire pour accéder à ce TD.');
+        }
+
+        if ($touchAccess) {
+            $td->forceFill(['last_opened_at' => now()])->save();
         }
 
         return null;
