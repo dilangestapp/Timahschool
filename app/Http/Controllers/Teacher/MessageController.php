@@ -25,34 +25,29 @@ class MessageController extends Controller
             $studentMessages = $messages->where('student_id', $student->id)->sortBy('created_at')->values();
             $latest = $studentMessages->last();
             $assignment = $assignments->firstWhere('school_class_id', optional($student->studentProfile)->school_class_id) ?: $assignments->first();
-            $unread = $studentMessages
-                ->where('direction', TeacherMessage::DIRECTION_STUDENT)
-                ->where('status', TeacherMessage::STATUS_UNREAD)
-                ->count();
 
             return (object) [
                 'student' => $student,
                 'assignment' => $assignment,
                 'messages' => $studentMessages,
                 'latest_message' => $latest,
-                'unread_count' => $unread,
+                'unread_count' => $studentMessages
+                    ->where('direction', TeacherMessage::DIRECTION_STUDENT)
+                    ->where('status', TeacherMessage::STATUS_UNREAD)
+                    ->count(),
                 'attachment_count' => $studentMessages->filter(fn ($message) => !empty($message->attachment_path))->count(),
                 'sort_timestamp' => $latest?->created_at?->timestamp ?? 0,
             ];
-        })->sort(function ($a, $b) {
-            if ($a->sort_timestamp === $b->sort_timestamp) {
-                return strtolower($a->student->full_name ?? $a->student->name ?? $a->student->username ?? '') <=> strtolower($b->student->full_name ?? $b->student->name ?? $b->student->username ?? '');
-            }
-            return $b->sort_timestamp <=> $a->sort_timestamp;
-        })->values();
+        })->sortByDesc('sort_timestamp')->values();
 
         $selectedStudentId = (int) $request->query('student');
         if (!$selectedStudentId && $request->query('thread')) {
             $parts = explode('-', (string) $request->query('thread'));
             $selectedStudentId = (int) end($parts);
         }
-        if (!$threads->contains(fn ($thread) => (int) $thread->student->id === $selectedStudentId)) {
-            $selectedStudentId = (int) optional($threads->first())->student->id;
+
+        if (!$threads->contains(fn ($thread) => (int) ($thread->student?->id ?? 0) === $selectedStudentId)) {
+            $selectedStudentId = (int) ($threads->first()?->student?->id ?? 0);
         }
 
         if ($selectedStudentId) {
@@ -62,26 +57,24 @@ class MessageController extends Controller
                 ->where('direction', TeacherMessage::DIRECTION_STUDENT)
                 ->where('status', TeacherMessage::STATUS_UNREAD)
                 ->update(['status' => TeacherMessage::STATUS_READ, 'read_at' => now()]);
-
-            $messages = $this->messagesForAssignments($assignments);
-            $threads = $threads->map(function ($thread) use ($messages) {
-                $studentMessages = $messages->where('student_id', $thread->student->id)->sortBy('created_at')->values();
-                $thread->messages = $studentMessages;
-                $thread->latest_message = $studentMessages->last();
-                $thread->unread_count = $studentMessages
-                    ->where('direction', TeacherMessage::DIRECTION_STUDENT)
-                    ->where('status', TeacherMessage::STATUS_UNREAD)
-                    ->count();
-                return $thread;
-            });
         }
 
-        $selectedThread = $threads->first(fn ($thread) => (int) $thread->student->id === $selectedStudentId);
+        $messages = $this->messagesForAssignments($assignments);
+        $threads = $threads->map(function ($thread) use ($messages) {
+            $studentMessages = $messages->where('student_id', $thread->student->id)->sortBy('created_at')->values();
+            $thread->messages = $studentMessages;
+            $thread->latest_message = $studentMessages->last();
+            $thread->unread_count = $studentMessages
+                ->where('direction', TeacherMessage::DIRECTION_STUDENT)
+                ->where('status', TeacherMessage::STATUS_UNREAD)
+                ->count();
+            return $thread;
+        });
 
         return view('teacher.messages.index', [
             'threads' => $threads,
             'selectedStudentId' => $selectedStudentId,
-            'selectedThread' => $selectedThread,
+            'selectedThread' => $threads->first(fn ($thread) => (int) ($thread->student?->id ?? 0) === $selectedStudentId),
             'assignments' => $assignments,
         ]);
     }
@@ -94,6 +87,7 @@ class MessageController extends Controller
             'message' => ['nullable', 'string'],
             'parent_message_id' => ['nullable', 'integer'],
             'attachment' => ['nullable', 'file', 'max:20480', 'mimes:jpg,jpeg,png,webp,gif,pdf,doc,docx,ppt,pptx,xls,xlsx,txt,zip,mp3,wav,ogg,m4a,webm,aac,3gp,amr,mp4'],
+            'voice_note' => ['nullable', 'file', 'max:20480', 'mimes:mp3,wav,ogg,m4a,webm,aac,3gp,amr,mp4'],
         ]);
 
         $assignments = $this->assignments();
@@ -101,8 +95,8 @@ class MessageController extends Controller
         $assignment = $this->assignmentForStudent($student, $assignments, (int) ($data['teacher_assignment_id'] ?? 0));
 
         $cleanMessage = trim((string) ($data['message'] ?? ''));
-        if (!$request->hasFile('attachment') && $cleanMessage === '') {
-            return back()->withErrors(['message' => 'Écrivez un message ou ajoutez un fichier.']);
+        if (!$request->hasFile('attachment') && !$request->hasFile('voice_note') && $cleanMessage === '') {
+            return back()->withErrors(['message' => 'Écrivez un message ou ajoutez un fichier / vocal.']);
         }
 
         [$path, $name, $mime, $size] = $this->storeAttachment($request);
@@ -114,7 +108,7 @@ class MessageController extends Controller
             'school_class_id' => $student->studentProfile->school_class_id,
             'subject_id' => $assignment?->subject_id,
             'title' => 'Conversation',
-            'message' => $cleanMessage !== '' ? $cleanMessage : ($name ?: 'Pièce jointe'),
+            'message' => $cleanMessage !== '' ? $cleanMessage : ($name ?: 'Note vocale'),
             'attachment_path' => $path,
             'attachment_name' => $name,
             'status' => TeacherMessage::STATUS_SENT,
@@ -271,16 +265,22 @@ class MessageController extends Controller
 
     protected function storeAttachment(Request $request): array
     {
-        if (!$request->hasFile('attachment')) return [null, null, null, null];
-        $file = $request->file('attachment');
+        $file = $request->file('voice_note') ?: $request->file('attachment');
+        if (!$file) return [null, null, null, null];
+
         $mime = (string) $file->getMimeType();
         $extension = strtolower((string) $file->getClientOriginalExtension());
-        $isAudio = Str::startsWith($mime, 'audio/') || in_array($extension, ['mp3', 'wav', 'ogg', 'm4a', 'webm', 'aac', '3gp', 'amr', 'mp4'], true);
+        $isAudio = $request->hasFile('voice_note') || Str::startsWith($mime, 'audio/') || in_array($extension, ['mp3', 'wav', 'ogg', 'm4a', 'webm', 'aac', '3gp', 'amr', 'mp4'], true);
 
         if ($isAudio) {
             $voice = app(AnonymousVoiceTransformer::class)->store($file, 'teacher_messages');
             $path = $voice['path'];
-            return [$path, $voice['name'] ?? $file->getClientOriginalName(), 'audio/mpeg', Storage::disk('local')->exists($path) ? Storage::disk('local')->size($path) : $file->getSize()];
+            return [
+                $path,
+                $voice['name'] ?? $file->getClientOriginalName(),
+                Storage::disk('local')->exists($path) ? 'audio/mpeg' : $mime,
+                Storage::disk('local')->exists($path) ? Storage::disk('local')->size($path) : $file->getSize(),
+            ];
         }
 
         return [$file->store('teacher_messages', 'local'), $file->getClientOriginalName(), $mime, $file->getSize()];
@@ -289,10 +289,5 @@ class MessageController extends Controller
     protected function authorizeMessage(TeacherMessage $message): void
     {
         abort_unless((int) $message->teacher_id === (int) auth()->id(), 403);
-    }
-
-    protected function threadKey(TeacherMessage $message): string
-    {
-        return (string) $message->teacher_assignment_id . '-' . (string) $message->student_id;
     }
 }
