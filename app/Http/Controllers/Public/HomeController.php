@@ -8,12 +8,38 @@ use App\Models\HomepageSetting;
 use App\Models\SchoolClass;
 use App\Support\ExamCountdown;
 use Throwable;
+use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Route;
 use Illuminate\Support\Facades\Schema;
 
 class HomeController extends Controller
 {
     public function index()
     {
+        if (Auth::check()) {
+            $user = Auth::user();
+
+            if ($user && method_exists($user, 'isAdmin') && $user->isAdmin() && Route::has('admin.dashboard')) {
+                return redirect()->route('admin.dashboard');
+            }
+
+            if ($user && method_exists($user, 'isTechnicalSupervisor') && $user->isTechnicalSupervisor() && Route::has('technical.dashboard')) {
+                return redirect()->route('technical.dashboard');
+            }
+
+            if ($user && method_exists($user, 'isTeacher') && $user->isTeacher() && Route::has('teacher.dashboard')) {
+                return redirect()->route('teacher.dashboard');
+            }
+
+            if ($user && method_exists($user, 'isParent') && $user->isParent() && Route::has('parent.dashboard')) {
+                return redirect()->route('parent.dashboard');
+            }
+
+            if (Route::has('student.dashboard')) {
+                return redirect()->route('student.dashboard');
+            }
+        }
+
         try {
             $classes = SchoolClass::active()->orderBy('order')->get();
         } catch (Throwable $e) {
