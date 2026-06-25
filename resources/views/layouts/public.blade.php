@@ -4,6 +4,22 @@
     $platformSlogan = $generalSettings['platform_slogan'] ?? 'Plateforme éducative moderne et premium';
     $platformLogo = \App\Models\PlatformSetting::logoUrl($generalSettings['logo_path'] ?? null);
     $defaultLogo = \App\Models\PlatformSetting::defaultLogoUrl();
+
+    $connectedUser = auth()->user();
+    $dashboardRoute = null;
+    if ($connectedUser) {
+        if (method_exists($connectedUser, 'isAdmin') && $connectedUser->isAdmin()) {
+            $dashboardRoute = route('admin.dashboard');
+        } elseif (method_exists($connectedUser, 'isTechnicalSupervisor') && $connectedUser->isTechnicalSupervisor()) {
+            $dashboardRoute = route('technical.dashboard');
+        } elseif (method_exists($connectedUser, 'isTeacher') && $connectedUser->isTeacher()) {
+            $dashboardRoute = route('teacher.dashboard');
+        } elseif (method_exists($connectedUser, 'isParent') && $connectedUser->isParent()) {
+            $dashboardRoute = route('parent.dashboard');
+        } else {
+            $dashboardRoute = route('student.dashboard');
+        }
+    }
 @endphp
 <!DOCTYPE html>
 <html lang="fr" data-theme="light">
@@ -67,6 +83,8 @@
         .btn:hover, .theme-toggle:hover { transform: translateY(-1px); box-shadow: var(--shadow-xs); }
         .btn--primary { color: #fff; border-color: transparent; background: linear-gradient(135deg, #3157ff, #6938ef); box-shadow: 0 14px 28px rgba(49, 87, 255, 0.24); }
         .btn--ghost { background: rgba(255, 255, 255, 0.76); } html[data-theme='dark'] .btn--ghost { background: rgba(255, 255, 255, 0.76); }
+        .btn--danger { color: #b91c1c; background: #fff; border-color: rgba(239, 68, 68, .22); }
+        .logout-form { display: inline-flex; margin: 0; }
         .theme-toggle { width: 46px; min-width: 46px; padding: 0; font-size: 1rem; }
         .public-main { flex: 1; }
         .public-footer { margin-top: 26px; color: #d7e2f8; background: linear-gradient(135deg, #07101f, #0b1630 52%, #0f766e); border-top: 1px solid rgba(255,255,255,.08); }
@@ -109,8 +127,18 @@
                 </nav>
                 <div class="header-tools">
                     <button type="button" class="theme-toggle" id="themeToggle" aria-label="Changer le thème">🌙</button>
-                    @if (Route::has('login'))<a href="{{ route('login') }}" class="btn btn--ghost">Connexion</a>@endif
-                    @if (Route::has('register'))<a href="{{ route('register') }}" class="btn btn--primary">Créer un compte</a>@endif
+                    @auth
+                        @if ($dashboardRoute)
+                            <a href="{{ $dashboardRoute }}" class="btn btn--ghost">Mon espace</a>
+                        @endif
+                        <form action="{{ route('logout') }}" method="POST" class="logout-form">
+                            @csrf
+                            <button type="submit" class="btn btn--danger">Déconnexion</button>
+                        </form>
+                    @else
+                        @if (Route::has('login'))<a href="{{ route('login') }}" class="btn btn--ghost">Connexion</a>@endif
+                        @if (Route::has('register'))<a href="{{ route('register') }}" class="btn btn--primary">Créer un compte</a>@endif
+                    @endauth
                 </div>
             </div>
         </div>
