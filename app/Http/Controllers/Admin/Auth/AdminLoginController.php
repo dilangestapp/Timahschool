@@ -57,6 +57,12 @@ class AdminLoginController extends Controller
                 ->onlyInput('username');
         }
 
+        if (($user->status ?? 'active') !== 'active') {
+            return back()
+                ->withErrors(['username' => 'Ce compte administrateur est bloqué ou inactif.'])
+                ->onlyInput('username');
+        }
+
         Auth::login($user, $request->boolean('remember'));
         $request->session()->regenerate();
 
@@ -101,28 +107,21 @@ class AdminLoginController extends Controller
 
         $userModel = new User();
         $table = $userModel->getTable();
-
-        $loginColumns = [];
-
-        foreach (['username', 'email', 'name'] as $column) {
-            if (Schema::hasColumn($table, $column)) {
-                $loginColumns[] = $column;
-            }
-        }
-
-        if (empty($loginColumns)) {
-            return null;
-        }
+        $columns = Schema::getColumnListing($table);
+        $normalizedPhone = preg_replace('/[^0-9+]/', '', $identifier);
 
         $query = User::query()->with(['role', 'roles']);
 
-        $query->where(function ($subQuery) use ($loginColumns, $identifier) {
-            foreach ($loginColumns as $index => $column) {
-                if ($index === 0) {
-                    $subQuery->where($column, $identifier);
-                } else {
+        $query->where(function ($subQuery) use ($columns, $identifier, $normalizedPhone) {
+            foreach (['username', 'email', 'name', 'full_name'] as $column) {
+                if (in_array($column, $columns, true)) {
                     $subQuery->orWhere($column, $identifier);
                 }
+            }
+
+            if ($normalizedPhone !== '' && in_array('phone', $columns, true)) {
+                $subQuery->orWhere('phone', $normalizedPhone)
+                    ->orWhere('phone', $identifier);
             }
         });
 
