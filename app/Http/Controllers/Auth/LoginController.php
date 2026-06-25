@@ -3,9 +3,11 @@
 namespace App\Http\Controllers\Auth;
 
 use App\Http\Controllers\Controller;
+use App\Models\User;
 use App\Support\UserActivityRecorder;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Schema;
 
 class LoginController extends Controller
@@ -39,21 +41,31 @@ class LoginController extends Controller
 
     public function login(Request $request)
     {
-        $secretKey = 'pass' . 'word';
-
         $request->validate([
             'username' => 'required|string',
-            $secretKey => 'required|string',
+            'password' => 'required|string',
         ]);
 
-        $credentials = $request->only('username', $secretKey);
+        $identifier = trim((string) $request->input('username'));
+        $password = (string) $request->input('password');
+        $user = $this->findUserForLogin($identifier);
 
-        if (!Auth::attempt($credentials, $request->boolean('remember'))) {
+        if (!$user || !Hash::check($password, (string) $user->password)) {
             return back()->withErrors(['username' => 'Identifiants invalides.'])->onlyInput('username');
         }
 
+        if (($user->status ?? 'active') !== 'active') {
+            return back()->withErrors(['username' => 'Ce compte est bloqué ou inactif. Contactez l’administration.'])->onlyInput('username');
+        }
+
+        if (method_exists($user, 'isAdmin') && $user->isAdmin()) {
+            return redirect()->route('admin.login')->withErrors([
+                'username' => 'Le compte administrateur doit se connecter via le portail admin sécurisé.',
+            ]);
+        }
+
+        Auth::login($user, $request->boolean('remember'));
         $request->session()->regenerate();
-        $user = Auth::user();
 
         try {
             if ($user && Schema::hasColumn($user->getTable(), 'last_login_at')) {
@@ -65,16 +77,6 @@ class LoginController extends Controller
             }
         } catch (\Throwable $e) {
             // Ne pas bloquer la connexion.
-        }
-
-        if ($user && method_exists($user, 'isAdmin') && $user->isAdmin()) {
-            Auth::logout();
-            $request->session()->invalidate();
-            $request->session()->regenerateToken();
-
-            return redirect()->route('admin.login')->withErrors([
-                'username' => 'Le compte administrateur doit se connecter via le portail admin sécurisé.',
-            ]);
         }
 
         UserActivityRecorder::record($user, $request, 'login', 'web');
@@ -105,5 +107,33 @@ class LoginController extends Controller
         $request->session()->regenerateToken();
 
         return redirect()->route('login');
+    }
+
+    protected function findUserForLogin(string $identifier): ?User
+    {
+        $identifier = trim($identifier);
+        if ($identifier === '') {
+            return null;
+        }
+
+        $table = (new User())->getTable();
+        $columns = Schema::getColumnListing($table);
+        $normalizedPhone = preg_replace('/[^0-9+]/', '', $identifier);
+
+        return User::query()
+            ->with(['role', 'roles', 'studentProfile', 'parentProfile'])
+            ->where(function ($query) use ($columns, $identifier, $normalizedPhone) {
+                foreach (['username', 'email', 'name', 'full_name'] as $column) {
+                    if (in_array($column, $columns, true)) {
+                        $query->orWhere($column, $identifier);
+                    }
+                }
+
+                if ($normalizedPhone !== '' && in_array('phone', $columns, true)) {
+                    $query->orWhere('phone', $normalizedPhone)
+                        ->orWhere('phone', $identifier);
+                }
+            })
+            ->first();
     }
 }
