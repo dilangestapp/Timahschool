@@ -67,6 +67,7 @@ class AdminUserController extends Controller
             'password' => ['required', 'string', 'min:6'],
             'status' => ['nullable', 'string', 'max:50'],
             'role_id' => ['nullable', 'integer'],
+            'account_type' => ['nullable', 'string', 'max:80'],
         ]);
 
         DB::transaction(function () use ($request) {
@@ -80,7 +81,12 @@ class AdminUserController extends Controller
                 'password' => Hash::make($request->password),
             ]));
 
-            $this->syncUserRole($user, $request->role_id);
+            $roleId = $request->role_id;
+            if ($request->input('account_type') === 'technical_supervisor') {
+                $roleId = $this->technicalSupervisorRoleId() ?: $roleId;
+            }
+
+            $this->syncUserRole($user, $roleId);
         });
 
         return back()->with('success', 'Utilisateur créé avec succès.');
@@ -157,5 +163,28 @@ class AdminUserController extends Controller
         if ($this->hasColumnSafe('users', 'role_id')) {
             $user->forceFill(['role_id' => null])->save();
         }
+    }
+
+    protected function technicalSupervisorRoleId(): ?int
+    {
+        if (!$this->hasTableSafe('roles')) {
+            return null;
+        }
+
+        $role = Role::query()
+            ->whereIn('name', [
+                'technical_supervisor',
+                'responsable_technique',
+                'responsable-technique',
+                'responsable enseignement technique',
+            ])
+            ->orWhereIn('display_name', [
+                'Responsable Enseignement Technique',
+                'Responsable Technique',
+                'Responsable enseignement technique',
+            ])
+            ->first();
+
+        return $role ? (int) $role->id : null;
     }
 }
