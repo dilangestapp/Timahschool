@@ -6,7 +6,20 @@
 
 @section('content')
 @php
-    $technicalRole = $roles->firstWhere('name', 'technical_supervisor');
+    $technicalRole = $roles->first(function ($role) {
+        $name = mb_strtolower((string) ($role->name ?? ''));
+        $display = mb_strtolower((string) ($role->display_name ?? ''));
+        return in_array($name, [
+            'technical_supervisor',
+            'responsable_technique',
+            'responsable-technique',
+            'responsable enseignement technique',
+        ], true)
+        || in_array($display, [
+            'responsable enseignement technique',
+            'responsable technique',
+        ], true);
+    });
 @endphp
 <div class="admin-compact-page">
     @if($tableMissing)
@@ -26,6 +39,7 @@
                 @if($technicalRole)
                     <form method="POST" action="{{ route('admin.users.store') }}" class="admin-form">
                         @csrf
+                        <input type="hidden" name="account_type" value="technical_supervisor">
                         <input type="hidden" name="role_id" value="{{ $technicalRole->id }}">
                         <input type="hidden" name="status" value="active">
                         <div class="admin-form-grid">
